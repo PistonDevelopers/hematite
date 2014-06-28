@@ -13,22 +13,22 @@ path = "src/main.rs"
 
 [dependencies.piston]
 
-git = "https://github.com/pistondevelopers/piston/"
+git = "https://github.com/PistonDevelopers/piston"
 
 [dependencies.graphics]
 
-git = "https://github.com/pistondevelopers/rust-graphics"
+git = "https://github.com/PistonDevelopers/rust-graphics"
 
 [dependencies.opengl_graphics]
 
-git = "https://github.com/pistondevelopers/opengl_graphics"
+git = "https://github.com/PistonDevelopers/opengl_graphics"
 
 [dependencies.sdl2_game_window]
 
-git = "https://github.com/pistondevelopers/sdl2_game_window"
+git = "https://github.com/PistonDevelopers/sdl2_game_window"
 
 [dependencies.hgl]
 
-git = "https://github.com/cmr/hgl-rs/"
+git = "https://github.com/cmr/hgl-rs"
 
 
