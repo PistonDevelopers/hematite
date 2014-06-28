@@ -4,6 +4,7 @@ extern crate piston;
 extern crate graphics;
 extern crate opengl_graphics;
 extern crate sdl2_game_window;
+extern crate hgl;
 
 use Window = sdl2_game_window::GameWindowSDL2;
 use graphics::*;
@@ -30,7 +31,7 @@ fn main() {
     );
 
     let asset_store = AssetStore::from_folder("assets");
-    let image = asset_store.path("texture.png").unwrap();
+    let image = asset_store.path("minecraft-texture.png").unwrap();
     let image = Texture::from_path(&image).unwrap();
     let game_iter_settings = GameIteratorSettings {
             updates_per_second: 120,
