@@ -27,4 +27,8 @@ git = "https://github.com/pistondevelopers/opengl_graphics"
 
 git = "https://github.com/pistondevelopers/sdl2_game_window"
 
+[dependencies.hgl]
+
+git = "https://github.com/cmr/hgl-rs/"
+
 
