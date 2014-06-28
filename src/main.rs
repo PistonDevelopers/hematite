@@ -33,7 +33,7 @@ pub enum MinecraftTexture {
 
 static VERTEX_SHADER: &'static str = r"
 attribute vec3 position;
-attribute vec4 fill_color;
+attribute vec3 fill_color;
 attribute vec2 tex_coord;
 
 uniform mat4 m_projection;
@@ -46,7 +46,7 @@ varying vec4 v_fill_color;
 
 void main() {
     v_tex_coord = tex_coord;
-    v_fill_color = fill_color;
+    v_fill_color = vec4(fill_color, 1.0);
     gl_Position = m_projection * m_view * m_model * vec4(position, 1.0);
 }
 ";
@@ -100,6 +100,58 @@ fn main() {
         ]).unwrap();
     program.bind();
 
+    /*
+            2  --------- 3
+              /       / |
+             /       /  |
+         7  -------- 6  | 1
+           |        |  /
+           |        | /
+           |        |/
+         4  -------- 5
+
+          
+           ---- ---- ---- ----
+          |    |    |    |    |
+          |    |    |    |    |
+           ---- ---- ---- ----
+    */
+
+    let cube_quads = vec![
+        4u, 5, 6, 7,
+        5, 1, 3, 6,
+        1, 0, 2, 3,
+        0, 4, 7, 2,
+        7, 6, 3, 2,
+        0, 1, 5, 4,
+    ];
+
+    // Cube vertices.
+    let cube_vertices = [
+        // This is the back surface
+        -1.0f32,    -1.0,       1.0, // 0
+         1.0,       -1.0,       1.0, // 1
+         1.0,        1.0,       1.0, // 2
+        -1.0,        1.0,       1.0, // 3
+
+        // This is the front surface
+        -1.0,       -1.0,      -1.0, // 4
+         1.0,       -1.0,      -1.0, // 5
+         1.0,        1.0,      -1.0, // 6
+        -1.0,        1.0,      -1.0  // 7
+    ];
+
+    /*
+    // Initialize a vertex array buffer with the cube vertices.
+    let vao = Vao::new();
+    vao.bind();
+    vao.enable_attrib(&program, "position", gl::FLOAT, 3, 3 * size_of::<f32>() as i32, 0);
+    cube_vbo.bind();    
+
+    // vao.enable_attrib(&program, "fill_color", gl::FLOAT, 3, 3 * size_of::<f32>() as i32, 0);
+    // vao.enable_attrib(&program, "tex_coord", gl::FLOAT, 2, 2 * size_of::<f32>() as i32, 0);
+    */
+    
     for e in GameIterator::new(&mut window, &game_iter_settings) {
         match e {
             Render(args) => {
