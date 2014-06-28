@@ -20,6 +20,18 @@ use opengl_graphics::{
     Texture,
 };
 
+pub enum MinecraftTexture {
+    Lava,
+}
+
+impl MinecraftTexture {
+    pub fn src_xy(&self) -> (i32, i32) {
+        match *self {
+            Lava => (0, 0)
+        }
+    }
+}
+
 fn main() {
     let mut window = Window::new(
         GameWindowSettings {
@@ -45,7 +57,11 @@ fn main() {
 
                 let c = Context::abs(args.width as f64, args.height as f64);
                 c.rgb(0.0, 0.0, 0.0).draw(gl);
-                c.image(&image).draw(gl);
+                let (src_x, src_y) = Lava.src_xy();
+                c
+                    .image(&image)
+                    .src_rect(src_x * 16, src_y * 16, 16, 16)
+                    .draw(gl);
             },
             _ => {}
         }
