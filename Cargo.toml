@@ -35,3 +35,7 @@ git = "https://github.com/cmr/hgl-rs"
 
 git = "https://github.com/bjz/gl-rs"
 
+[dependencies.cgmath]
+
+git = "https://github.com/bjz/cgmath-rs"
+

@@ -7,6 +7,7 @@ extern crate opengl_graphics;
 extern crate sdl2_game_window;
 extern crate gl;
 extern crate libc;
+extern crate cgmath;
 
 use Window = sdl2_game_window::GameWindowSDL2;
 use graphics::*;
