@@ -21,10 +21,10 @@ use opengl_graphics::{
     Gl,
     Texture,
 };
-use opengl_graphics::shader_utils::compile_shader;
 
 pub mod shader;
 pub mod cube;
+pub mod quad;
 
 pub enum MinecraftTexture {
     Grass,
@@ -55,7 +55,7 @@ fn main() {
     
     // Load texture.
     let texture = asset_store.path("minecraft-texture.png").unwrap();
-    let texture = Texture::from_path(&texture).unwrap();
+    let ref texture = Texture::from_path(&texture).unwrap();
     let game_iter_settings = GameIteratorSettings {
             updates_per_second: 120,
             max_frames_per_second: 60,
@@ -71,32 +71,35 @@ fn main() {
                 let c = Context::abs(args.width as f64, args.height as f64);
                 c.rgb(0.0, 0.0, 0.0).draw(gl);
 
+                let (src_x, src_y) = TEST_TEXTURE.src_xy();
                 
                 shader.render(gl, |ready_shader| {
-                    shader::TriList {
-                        texture_id: texture.get_id(),
+                    quad::Quad {
+                        texture: texture,
                         vertices: [
                                 0.0, 0.0, 0.0,
                                 1.0, 0.0, 0.0,
+                                0.0, 1.0, 0.0,
                                 1.0, 1.0, 0.0,
                             ],
                         colors: [
                                 1.0, 0.0, 0.0,
                                 0.0, 1.0, 0.0,
+                                1.0, 0.0, 1.0,
                                 0.0, 0.0, 1.0,
                             ],
                         tex_coords: [
-                                0.0, 0.0,
-                                1.0, 0.0,
-                                1.0, 1.0,
+                                src_x, src_y,
+                                src_x + 16, src_y,
+                                src_x, src_y + 16,
+                                src_x + 16, src_y + 16,
                             ],
                     }.render(ready_shader);
                 });
                 
                 
-                let (src_x, src_y) = TEST_TEXTURE.src_xy();
                 c
-                    .image(&texture)
+                    .image(texture)
                     .src_rect(src_x * 16, src_y * 16, 16, 16)
                     .draw(gl);
                 
