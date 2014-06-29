@@ -1,4 +1,5 @@
 #![feature(globs)]
+#![feature(unsafe_destructor)]
 
 extern crate piston;
 extern crate graphics;
@@ -53,8 +54,8 @@ fn main() {
     let asset_store = AssetStore::from_folder("assets");
     
     // Load texture.
-    let image = asset_store.path("minecraft-texture.png").unwrap();
-    let image = Texture::from_path(&image).unwrap();
+    let texture = asset_store.path("minecraft-texture.png").unwrap();
+    let texture = Texture::from_path(&texture).unwrap();
     let game_iter_settings = GameIteratorSettings {
             updates_per_second: 120,
             max_frames_per_second: 60,
@@ -67,14 +68,38 @@ fn main() {
         match e {
             Render(args) => {
                 gl.viewport(0, 0, args.width as i32, args.height as i32);
-
                 let c = Context::abs(args.width as f64, args.height as f64);
                 c.rgb(0.0, 0.0, 0.0).draw(gl);
+
+                
+                shader.render(gl, |ready_shader| {
+                    shader::TriList {
+                        texture_id: texture.get_id(),
+                        vertices: [
+                                0.0, 0.0, 0.0,
+                                1.0, 0.0, 0.0,
+                                1.0, 1.0, 0.0,
+                            ],
+                        colors: [
+                                1.0, 0.0, 0.0,
+                                0.0, 1.0, 0.0,
+                                0.0, 0.0, 1.0,
+                            ],
+                        tex_coords: [
+                                0.0, 0.0,
+                                1.0, 0.0,
+                                1.0, 1.0,
+                            ],
+                    }.render(ready_shader);
+                });
+                
+                
                 let (src_x, src_y) = TEST_TEXTURE.src_xy();
                 c
-                    .image(&image)
+                    .image(&texture)
                     .src_rect(src_x * 16, src_y * 16, 16, 16)
                     .draw(gl);
+                
             },
             _ => {}
         }
