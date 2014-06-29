@@ -5,6 +5,7 @@ extern crate graphics;
 extern crate opengl_graphics;
 extern crate sdl2_game_window;
 extern crate gl;
+extern crate libc;
 
 use Window = sdl2_game_window::GameWindowSDL2;
 use graphics::*;
@@ -59,6 +60,8 @@ fn main() {
             max_frames_per_second: 60,
         };
     let ref mut gl = Gl::new();
+
+    let shader = shader::Shader::new();
  
     for e in GameIterator::new(&mut window, &game_iter_settings) {
         match e {
