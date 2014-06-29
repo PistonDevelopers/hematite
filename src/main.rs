@@ -21,7 +21,6 @@ use opengl_graphics::{
     Gl,
     Texture,
 };
-use opengl_graphics::shader_utils::compile_shader;
 
 pub mod shader;
 pub mod cube;

@@ -2,19 +2,12 @@
 use opengl_graphics::shader_utils::compile_shader;
 use opengl_graphics::{
     Gl,
-    Texture,
 };
 use gl;
 use gl::types::{
-    GLfloat,
-    GLint,
-    GLsizei,
-    GLsizeiptr,
     GLuint,
 };
-use std::ptr;
 use std::mem;
-use graphics::ImageSize;
 
 pub enum NotReady {}
 pub enum Ready {}

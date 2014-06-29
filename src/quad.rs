@@ -3,11 +3,9 @@ use std::mem;
 use gl;
 use gl::types::{
     GLfloat,
-    GLsizei,
     GLsizeiptr,
 };
 use opengl_graphics::{
-    Gl,
     Texture,
 };
 use shader::{
