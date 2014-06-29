@@ -4,7 +4,7 @@ extern crate piston;
 extern crate graphics;
 extern crate opengl_graphics;
 extern crate sdl2_game_window;
-extern crate hgl;
+extern crate gl;
 
 use Window = sdl2_game_window::GameWindowSDL2;
 use graphics::*;
@@ -19,48 +19,15 @@ use opengl_graphics::{
     Gl,
     Texture,
 };
-use hgl::{
-    Shader,
-    Program,
-    Triangles,
-    Vbo,
-    Vao,
-};
+use opengl_graphics::shader_utils::compile_shader;
+
+pub mod shader;
+pub mod cube;
 
 pub enum MinecraftTexture {
     Grass,
 }
 
-static VERTEX_SHADER: &'static str = r"
-attribute vec3 position;
-attribute vec3 fill_color;
-attribute vec2 tex_coord;
-
-uniform mat4 m_projection;
-uniform mat4 m_view;
-uniform mat4 m_model;
-uniform sampler2D s_texture;
-
-varying vec2 v_tex_coord;
-varying vec4 v_fill_color;
-
-void main() {
-    v_tex_coord = tex_coord;
-    v_fill_color = vec4(fill_color, 1.0);
-    gl_Position = m_projection * m_view * m_model * vec4(position, 1.0);
-}
-";
-
-static FRAGMENT_SHADER: &'static str = r"
-uniform sampler2D s_texture;
-
-varying vec2 v_tex_coord;
-varying vec4 v_fill_color;
-
-void main() {
-    gl_FragColor = texture2D(s_texture, v_tex_coord) * v_fill_color;
-}
-";
 
 static TEST_TEXTURE: MinecraftTexture = Grass;
 
@@ -92,66 +59,7 @@ fn main() {
             max_frames_per_second: 60,
         };
     let ref mut gl = Gl::new();
-
-    // Compile shaders.
-    let program = Program::link([
-            Shader::compile(VERTEX_SHADER, hgl::VertexShader),
-            Shader::compile(FRAGMENT_SHADER, hgl::FragmentShader)
-        ]).unwrap();
-    program.bind();
-
-    /*
-            2  --------- 3
-              /       / |
-             /       /  |
-         7  -------- 6  | 1
-           |        |  /
-           |        | /
-           |        |/
-         4  -------- 5
-
-          
-           ---- ---- ---- ----
-          |    |    |    |    |
-          |    |    |    |    |
-           ---- ---- ---- ----
-    */
-
-    let cube_quads = vec![
-        4u, 5, 6, 7,
-        5, 1, 3, 6,
-        1, 0, 2, 3,
-        0, 4, 7, 2,
-        7, 6, 3, 2,
-        0, 1, 5, 4,
-    ];
-
-    // Cube vertices.
-    let cube_vertices = [
-        // This is the back surface
-        -1.0f32,    -1.0,       1.0, // 0
-         1.0,       -1.0,       1.0, // 1
-         1.0,        1.0,       1.0, // 2
-        -1.0,        1.0,       1.0, // 3
-
-        // This is the front surface
-        -1.0,       -1.0,      -1.0, // 4
-         1.0,       -1.0,      -1.0, // 5
-         1.0,        1.0,      -1.0, // 6
-        -1.0,        1.0,      -1.0  // 7
-    ];
-
-    /*
-    // Initialize a vertex array buffer with the cube vertices.
-    let vao = Vao::new();
-    vao.bind();
-    vao.enable_attrib(&program, "position", gl::FLOAT, 3, 3 * size_of::<f32>() as i32, 0);
-    cube_vbo.bind();    
-
-    // vao.enable_attrib(&program, "fill_color", gl::FLOAT, 3, 3 * size_of::<f32>() as i32, 0);
-    // vao.enable_attrib(&program, "tex_coord", gl::FLOAT, 2, 2 * size_of::<f32>() as i32, 0);
-    */
-    
+ 
     for e in GameIterator::new(&mut window, &game_iter_settings) {
         match e {
             Render(args) => {
