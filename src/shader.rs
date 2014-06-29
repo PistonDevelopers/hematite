@@ -1,6 +1,9 @@
 
 use opengl_graphics::shader_utils::compile_shader;
-use opengl_graphics::Gl;
+use opengl_graphics::{
+    Gl,
+    Texture,
+};
 use gl;
 use gl::types::{
     GLfloat,
@@ -11,109 +14,10 @@ use gl::types::{
 };
 use std::ptr;
 use std::mem;
+use graphics::ImageSize;
 
 pub enum NotReady {}
 pub enum Ready {}
-
-pub struct TriList<'a> {
-    pub texture_id: GLuint,
-    pub vertices: &'a [f32],
-    pub colors: &'a [f32],
-    pub tex_coords: &'a [f32],
-}
-
-impl<'a> TriList<'a> {
-    pub fn render(&'a self, shader: &Shader<Ready>) {
-        let TriList {
-            texture_id: texture_id, 
-            vertices: vertices, 
-            colors: colors, 
-            tex_coords: tex_coords
-        } = *self;
-        gl::BindTexture(gl::TEXTURE_2D, texture_id);     
-
-        let size_vertices: i32 = 3;
-        let normalize_vertices = gl::FALSE;
-        let vertices_byte_len = (
-                vertices.len() * mem::size_of::<GLfloat>()
-            ) as GLsizeiptr;
-        // The data is tightly packed.
-        let stride_vertices = 0;
-        unsafe {
-            gl::BindBuffer(gl::ARRAY_BUFFER, shader.vbo[0]);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                vertices_byte_len,
-                mem::transmute(&vertices[0]),
-                gl::DYNAMIC_DRAW
-            );
-            gl::VertexAttribPointer(
-                shader.position,
-                size_vertices,
-                gl::FLOAT,
-                normalize_vertices,
-                stride_vertices,
-                ptr::null()
-            );
-        }
-
-        let size_fill_color = 3;
-        let normalize_fill_color = gl::FALSE;
-        let fill_colors_byte_len = (
-                colors.len() * mem::size_of::<GLfloat>()
-            ) as GLsizeiptr;
-        // The data is tightly packed.
-        let stride_fill_colors = 0;
-        unsafe {
-            gl::BindBuffer(gl::ARRAY_BUFFER, shader.vbo[1]);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                fill_colors_byte_len,
-                mem::transmute(&colors[0]),
-                gl::DYNAMIC_DRAW
-            );
-            gl::VertexAttribPointer(
-                shader.fill_color,
-                size_fill_color,
-                gl::FLOAT,
-                normalize_fill_color,
-                stride_fill_colors,
-                ptr::null()
-            );
-        }
-
-        let size_tex_coord = 2;
-        let texture_coords_byte_len = (
-                tex_coords.len() * mem::size_of::<GLfloat>()
-            ) as GLsizeiptr;
-        let normalize_texture_coords = gl::FALSE;
-        // The data is tightly packed.
-        let stride_texture_coords = 0;
-        unsafe {
-            gl::BindBuffer(gl::ARRAY_BUFFER, shader.vbo[2]);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                texture_coords_byte_len,
-                mem::transmute(&tex_coords[0]),
-                gl::DYNAMIC_DRAW
-            );
-            gl::VertexAttribPointer(
-                shader.tex_coord,
-                size_tex_coord,
-                gl::FLOAT,
-                normalize_texture_coords,
-                stride_texture_coords,
-                ptr::null()
-            );
-        }
-
-        // Draw front and back for testing.
-        gl::CullFace(gl::FRONT_AND_BACK);
-
-        let items: i32 = vertices.len() as i32 / size_vertices;
-        gl::DrawArrays(gl::TRIANGLES, 0, items);
-    }
-}
 
 static VERTEX_SHADER: &'static str = r"
 #version 330
@@ -147,8 +51,7 @@ in vec2 v_tex_coord;
 in vec4 v_fill_color;
 
 void main() {
-    // TEST
-    out_color = v_fill_color; // texture(s_texture, v_tex_coord) * v_fill_color;
+    out_color = texture(s_texture, v_tex_coord) * v_fill_color;
 }
 ";
 
@@ -160,6 +63,20 @@ pub struct Shader<State> {
     fill_color: GLuint,
     tex_coord: GLuint,
     vbo: [GLuint, ..3],
+}
+
+impl Shader<Ready> {
+    #[inline(always)]
+    pub fn get_vbo<'a>(&'a self) -> &'a [GLuint, ..3] { &(self.vbo) }
+
+    #[inline(always)]
+    pub fn get_position(&self) -> GLuint { self.position }
+
+    #[inline(always)]
+    pub fn get_fill_color(&self) -> GLuint { self.fill_color }
+
+    #[inline(always)]
+    pub fn get_tex_coord(&self) -> GLuint { self.tex_coord }
 }
 
 impl Shader<NotReady> {
