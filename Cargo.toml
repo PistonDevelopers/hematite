@@ -31,4 +31,7 @@ git = "https://github.com/PistonDevelopers/sdl2_game_window"
 
 git = "https://github.com/cmr/hgl-rs"
 
+[dependencies.gl]
+
+git = "https://github.com/bjz/gl-rs"
 
