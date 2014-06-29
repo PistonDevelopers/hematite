@@ -1,13 +1,21 @@
 
-use opengl_graphics::shader_utils::compile_shader;
+use opengl_graphics::shader_utils::{
+    DynamicAttribute,
+    compile_shader,
+};
 use opengl_graphics::{
     Gl,
 };
 use gl;
 use gl::types::{
+    GLboolean,
+    GLenum,
     GLuint,
+    GLsizei,
+    GLsizeiptr,
 };
 use std::mem;
+use std::ptr;
 
 pub enum NotReady {}
 pub enum Ready {}
@@ -49,37 +57,25 @@ void main() {
 ";
 
 pub struct Shader<State> {
+    vao: GLuint,
     vertex_shader: GLuint,
     fragment_shader: GLuint,
     program: GLuint,
-    position: GLuint,
-    fill_color: GLuint,
-    tex_coord: GLuint,
-    vbo: [GLuint, ..3],
+    position: DynamicAttribute,
+    fill_color: DynamicAttribute,
+    tex_coord: DynamicAttribute,
 }
 
 impl Shader<Ready> {
-    #[inline(always)]
-    pub fn get_vbo<'a>(&'a self) -> &'a [GLuint, ..3] { &(self.vbo) }
+    pub fn position<'a>(&'a self) -> &'a DynamicAttribute { &self.position }
 
-    #[inline(always)]
-    pub fn get_position(&self) -> GLuint { self.position }
+    pub fn fill_color<'a>(&'a self) -> &'a DynamicAttribute { &self.fill_color }
 
-    #[inline(always)]
-    pub fn get_fill_color(&self) -> GLuint { self.fill_color }
-
-    #[inline(always)]
-    pub fn get_tex_coord(&self) -> GLuint { self.tex_coord }
+    pub fn tex_coord<'a>(&'a self) -> &'a DynamicAttribute { &self.tex_coord }
 }
-
+    
 impl Shader<NotReady> {
     pub fn new() -> Shader<NotReady> {
-        let mut vbo: [GLuint, ..3] = [0, ..3];
-        unsafe {
-            gl::GenBuffers(3, vbo.as_mut_ptr());
-            gl::GenVertexArrays(3, vbo.as_mut_ptr());
-        }
-
         // Compile shaders.
         let vertex_shader = compile_shader(
                 gl::VERTEX_SHADER,
@@ -99,46 +95,37 @@ impl Shader<NotReady> {
             );
         }
 
+        let mut vao = 0;
+        unsafe {
+            gl::GenVertexArrays(1, &mut vao);
+        };
         gl::LinkProgram(program);
         gl::UseProgram(program);
 
-        unsafe {
-            let position = "position".with_c_str(
-                |ptr| gl::GetAttribLocation(program, ptr)
-            );
-            let fill_color = "fill_color".with_c_str(
-                |ptr| gl::GetAttribLocation(program, ptr)
-            );
-            let tex_coord = "tex_coord".with_c_str(
-                |ptr| gl::GetAttribLocation(program, ptr)
-            );
-            Shader {
-                program: program,
-                vertex_shader: vertex_shader,
-                fragment_shader: fragment_shader,
-                position: position as GLuint,
-                fill_color: fill_color as GLuint,
-                tex_coord: tex_coord as GLuint,
-                vbo: vbo,
-            }
+        let position = DynamicAttribute::xyz(program, "position").unwrap();
+        let fill_color = DynamicAttribute::rgb(program, "fill_color").unwrap();
+        let tex_coord = DynamicAttribute::uv(program, "tex_coord").unwrap();
+        position.bind_vao(vao);
+        fill_color.bind_vao(vao);
+        tex_coord.bind_vao(vao);
+        Shader {
+            vao: vao,
+            program: program,
+            vertex_shader: vertex_shader,
+            fragment_shader: fragment_shader,
+            position: position,
+            fill_color: fill_color,
+            tex_coord: tex_coord,
         }
     }
 
     pub fn render(&self, gl: &mut Gl, f: |shader: &Shader<Ready>|) {
         gl.use_program(self.program);
-        gl::BindVertexArray(self.vbo[0]);
-        gl::BindVertexArray(self.vbo[1]);
-        gl::BindVertexArray(self.vbo[2]);
+        gl::BindVertexArray(self.vao);
 
-        gl::EnableVertexAttribArray(self.position);
-        gl::EnableVertexAttribArray(self.fill_color);
-        gl::EnableVertexAttribArray(self.tex_coord);
+        f(unsafe { &*(self as *_ as *Shader<Ready>) });
 
-        f(unsafe {mem::transmute(self)});
-
-        gl::DisableVertexAttribArray(self.vbo[0]);
-        gl::DisableVertexAttribArray(self.vbo[1]);
-        gl::DisableVertexAttribArray(self.vbo[2]); 
+        gl::BindVertexArray(0);
     }
 }
 
