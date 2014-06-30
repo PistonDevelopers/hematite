@@ -102,12 +102,12 @@ impl Shader<NotReady> {
         gl::LinkProgram(program);
         gl::UseProgram(program);
 
-        let position = DynamicAttribute::xyz(program, "position").unwrap();
-        let fill_color = DynamicAttribute::rgb(program, "fill_color").unwrap();
-        let tex_coord = DynamicAttribute::uv(program, "tex_coord").unwrap();
-        position.bind_vao(vao);
-        fill_color.bind_vao(vao);
-        tex_coord.bind_vao(vao);
+        let position = DynamicAttribute::xyz(
+            program, "position", vao).unwrap();
+        let fill_color = DynamicAttribute::rgb(
+            program, "fill_color", vao).unwrap();
+        let tex_coord = DynamicAttribute::uv(
+            program, "tex_coord", vao).unwrap();
         Shader {
             vao: vao,
             program: program,
@@ -123,7 +123,7 @@ impl Shader<NotReady> {
         gl.use_program(self.program);
         gl::BindVertexArray(self.vao);
 
-        f(unsafe { &*(self as *_ as *Shader<Ready>) });
+        f(unsafe { &*(self as *const _ as *const Shader<Ready>) });
 
         gl::BindVertexArray(0);
     }
