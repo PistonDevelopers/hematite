@@ -55,6 +55,13 @@ fn main() {
     let ref mut gl = Gl::new();
 
     let shader = shader::Shader::new();
+
+    let camera = Camera {
+            position: [0.0, 0.0, -3.0],
+            target: [0.0, 0.0, 0.0],
+            right: [1.0, 0.0, 0.0],
+            up: [0.0, 1.0, 0.0]
+        };
  
     for e in GameIterator::new(&mut window, &game_iter_settings) {
         match e {
