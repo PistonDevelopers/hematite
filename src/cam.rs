@@ -1,7 +1,7 @@
 
 //! A 3D camera.
 
-use {
+use vecmath::{
     Vector3,
     Matrix4x3,
 };
