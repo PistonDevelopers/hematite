@@ -70,10 +70,11 @@ fn main() {
                 gl.viewport(0, 0, args.width as i32, args.height as i32);
                 let c = Context::abs(args.width as f64, args.height as f64);
                 c.rgb(0.0, 0.0, 0.0).draw(gl);
- 
+
+                let ref cam_mat = camera.orthogonal(); 
                 let tex = TEST_TEXTURE;
                 shader.render(gl, |ready_shader| {
-                    tex.to_quad(texture).render(ready_shader);
+                    tex.to_quad(texture, cam_mat).render(ready_shader);
                 });
                 let (src_x, src_y) = tex.get_src_xy();
                 c.image(texture)
