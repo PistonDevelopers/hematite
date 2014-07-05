@@ -1,5 +1,8 @@
 use quad::Quad;
 use opengl_graphics::{Texture};
+use vecmath::{
+    Matrix4x3,
+};
 
 pub enum MinecraftTexture {
     Grass,
@@ -12,7 +15,7 @@ impl MinecraftTexture {
         }
     }
 
-    pub fn to_quad<'a>(&self, texture: &'a Texture) -> Quad<'a> {
+    pub fn to_quad<'a>(&self, texture: &'a Texture, mat: &Matrix4x3) -> Quad<'a> {
         let (src_x, src_y) = self.get_src_xy();
         Quad {
             texture: texture,
