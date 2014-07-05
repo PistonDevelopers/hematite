@@ -10,4 +10,10 @@ pub struct Camera {
     pub up: Vector3,
 }
 
+pub struct CameraSettings {
+    pub fov_rad: f64,
+    pub near_clip: f64,
+    pub far_clip: f64,
+    pub aspect_ratio: f64,
+}
 
