@@ -4,6 +4,7 @@
 use vecmath::{
     Vector3,
     Matrix4x3,
+    vec3_normalized_sub,
 };
 
 pub struct Camera {
@@ -25,17 +26,7 @@ impl Camera {
     ///
     /// Returns the normalized difference between target and position.
     pub fn forward(&self) -> Vector3 {
-        let diff = [
-                self.target[0] - self.position[0],
-                self.target[1] - self.position[1],
-                self.target[2] - self.position[2],
-            ];
-        let len = diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2];
-        [
-            diff[0] / len,
-            diff[1] / len,
-            diff[2] / len,
-        ]
+        vec3_normalized_sub(self.target, self.position)
     }
 
     /// Computes an orthogonal matrix for the camera.
