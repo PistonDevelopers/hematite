@@ -23,24 +23,15 @@ use opengl_graphics::{
     Texture,
 };
 
+use cam::Camera;
+
 pub mod shader;
 pub mod cube;
 pub mod quad;
+pub mod cam;
+pub mod texture;
 
-pub enum MinecraftTexture {
-    Grass,
-}
-
-
-static TEST_TEXTURE: MinecraftTexture = Grass;
-
-impl MinecraftTexture {
-    pub fn src_xy(&self) -> (i32, i32) {
-        match *self {
-            Grass => (0, 0),
-        }
-    }
-}
+static TEST_TEXTURE: texture::MinecraftTexture = texture::Grass;
 
 fn main() {
     let mut window = Window::new(
@@ -71,39 +62,15 @@ fn main() {
                 gl.viewport(0, 0, args.width as i32, args.height as i32);
                 let c = Context::abs(args.width as f64, args.height as f64);
                 c.rgb(0.0, 0.0, 0.0).draw(gl);
-
-                let (src_x, src_y) = TEST_TEXTURE.src_xy();
-                
+ 
+                let tex = TEST_TEXTURE;
                 shader.render(gl, |ready_shader| {
-                    quad::Quad {
-                        texture: texture,
-                        vertices: [
-                                0.0, 0.0, 0.0,
-                                1.0, 0.0, 0.0,
-                                0.0, 1.0, 0.0,
-                                1.0, 1.0, 0.0,
-                            ],
-                        colors: [
-                                1.0, 0.0, 0.0,
-                                0.0, 1.0, 0.0,
-                                1.0, 0.0, 1.0,
-                                0.0, 0.0, 1.0,
-                            ],
-                        tex_coords: [
-                                src_x, src_y,
-                                src_x + 16, src_y,
-                                src_x, src_y + 16,
-                                src_x + 16, src_y + 16,
-                            ],
-                    }.render(ready_shader);
+                    tex.to_quad(texture).render(ready_shader);
                 });
-                
-                
-                c
-                    .image(texture)
-                    .src_rect(src_x * 16, src_y * 16, 16, 16)
-                    .draw(gl);
-                
+                let (src_x, src_y) = tex.get_src_xy();
+                c.image(texture)
+                .src_rect(src_x * 16, src_y * 16, 16, 16)
+                .draw(gl);
             },
             _ => {}
         }
