@@ -30,9 +30,7 @@ pub mod cube;
 pub mod quad;
 pub mod cam;
 pub mod texture;
-
-pub type Vector3 = [f64, ..3];
-pub type Matrix4x3 = [[f64, ..3], ..4];
+pub mod vecmath;
 
 static TEST_TEXTURE: texture::MinecraftTexture = texture::Grass;
 
