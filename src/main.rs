@@ -59,7 +59,7 @@ fn main() {
     let shader = shader::Shader::new();
 
     let camera = Camera {
-            position: [0.0, 0.0, -3.0],
+            position: [0.0, 0.0, -0.5],
             target: [0.0, 0.0, 0.0],
             right: [1.0, 0.0, 0.0],
             up: [0.0, 1.0, 0.0]
