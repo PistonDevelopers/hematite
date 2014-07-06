@@ -19,16 +19,11 @@ impl MinecraftTexture {
     pub fn to_quad<'a>(
         &self, 
         texture: &'a Texture, 
+        vertices: [f32, ..12],
         mat: Matrix3x4
     ) -> Quad<'a> {
         let (src_x, src_y) = self.get_src_xy();
-        let vertices = mat3x4_transform_quad(mat, [
-                0.0, 0.0, 0.0,
-                1.0, 0.0, 0.0,
-                0.0, 1.0, 0.0,
-                1.0, 1.0, 0.0,
-            ]);
-
+        let vertices = mat3x4_transform_quad(mat, vertices);
         Quad {
             texture: texture,
             vertices: vertices,

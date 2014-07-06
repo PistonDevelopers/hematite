@@ -40,7 +40,7 @@ fn main() {
     let mut window = Window::new(
         GameWindowSettings {
             title: "Hematite".to_string(),
-            size: [300, 300], // [640, 480],
+            size: [600, 600], // [640, 480],
             fullscreen: false,
             exit_on_esc: true,
         }
@@ -92,12 +92,10 @@ fn main() {
                 let cam_mat = camera.orthogonal(); 
                 let tex = TEST_TEXTURE;
                 shader.render(gl, |ready_shader| {
-                    let quad = tex.to_quad(texture, cam_mat);
-
-                    // TEST
-                    // println!("{:?}", quad);
-
-                    quad.render(ready_shader);
+                    for face in cube::FaceIterator::new() {
+                        let quad = tex.to_quad(texture, face.vertices(0.1), cam_mat);
+                        quad.render(ready_shader);
+                    };
                 });
                 let (src_x, src_y) = tex.get_src_xy();
                 c.image(texture)

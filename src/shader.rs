@@ -120,12 +120,14 @@ impl Shader<NotReady> {
     }
 
     pub fn render(&self, gl: &mut Gl, f: |shader: &Shader<Ready>|) {
+        gl::Enable(gl::DEPTH_TEST);
         gl.use_program(self.program);
         gl::BindVertexArray(self.vao);
 
         f(unsafe { &*(self as *const _ as *const Shader<Ready>) });
 
         gl::BindVertexArray(0);
+        gl::Disable(gl::DEPTH_TEST);
     }
 }
 
