@@ -7,6 +7,7 @@ use vecmath::{
     vec3_normalized_sub,
     base4x3_mat,
     mat3x4_inv,
+    vec3_cross,
 };
 
 pub struct Camera {
@@ -41,6 +42,10 @@ impl Camera {
             self.forward(),
             self.position
         ]))
+    }
+
+    pub fn update_right(&mut self) {
+        self.right = vec3_cross(self.forward(), self.up);
     }
 }
 
