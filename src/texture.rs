@@ -22,14 +22,16 @@ impl MinecraftTexture {
         mat: Matrix3x4
     ) -> Quad<'a> {
         let (src_x, src_y) = self.get_src_xy();
-        Quad {
-            texture: texture,
-            vertices: mat3x4_transform_quad(mat, [
+        let vertices = mat3x4_transform_quad(mat, [
                 0.0, 0.0, 0.0,
                 1.0, 0.0, 0.0,
                 0.0, 1.0, 0.0,
                 1.0, 1.0, 0.0,
-            ]),
+            ]);
+
+        Quad {
+            texture: texture,
+            vertices: vertices,
             colors: [
                 1.0, 0.0, 0.0,
                 0.0, 1.0, 0.0,
