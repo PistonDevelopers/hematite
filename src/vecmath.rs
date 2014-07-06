@@ -36,6 +36,15 @@ pub fn vec3_dot(a: Vector3) -> f64 {
 }
 
 #[inline(always)]
+pub fn vec3_cross(a: Vector3, b: Vector3) -> Vector3 {
+    [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+    ]
+}
+
+#[inline(always)]
 pub fn vec3_mul(a: Vector3, b: f64) -> Vector3 {
     [
         a[0] * b,
