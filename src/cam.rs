@@ -3,8 +3,10 @@
 
 use vecmath::{
     Vector3,
-    Matrix4x3,
+    Matrix3x4,
     vec3_normalized_sub,
+    base4x3_mat,
+    mat3x4_inv,
 };
 
 pub struct Camera {
@@ -32,13 +34,13 @@ impl Camera {
     /// Computes an orthogonal matrix for the camera.
     ///
     /// This matrix can be used to transform coordinates to the screen.
-    pub fn orthogonal(&self) -> Matrix4x3 {
-        [
+    pub fn orthogonal(&self) -> Matrix3x4 {
+        mat3x4_inv(base4x3_mat([
             self.right,
             self.up,
             self.forward(),
             self.position
-        ]
+        ]))
     }
 }
 

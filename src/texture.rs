@@ -1,7 +1,8 @@
 use quad::Quad;
 use opengl_graphics::{Texture};
 use vecmath::{
-    Matrix4x3,
+    Matrix3x4,
+    mat3x4_transform_quad,
 };
 
 pub enum MinecraftTexture {
@@ -15,16 +16,20 @@ impl MinecraftTexture {
         }
     }
 
-    pub fn to_quad<'a>(&self, texture: &'a Texture, mat: &Matrix4x3) -> Quad<'a> {
+    pub fn to_quad<'a>(
+        &self, 
+        texture: &'a Texture, 
+        mat: Matrix3x4
+    ) -> Quad<'a> {
         let (src_x, src_y) = self.get_src_xy();
         Quad {
             texture: texture,
-            vertices: [
+            vertices: mat3x4_transform_quad(mat, [
                 0.0, 0.0, 0.0,
                 1.0, 0.0, 0.0,
                 0.0, 1.0, 0.0,
                 1.0, 1.0, 0.0,
-            ],
+            ]),
             colors: [
                 1.0, 0.0, 0.0,
                 0.0, 1.0, 0.0,
