@@ -1,6 +1,7 @@
 #![feature(globs)]
 #![feature(unsafe_destructor)]
 
+extern crate debug;
 extern crate piston;
 extern crate graphics;
 extern crate opengl_graphics;
@@ -71,7 +72,7 @@ fn main() {
                 let c = Context::abs(args.width as f64, args.height as f64);
                 c.rgb(0.0, 0.0, 0.0).draw(gl);
 
-                let ref cam_mat = camera.orthogonal(); 
+                let cam_mat = camera.orthogonal(); 
                 let tex = TEST_TEXTURE;
                 shader.render(gl, |ready_shader| {
                     tex.to_quad(texture, cam_mat).render(ready_shader);
