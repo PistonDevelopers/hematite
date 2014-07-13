@@ -1,3 +1,4 @@
+use vecmath::Vector3;
 
 /*
         3  ---------  2
@@ -11,28 +12,28 @@ left   |  front | /  right
 
 */
 
-pub static QUADS: [uint, ..24] = [
-    0u, 4, 3, 7,    // left
-    5, 1, 6, 2,     // right
-    0, 1, 4, 5,     // bottom
-    3, 2, 7, 6,     // top
-    4, 5, 7, 6,     // front
-    1, 0, 2, 3,     // back
+pub static QUADS: [[uint, ..4], ..6] = [
+    [0u,4, 3, 7],   // left
+    [5, 1, 6, 2],   // right
+    [0, 1, 4, 5],   // bottom
+    [3, 2, 7, 6],   // top
+    [4, 5, 7, 6],   // front
+    [1, 0, 2, 3]    // back
 ];
 
 // Cube vertices.
-pub static VERTICES: [f32, ..24] = [
+pub static VERTICES: [Vector3, ..8] = [
     // This is the back surface
-    -1.0f32,    -1.0,       1.0, // 0
-     1.0,       -1.0,       1.0, // 1
-     1.0,        1.0,       1.0, // 2
-    -1.0,        1.0,       1.0, // 3
+    [0.0f32,    0.0,        1.0], // 0
+    [1.0,       0.0,        1.0], // 1
+    [1.0,       1.0,        1.0], // 2
+    [0.0,       1.0,        1.0], // 3
 
     // This is the front surface
-    -1.0,       -1.0,      -1.0, // 4
-     1.0,       -1.0,      -1.0, // 5
-     1.0,        1.0,      -1.0, // 6
-    -1.0,        1.0,      -1.0  // 7
+    [0.0,       0.0,        0.0], // 4
+    [1.0,       0.0,        0.0], // 5
+    [1.0,       1.0,        0.0], // 6
+    [0.0,       1.0,        0.0]  // 7
 ];
 
 
@@ -48,28 +49,14 @@ pub enum Face {
 }
 
 impl Face {
-    #[inline(always)]
-    fn ind(self, vertex: uint, dim: uint) -> uint {
-        QUADS[self as uint * 4 + vertex] * 3 + dim
-    }
-
-    pub fn vertices(self, scale: f32) -> [f32, ..12] {
+    pub fn vertices(self, x: f32, y: f32, z: f32) -> [Vector3, ..4] {
+        let q = &QUADS[self as uint];
+        let v = &VERTICES;
         [
-            VERTICES[self.ind(0, 0)] * scale, 
-            VERTICES[self.ind(0, 1)] * scale, 
-            VERTICES[self.ind(0, 2)] * scale,
-    
-            VERTICES[self.ind(1, 0)] * scale, 
-            VERTICES[self.ind(1, 1)] * scale, 
-            VERTICES[self.ind(1, 2)] * scale,
-    
-            VERTICES[self.ind(2, 0)] * scale, 
-            VERTICES[self.ind(2, 1)] * scale, 
-            VERTICES[self.ind(2, 2)] * scale,
-    
-            VERTICES[self.ind(3, 0)] * scale, 
-            VERTICES[self.ind(3, 1)] * scale, 
-            VERTICES[self.ind(3, 2)] * scale,
+            [x + v[q[0]][0], y + v[q[0]][1], z + v[q[0]][2]],
+            [x + v[q[1]][0], y + v[q[1]][1], z + v[q[1]][2]],
+            [x + v[q[2]][0], y + v[q[2]][1], z + v[q[2]][2]],
+            [x + v[q[3]][0], y + v[q[3]][1], z + v[q[3]][2]]
         ]
     }
 }

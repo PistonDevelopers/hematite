@@ -1,142 +1,113 @@
-
-use opengl_graphics::shader_utils::{
-    DynamicAttribute,
-    compile_shader,
-};
-use opengl_graphics::{
-    Gl,
-};
 use gl;
-use gl::types::{
-    GLboolean,
-    GLenum,
-    GLuint,
-    GLsizei,
-    GLsizeiptr,
-};
-use std::mem;
-use std::ptr;
+use gl::types::GLint;
+use hgl;
+use hgl::{Program, Triangles, Vbo, Vao};
+use vecmath::Matrix4;
 
-pub enum NotReady {}
-pub enum Ready {}
+use std::mem;
 
 static VERTEX_SHADER: &'static str = r"
-#version 330
-in vec3 position;
-in vec3 fill_color;
-in vec2 tex_coord;
+    uniform mat4 projection, view;
 
-// TEST
-// uniform mat4 m_projection;
-// uniform mat4 m_view;
-// uniform mat4 m_model;
-uniform sampler2D s_texture;
+    attribute vec2 tex_coord;
+    attribute vec3 color;
+    attribute vec3 position;
 
-out vec2 v_tex_coord;
-out vec4 v_fill_color;
+    varying vec2 v_tex_coord;
+    varying vec3 v_color;
 
-void main() {
-    v_tex_coord = tex_coord;
-    v_fill_color = vec4(fill_color, 1.0);
-    // TEST
-    gl_Position = vec4(position, 1.0); // m_projection * m_view * m_model * vec4(position, 1.0);
-}
+    void main() {
+        v_tex_coord = tex_coord;
+        v_color = color;
+        gl_Position = projection * view * vec4(position, 1.0);
+    }
 ";
 
 static FRAGMENT_SHADER: &'static str = r"
-#version 330
-out vec4 out_color;
-uniform sampler2D s_texture;
+    uniform sampler2D s_texture;
 
-in vec2 v_tex_coord;
-in vec4 v_fill_color;
+    varying vec2 v_tex_coord;
+    varying vec3 v_color;
 
-void main() {
-    out_color = texture(s_texture, v_tex_coord) * v_fill_color;
-}
+    void main() {
+        gl_FragColor = texture2D(s_texture, v_tex_coord) * vec4(v_color, 1.0);
+    }
 ";
 
-pub struct Shader<State> {
-    vao: GLuint,
-    vertex_shader: GLuint,
-    fragment_shader: GLuint,
-    program: GLuint,
-    position: DynamicAttribute,
-    fill_color: DynamicAttribute,
-    tex_coord: DynamicAttribute,
+pub struct Shader {
+    program: Program,
+    vao: Vao,
+    projection_uniform: GLint,
+    view_uniform: GLint
 }
 
-impl Shader<Ready> {
-    pub fn position<'a>(&'a self) -> &'a DynamicAttribute { &self.position }
-
-    pub fn fill_color<'a>(&'a self) -> &'a DynamicAttribute { &self.fill_color }
-
-    pub fn tex_coord<'a>(&'a self) -> &'a DynamicAttribute { &self.tex_coord }
+pub struct Buffer {
+    vbo: Vbo,
+    triangles: uint
 }
-    
-impl Shader<NotReady> {
-    pub fn new() -> Shader<NotReady> {
-        // Compile shaders.
-        let vertex_shader = compile_shader(
-                gl::VERTEX_SHADER,
-                VERTEX_SHADER
-            ).unwrap();
-        let fragment_shader = compile_shader(
-                gl::FRAGMENT_SHADER,
-                FRAGMENT_SHADER
-            ).unwrap();
-        let program = gl::CreateProgram();
-        gl::AttachShader(program, vertex_shader);
-        gl::AttachShader(program, fragment_shader);
-       
-        unsafe { 
-            "out_color".with_c_str(
-                |ptr| gl::BindFragDataLocation(program, 0, ptr)
-            );
-        }
 
-        let mut vao = 0;
-        unsafe {
-            gl::GenVertexArrays(1, &mut vao);
-        };
-        gl::LinkProgram(program);
-        gl::UseProgram(program);
+impl Shader {
+    pub fn new() -> Shader {
+        let vao = Vao::new();
+        vao.bind();
 
-        let position = DynamicAttribute::xyz(
-            program, "position", vao).unwrap();
-        let fill_color = DynamicAttribute::rgb(
-            program, "fill_color", vao).unwrap();
-        let tex_coord = DynamicAttribute::uv(
-            program, "tex_coord", vao).unwrap();
+        let program = Program::link([
+            hgl::Shader::compile(VERTEX_SHADER, hgl::VertexShader),
+            hgl::Shader::compile(FRAGMENT_SHADER, hgl::FragmentShader)
+        ]).unwrap();
+        program.bind();
+
+        let projection_uniform = program.uniform("projection");
+        let view_uniform = program.uniform("view");
+
         Shader {
-            vao: vao,
             program: program,
-            vertex_shader: vertex_shader,
-            fragment_shader: fragment_shader,
-            position: position,
-            fill_color: fill_color,
-            tex_coord: tex_coord,
+            vao: vao,
+            projection_uniform: projection_uniform,
+            view_uniform: view_uniform
         }
     }
 
-    pub fn render(&self, gl: &mut Gl, f: |shader: &Shader<Ready>|) {
+    pub fn bind(&self) {
+        self.vao.bind();
+        self.program.bind();
         gl::Enable(gl::DEPTH_TEST);
-        gl.use_program(self.program);
-        gl::BindVertexArray(self.vao);
+    }
 
-        f(unsafe { &*(self as *const _ as *const Shader<Ready>) });
+    pub fn set_projection(&self, proj_mat: Matrix4) {
+        unsafe {
+            gl::UniformMatrix4fv(self.projection_uniform, 1, gl::FALSE, proj_mat[0].as_ptr());
+        }
+    }
 
-        gl::BindVertexArray(0);
-        gl::Disable(gl::DEPTH_TEST);
+    pub fn set_view(&self, view_mat: Matrix4) {
+        unsafe {
+            gl::UniformMatrix4fv(self.view_uniform, 1, gl::FALSE, view_mat[0].as_ptr());
+        }
+    }
+
+    pub fn new_buffer(&self) -> Buffer {
+        let vbo = Vbo::new();
+        vbo.bind();
+        let s_f32 = mem::size_of::<f32>();
+        self.vao.enable_attrib(&self.program, "position", gl::FLOAT, 3, 8*s_f32 as i32, 0);
+        self.vao.enable_attrib(&self.program, "tex_coord", gl::FLOAT, 2, 8*s_f32 as i32, 3*s_f32);
+        self.vao.enable_attrib(&self.program, "color", gl::FLOAT, 3, 8*s_f32 as i32, 5*s_f32);
+        Buffer {
+            vbo: vbo,
+            triangles: 0
+        }
+    }
+
+    pub fn render(&self, buffer: &Buffer) {
+        buffer.vbo.bind();
+        self.vao.draw_array(Triangles, 0, (buffer.triangles * 3) as gl::types::GLint);
     }
 }
 
-#[unsafe_destructor]
-impl Drop for Shader<NotReady> {
-    fn drop(&mut self) {
-        gl::DeleteProgram(self.program);
-        gl::DeleteShader(self.vertex_shader);
-        gl::DeleteShader(self.fragment_shader);
+impl Buffer {
+    pub fn load_data(&mut self, data: &[[([f32, ..3], [f32, ..2], [f32, ..3]), ..3]]) {
+        self.vbo.load_data(data, hgl::buffer::DynamicDraw);
+        self.triangles = data.len();
     }
 }
-

@@ -1,9 +1,8 @@
-use quad::Quad;
-use opengl_graphics::{Texture};
-use vecmath::{
-    Matrix3x4,
-    mat3x4_transform_quad,
-};
+use gl::types::GLint;
+use hgl;
+use image;
+
+use std::io::fs::File;
 
 pub enum MinecraftTexture {
     Grass,
@@ -15,31 +14,64 @@ impl MinecraftTexture {
             Grass => (0, 0),
         }
     }
-
-    pub fn to_quad<'a>(
-        &self, 
-        texture: &'a Texture, 
-        vertices: [f32, ..12],
-        mat: Matrix3x4
-    ) -> Quad<'a> {
-        let (src_x, src_y) = self.get_src_xy();
-        let vertices = mat3x4_transform_quad(mat, vertices);
-        Quad {
-            texture: texture,
-            vertices: vertices,
-            colors: [
-                1.0, 0.0, 0.0,
-                0.0, 1.0, 0.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-            ],
-            tex_coords: [
-                src_x, src_y,
-                src_x + 16, src_y,
-                src_x, src_y + 16,
-                src_x + 16, src_y + 16,
-            ],
-        }
-    }    
 }
 
+pub struct Texture {
+    tex: hgl::texture::Texture,
+    width: u32,
+    height: u32,
+    unit_u: f32,
+    unit_v: f32
+}
+
+impl Texture {
+    /// Loads image by relative file name to the asset root.
+    pub fn from_path(path: &Path) -> Result<Texture, String> {
+        let file = match File::open(path) {
+            Ok(file) => file,
+            Err(e)  => return Err(format!("Could not load '{}': {}",
+                                          path.filename_str().unwrap(), e)),
+        };
+
+        let img = match image::Image::load(file, image::PNG) {
+            Ok(img) => img,
+            Err(e)  => return Err(format!("Could not load '{}': {}",
+                                          path.filename_str().unwrap(), e)),
+        };
+
+        match img.colortype() {
+            image::RGBA(8) => {},
+            c => fail!("Unsupported color type {} in png", c),
+        };
+
+        let (width, height) = img.dimensions();
+
+        let ii = hgl::texture::ImageInfo::new()
+            .pixel_format(hgl::texture::pixel::RGBA).pixel_type(hgl::texture::pixel::UNSIGNED_BYTE)
+            .width(width as GLint).height(height as GLint);
+
+        let tex = hgl::Texture::new(hgl::texture::Texture2D, ii, img.raw_pixels().as_ptr());
+        tex.gen_mipmaps();
+        tex.filter(hgl::texture::Nearest);
+        tex.wrap(hgl::texture::Repeat);
+
+        Ok(Texture {
+            tex: tex,
+            width: width,
+            height: height,
+            unit_u: 16.0 / (width as f32),
+            unit_v: 16.0 / (height as f32)
+        })
+    }
+
+    pub fn square(&self, x: i32, y: i32) -> [[f32, ..2], ..4] {
+        let (u1, v1) = (self.unit_u, self.unit_v);
+        let (u, v) = (x as f32 * u1, y as f32 * v1);
+        [
+            [u, v],
+            [u + u1, v],
+            [u, v + v1],
+            [u + u1, v + v1]
+        ]
+    }
+}
