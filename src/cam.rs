@@ -9,6 +9,8 @@ use vecmath::{
     vec3_dot
 };
 
+use std::f32::consts::PI;
+
 pub struct Camera {
     pub position: Vector3,
     pub target: Vector3,
@@ -17,10 +19,10 @@ pub struct Camera {
 }
 
 pub struct CameraSettings {
-    pub fov_rad: f64,
-    pub near_clip: f64,
-    pub far_clip: f64,
-    pub aspect_ratio: f64,
+    pub fov: f32,
+    pub near_clip: f32,
+    pub far_clip: f32,
+    pub aspect_ratio: f32,
 }
 
 impl Camera {
@@ -49,6 +51,20 @@ impl Camera {
 
     pub fn update_right(&mut self) {
         self.right = vec3_cross(self.up, self.forward());
+    }
+}
+
+impl CameraSettings {
+    /// Computes a projection matrix for the camera settings.
+    pub fn projection(&self) -> Matrix4 {
+        let f = 1.0 / (self.fov * (PI / 360.0)).tan();
+        let (far, near) = (self.far_clip, self.near_clip);
+        [
+            [f / self.aspect_ratio, 0.0, 0.0, 0.0],
+            [0.0, f, 0.0, 0.0],
+            [0.0, 0.0, (far + near) / (near - far), -1.0],
+            [0.0, 0.0, (2.0 * far * near) / (near - far), 0.0]
+        ]
     }
 }
 
