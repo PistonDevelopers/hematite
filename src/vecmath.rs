@@ -31,8 +31,8 @@ pub fn vec3_add(a: Vector3, b: Vector3) -> Vector3 {
 }
 
 #[inline(always)]
-pub fn vec3_dot(a: Vector3) -> f32 {
-    a[0] * a[0] + a[1] * a[1] + a[2] * a[2]
+pub fn vec3_dot(a: Vector3, b: Vector3) -> f32 {
+    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
 #[inline(always)]
@@ -55,7 +55,7 @@ pub fn vec3_mul(a: Vector3, b: f32) -> Vector3 {
 
 #[inline(always)]
 pub fn vec3_len(a: Vector3) -> f32 {
-    vec3_dot(a).sqrt()
+    vec3_dot(a, a).sqrt()
 }
 
 #[inline(always)]
