@@ -65,8 +65,8 @@ fn main() {
             right: [1.0, 0.0, 0.0],
             up: [0.0, 1.0, 0.0]
         };
-    let mut t: f64 = 0.0;
     let radius = 0.5;
+    let mut t: f32 = 0.0;
     let speed = 1.0;
  
     for e in GameIterator::new(&mut window, &game_iter_settings) {
@@ -103,7 +103,7 @@ fn main() {
                 .draw(gl);
             },
             Update(args) => {
-                t += args.dt;
+                t += args.dt as f32;
             },
             _ => {}
         }
