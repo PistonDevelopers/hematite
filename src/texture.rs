@@ -1,8 +1,7 @@
 use gl::types::GLint;
 use hgl;
 use image;
-
-use std::io::fs::File;
+use image::GenericImage;
 
 pub enum MinecraftTexture {
     Grass,
@@ -27,19 +26,13 @@ pub struct Texture {
 impl Texture {
     /// Loads image by relative file name to the asset root.
     pub fn from_path(path: &Path) -> Result<Texture, String> {
-        let file = match File::open(path) {
-            Ok(file) => file,
-            Err(e)  => return Err(format!("Could not load '{}': {}",
-                                          path.filename_str().unwrap(), e)),
-        };
-
-        let img = match image::Image::load(file, image::PNG) {
+        let img = match image::open(path) {
             Ok(img) => img,
             Err(e)  => return Err(format!("Could not load '{}': {}",
                                           path.filename_str().unwrap(), e)),
         };
 
-        match img.colortype() {
+        match img.color() {
             image::RGBA(8) => {},
             c => fail!("Unsupported color type {} in png", c),
         };
