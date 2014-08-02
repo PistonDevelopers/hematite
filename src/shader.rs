@@ -6,33 +6,62 @@ use vecmath::Matrix4;
 
 use std::mem;
 
-static VERTEX_SHADER: &'static str = r"
-    uniform mat4 projection, view;
+macro_rules! make_vertex_shader {
+    ($version:expr $($profile:ident)*) => (concat!("
+        #version ", stringify!($version), $(stringify!($profile),)* "
 
-    attribute vec2 tex_coord;
-    attribute vec3 color;
-    attribute vec3 position;
+        #if __VERSION__ < 130
+            #define in attribute
+            #define out varying
+        #endif
 
-    varying vec2 v_tex_coord;
-    varying vec3 v_color;
+        uniform mat4 projection, view;
 
-    void main() {
-        v_tex_coord = tex_coord;
-        v_color = color;
-        gl_Position = projection * view * vec4(position, 1.0);
-    }
-";
+        in vec2 tex_coord;
+        in vec3 color, position;
 
-static FRAGMENT_SHADER: &'static str = r"
-    uniform sampler2D s_texture;
+        out vec2 v_tex_coord;
+        out vec3 v_color;
 
-    varying vec2 v_tex_coord;
-    varying vec3 v_color;
+        void main() {
+            v_tex_coord = tex_coord;
+            v_color = color;
+            gl_Position = projection * view * vec4(position, 1.0);
+        }
+    "))
+}
 
-    void main() {
-        gl_FragColor = texture2D(s_texture, v_tex_coord) * vec4(v_color, 1.0);
-    }
-";
+macro_rules! make_fragment_shader {
+    ($version:expr $($profile:ident)*) => (concat!("
+        #version ", stringify!($version), $(stringify!($profile),)* "
+
+        #if __VERSION__ < 130
+            #define in varying
+            #define texture texture2D
+            #define out_color gl_FragColor
+        #else
+            out vec4 out_color;
+        #endif
+
+        uniform sampler2D s_texture;
+
+        in vec2 v_tex_coord;
+        in vec3 v_color;
+
+        void main() {
+            vec4 tex_color = texture(s_texture, v_tex_coord);
+            if(tex_color.a == 0.0) // Discard transparent pixels.
+                discard;
+            out_color = tex_color * vec4(v_color, 1.0);
+        }
+    "))
+}
+
+macro_rules! make_shaders {
+    ($version:expr $($profile:ident)*) => (
+        (make_vertex_shader!($version $($profile)*), make_fragment_shader!($version $($profile)*))
+    )
+}
 
 pub struct Shader {
     program: Program,
@@ -51,9 +80,11 @@ impl Shader {
         let vao = Vao::new();
         vao.bind();
 
+        let (vertex_shader, fragment_shader) = make_shaders!(330 core);
+
         let program = Program::link([
-            hgl::Shader::compile(VERTEX_SHADER, hgl::VertexShader),
-            hgl::Shader::compile(FRAGMENT_SHADER, hgl::FragmentShader)
+            hgl::Shader::compile(vertex_shader, hgl::VertexShader),
+            hgl::Shader::compile(fragment_shader, hgl::FragmentShader)
         ]).unwrap();
         program.bind();
 

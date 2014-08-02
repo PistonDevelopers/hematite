@@ -1,4 +1,4 @@
-#![feature(globs)]
+#![feature(globs, macro_rules)]
 
 extern crate debug;
 extern crate piston;
