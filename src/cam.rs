@@ -13,9 +13,9 @@ use std::f32::consts::PI;
 
 pub struct Camera {
     pub position: Vector3,
-    pub target: Vector3,
-    pub right: Vector3,
     pub up: Vector3,
+    pub right: Vector3,
+    pub forward: Vector3
 }
 
 pub struct CameraSettings {
@@ -26,11 +26,16 @@ pub struct CameraSettings {
 }
 
 impl Camera {
-    /// Computes the direction forward.
+    /// Constructs a new camera.
     ///
-    /// Returns the normalized difference between target and position.
-    pub fn forward(&self) -> Vector3 {
-        vec3_normalized_sub(self.position, self.target)
+    /// Places the camera at [x, y, z], looking towards pozitive z.
+    pub fn new(x: f32, y: f32, z: f32) -> Camera {
+        Camera {
+            position: [x, y, z],
+            up: [0.0, 1.0, 0.0],
+            right: [1.0, 0.0, 0.0],
+            forward: [0.0, 0.0, 1.0]
+        }
     }
 
     /// Computes an orthogonal matrix for the camera.
@@ -40,7 +45,7 @@ impl Camera {
         let p = self.position;
         let r = self.right;
         let u = self.up;
-        let f = self.forward();
+        let f = self.forward;
         [
             [r[0], u[0], f[0], 0.0],
             [r[1], u[1], f[1], 0.0],
@@ -49,8 +54,20 @@ impl Camera {
         ]
     }
 
-    pub fn update_right(&mut self) {
-        self.right = vec3_cross(self.up, self.forward());
+    pub fn look_at(&mut self, x: f32, y: f32, z: f32) {
+        self.forward = vec3_normalized_sub(self.position, [x, y, z]);
+        self.update_right();
+    }
+
+    pub fn set_yaw_pitch(&mut self, yaw: f32, pitch: f32) {
+        let (y_s, y_c, p_s, p_c) = (yaw.sin(), yaw.cos(), pitch.sin(), pitch.cos());
+        self.forward = [y_s * p_c, p_s, y_c * p_c];
+        self.up = [y_s * -p_s, p_c, y_c * -p_s];
+        self.update_right();
+    }
+
+    fn update_right(&mut self) {
+        self.right = vec3_cross(self.up, self.forward);
     }
 }
 
