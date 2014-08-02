@@ -103,6 +103,8 @@ impl Shader {
         self.vao.bind();
         self.program.bind();
         gl::Enable(gl::DEPTH_TEST);
+        gl::Enable(gl::CULL_FACE);
+        gl::CullFace(gl::FRONT);
     }
 
     pub fn set_projection(&self, proj_mat: Matrix4) {

@@ -87,7 +87,7 @@ fn main() {
                         (v[3], t[0], [1.0, 0.0, 1.0])
                     ];
                     tri.push([v[0], v[1], v[2]]);
-                    tri.push([v[1], v[2], v[3]]);
+                    tri.push([v[1], v[3], v[2]]);
                 }
                 buffer.load_data(tri.as_slice());
 
