@@ -11,8 +11,11 @@ A simple Minecraft written in Rust with the Piston game engine.
   ~~~
 - [GLFW 3.x](http://www.glfw.org/download.html) for your respective OS
   - details on [how to compile](http://www.glfw.org/docs/latest/compile.html)
-    - if you have OSX and [Homebrew](http://brew.sh/) installed try the following
+    - if you have OSX and [Homebrew](http://brew.sh/) installed, try the following
     ~~~
     $ brew install glfw3
     ~~~
 
+## Build
+
+  TODO
