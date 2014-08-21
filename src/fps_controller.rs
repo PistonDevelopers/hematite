@@ -43,7 +43,7 @@ impl FPSController {
         match *e {
             Update(args) => {
                 let dt = args.dt as f32;
-                let dh = dt * *velocity * 3.0;
+                let dh = dt * *velocity * 8.0;
                 let [dx, dy, dz] = *direction;
                 let (s, c) = (yaw.sin(), yaw.cos());
                 camera.position[0] += (s * dx - c * dz) * dh;
