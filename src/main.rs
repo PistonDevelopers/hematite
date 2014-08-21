@@ -10,12 +10,14 @@ extern crate libc;
 extern crate cgmath;
 
 use sdl2_game_window::GameWindowSDL2 as Window;
+use piston::input;
 use piston::{
     AssetStore,
     GameIterator,
     GameIteratorSettings,
     GameWindow,
     GameWindowSettings,
+    Input,
     Render
 };
 
@@ -40,8 +42,6 @@ fn main() {
             exit_on_esc: true,
         }
     );
-
-    window.capture_cursor(true);
 
     let asset_store = AssetStore::from_folder("../assets");
 
@@ -68,7 +68,11 @@ fn main() {
     let mut fps_controller = FPSController::new();
     camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
 
-    for e in GameIterator::new(&mut window, &game_iter_settings) {
+    let mut capture_cursor = false;
+    println!("Press C to capture mouse");
+
+    let mut events = GameIterator::new(&mut window, &game_iter_settings);
+    for e in events {
         match e {
             Render(_args) => {
                 let mut tri: Vec<[([f32, ..3], [f32, ..2], [f32, ..3]), ..3]> = vec![];
@@ -91,8 +95,21 @@ fn main() {
                 shader.bind();
                 gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
                 shader.render(&buffer);
-            },
-            e => fps_controller.event(&e, &mut camera),
+            }
+            Input(input::KeyPress { key: input::keyboard::C }) => {
+                println!("Turned cursor capture {}", if capture_cursor { "off" } else { "on" });
+                capture_cursor = !capture_cursor;
+
+                events.game_window.capture_cursor(capture_cursor);
+            }
+            Input(input::MouseRelativeMove { .. }) => {
+                if !capture_cursor {
+                    // Don't send the mouse event to the FPS controller.
+                    continue;
+                }
+            }
+            _ => {}
         }
+        fps_controller.event(&e, &mut camera);
     }
 }
