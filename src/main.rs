@@ -9,18 +9,14 @@ extern crate image;
 extern crate libc;
 extern crate cgmath;
 
-use Window = sdl2_game_window::GameWindowSDL2;
+use sdl2_game_window::GameWindowSDL2 as Window;
 use piston::{
     AssetStore,
     GameIterator,
     GameIteratorSettings,
     GameWindow,
     GameWindowSettings,
-    KeyPress,
-    KeyRelease,
-    MouseRelativeMove,
-    Render,
-    Update
+    Render
 };
 
 use cam::{Camera, CameraSettings};
@@ -36,6 +32,7 @@ pub mod vecmath;
 
 fn main() {
     let mut window = Window::new(
+        piston::shader_version::opengl::OpenGL_3_3,
         GameWindowSettings {
             title: "Hematite".to_string(),
             size: [600, 600], // [640, 480],

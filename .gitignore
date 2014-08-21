@@ -23,5 +23,3 @@ watch.sh
 /examples/**
 !/examples/*.rs
 !/examples/assets/
-
-Cargo.lock

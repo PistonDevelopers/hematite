@@ -1,11 +1,6 @@
 use std::f32::consts::{PI, SQRT2};
-use piston::{
-    GameEvent,
-    KeyPress,
-    KeyRelease,
-    MouseRelativeMove,
-    Update,
-};
+use piston::input::{KeyPress, KeyRelease, MouseRelativeMove};
+use piston::{GameEvent, Input, Update};
 use cam::Camera;
 
 bitflags!(flags Keys: u8 {
@@ -54,15 +49,15 @@ impl FPSController {
                 camera.position[0] += (s * dx - c * dz) * dh;
                 camera.position[1] += dy * dt * 4.0;
                 camera.position[2] += (s * dz + c * dx) * dh;
-            },
-            MouseRelativeMove(args) => {
-                *yaw = (*yaw - args.dx as f32 / 360.0 * PI / 4.0) % (2.0 * PI);
-                *pitch += args.dy as f32 / 360.0 * PI / 4.0;
+            }
+            Input(MouseRelativeMove { dx, dy, .. }) => {
+                *yaw = (*yaw - dx as f32 / 360.0 * PI / 4.0) % (2.0 * PI);
+                *pitch += dy as f32 / 360.0 * PI / 4.0;
                 *pitch = (*pitch).min(PI / 2.0).max(-PI / 2.0);
                 camera.set_yaw_pitch(*yaw, *pitch);
-            },
-            KeyPress(args) => {
-                use piston::keyboard::{A, D, S, W, Space, LShift, LCtrl};
+            }
+            Input(KeyPress { key }) => {
+                use piston::input::keyboard::{A, D, S, W, Space, LShift, LCtrl};
                 let [dx, dy, dz] = *direction;
                 let sgn = |x: f32| if x == 0.0 {0.0} else {x.signum()};
                 let set = |k, x: f32, y: f32, z: f32| {
@@ -75,7 +70,7 @@ impl FPSController {
                     *direction = [x, y, z];
                     keys.insert(k);
                 };
-                match args.key {
+                match key {
                     W => set(MoveForward, -1.0, dy, dz),
                     S => set(MoveBack, 1.0, dy, dz),
                     A => set(StrafeLeft, dx, dy, 1.0),
@@ -85,9 +80,9 @@ impl FPSController {
                     LCtrl => *velocity = 2.0,
                     _ => {}
                 }
-            },
-            KeyRelease(args) => {
-                use piston::keyboard::{A, D, S, W, Space, LShift, LCtrl};
+            }
+            Input(KeyRelease { key }) => {
+                use piston::input::keyboard::{A, D, S, W, Space, LShift, LCtrl};
                 let [dx, dy, dz] = *direction;
                 let sgn = |x: f32| if x == 0.0 {0.0} else {x.signum()};
                 let set = |x: f32, y: f32, z: f32| {
@@ -103,7 +98,7 @@ impl FPSController {
                     keys.remove(key);
                     if keys.contains(rev_key) {rev_val} else {0.0}
                 };
-                match args.key {
+                match key {
                     W => set(release(MoveForward, MoveBack, 1.0), dy, dz),
                     S => set(release(MoveBack, MoveForward, -1.0), dy, dz),
                     A => set(dx, dy, release(StrafeLeft, StrafeRight, -1.0)),
@@ -113,8 +108,8 @@ impl FPSController {
                     LCtrl => *velocity = 1.0,
                     _ => {}
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 }
