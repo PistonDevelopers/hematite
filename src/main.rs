@@ -39,7 +39,7 @@ fn main() {
         piston::shader_version::opengl::OpenGL_3_3,
         GameWindowSettings {
             title: "Hematite".to_string(),
-            size: [600, 600], // [640, 480],
+            size: [854, 480],
             fullscreen: false,
             exit_on_esc: true,
         }
@@ -62,7 +62,10 @@ fn main() {
         fov: 70.0,
         near_clip: 0.1,
         far_clip: 1000.0,
-        aspect_ratio: 1.0
+        aspect_ratio: {
+            let (w, h) = window.get_size();
+            (w as f32) / (h as f32)
+        }
     }.projection());
 
     let mut camera = Camera::new(0.5, 0.5, 4.0);
