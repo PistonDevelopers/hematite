@@ -43,7 +43,7 @@ fn main() {
 
     window.capture_cursor(true);
 
-    let asset_store = AssetStore::from_folder("assets");
+    let asset_store = AssetStore::from_folder("../assets");
 
     // Load texture.
     let texture = asset_store.path("minecraft-texture.png").unwrap();

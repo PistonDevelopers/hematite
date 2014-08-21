@@ -11,9 +11,7 @@
 *.dummy
 *.exe
 *-test
-/bin/main
-/bin/test-internal
-/bin/test-external
+/assets/minecraft/
 /doc/
 /target/
 /build/
