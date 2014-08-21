@@ -48,7 +48,7 @@ fn main() {
     let asset_store = AssetStore::from_folder("../assets");
 
     // Load texture.
-    let texture = asset_store.path("minecraft-texture.png").unwrap();
+    let texture = asset_store.path("texture.png").unwrap();
     let texture = Texture::from_path(&texture).unwrap();
 
     let game_iter_settings = GameIteratorSettings {
@@ -83,8 +83,13 @@ fn main() {
                 let mut tri = vec![];
                 for face in cube::FaceIterator::new() {
                     let xyz = face.vertices([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
-                    let (tx, ty) = texture::Grass.get_src_xy();
-                    let uv = texture.square(tx, ty);
+                    let [u0, v1, u1, v0] = [0.0, 0.75, 0.25, 1.0];
+                    let uv = [
+                        [u1, v0],
+                        [u0, v0],
+                        [u0, v1],
+                        [u1, v1]
+                    ];
                     let v = [
                         (xyz[0], uv[0], [1.0, 0.0, 0.0]),
                         (xyz[1], uv[1], [0.0, 1.0, 0.0]),
