@@ -70,6 +70,12 @@ pub struct Shader {
     view_uniform: GLint
 }
 
+pub struct Vertex {
+    pub xyz: [f32, ..3],
+    pub uv: [f32, ..2],
+    pub rgb: [f32, ..3]
+}
+
 pub struct Buffer {
     vbo: Vbo,
     triangles: uint
@@ -139,7 +145,7 @@ impl Shader {
 }
 
 impl Buffer {
-    pub fn load_data(&mut self, data: &[[([f32, ..3], [f32, ..2], [f32, ..3]), ..3]]) {
+    pub fn load_data(&self, data: &[[Vertex, ..3]]) {
         self.vbo.load_data(data, hgl::buffer::DynamicDraw);
         self.triangles = data.len();
     }

@@ -21,6 +21,7 @@ use piston::{
     Render
 };
 
+use array::*;
 use cam::{Camera, CameraSettings};
 use fps_controller::FPSController;
 use texture::Texture;
@@ -76,7 +77,7 @@ fn main() {
     for e in events {
         match e {
             Render(_args) => {
-                let mut tri: Vec<[([f32, ..3], [f32, ..2], [f32, ..3]), ..3]> = vec![];
+                let mut tri = vec![];
                 for face in cube::FaceIterator::new() {
                     let v = face.vertices(0.0, 0.0, 0.0);
                     let (tx, ty) = texture::Grass.get_src_xy();
@@ -86,7 +87,7 @@ fn main() {
                         (v[1], t[2], [0.0, 1.0, 0.0]),
                         (v[2], t[1], [0.0, 0.0, 1.0]),
                         (v[3], t[0], [1.0, 0.0, 1.0])
-                    ];
+                    ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
                     tri.push([v[0], v[1], v[2]]);
                     tri.push([v[1], v[3], v[2]]);
                 }
