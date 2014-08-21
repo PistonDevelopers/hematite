@@ -1,3 +1,6 @@
+use std::from_str::FromStr;
+
+use array::*;
 use vecmath::Vector3;
 
 /*
@@ -61,15 +64,47 @@ pub enum Face {
 }
 
 impl Face {
-    pub fn vertices(self, x: f32, y: f32, z: f32) -> [Vector3, ..4] {
-        let q = &QUADS[self as uint];
-        let v = &VERTICES;
-        [
-            [x + v[q[0]][0], y + v[q[0]][1], z + v[q[0]][2]],
-            [x + v[q[1]][0], y + v[q[1]][1], z + v[q[1]][2]],
-            [x + v[q[2]][0], y + v[q[2]][1], z + v[q[2]][2]],
-            [x + v[q[3]][0], y + v[q[3]][1], z + v[q[3]][2]]
-        ]
+    pub fn vertices(self, [x, y, z]: Vector3, [sx, sy, sz]: Vector3) -> [Vector3, ..4] {
+        QUADS[self as uint].map(|i| VERTICES[i]).map(|[vx, vy, vz]| {
+            [x + sx * vx, y + sy * vy, z + sz * vz]
+        })
+    }
+
+    pub fn direction(self) -> [i32, ..3] {
+        match self {
+            Down => [0, -1, 0],
+            Up => [0, 1, 0],
+            North => [0, 0, -1],
+            South => [0, 0, 1],
+            West => [-1, 0, 0],
+            East => [1, 0, 0]
+        }
+    }
+
+    pub fn from_direction(d: [i32, ..3]) -> Option<Face> {
+        Some(match d {
+            [0, -1, 0] => Down,
+            [0, 1, 0] => Up,
+            [0, 0, -1] => North,
+            [0, 0, 1] => South,
+            [-1, 0, 0] => West,
+            [1, 0, 0] => East,
+            _ => return None
+        })
+    }
+}
+
+impl FromStr for Face {
+    fn from_str(s: &str) -> Option<Face> {
+        Some(match s {
+            "down" => Down,
+            "up" => Up,
+            "north" => North,
+            "south" => South,
+            "west" => West,
+            "east" => East,
+            _ => return None
+        })
     }
 }
 

@@ -82,14 +82,14 @@ fn main() {
             Render(_args) => {
                 let mut tri = vec![];
                 for face in cube::FaceIterator::new() {
-                    let v = face.vertices(0.0, 0.0, 0.0);
+                    let xyz = face.vertices([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
                     let (tx, ty) = texture::Grass.get_src_xy();
-                    let t = texture.square(tx, ty);
+                    let uv = texture.square(tx, ty);
                     let v = [
-                        (v[0], t[0], [1.0, 0.0, 0.0]),
-                        (v[1], t[1], [0.0, 1.0, 0.0]),
-                        (v[2], t[2], [0.0, 0.0, 1.0]),
-                        (v[3], t[3], [1.0, 0.0, 1.0])
+                        (xyz[0], uv[0], [1.0, 0.0, 0.0]),
+                        (xyz[1], uv[1], [0.0, 1.0, 0.0]),
+                        (xyz[2], uv[2], [0.0, 0.0, 1.0]),
+                        (xyz[3], uv[3], [1.0, 0.0, 1.0])
                     ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
 
                     // Split the clockwise quad into two clockwise triangles.
