@@ -21,3 +21,4 @@ watch.sh
 /examples/**
 !/examples/*.rs
 !/examples/assets/
+*.kdev4
