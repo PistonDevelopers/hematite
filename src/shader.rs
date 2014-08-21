@@ -110,8 +110,10 @@ impl Shader {
         self.vao.bind();
         self.program.bind();
         gl::Enable(gl::DEPTH_TEST);
+        gl::DepthFunc(gl::LEQUAL);
         gl::Enable(gl::CULL_FACE);
         gl::CullFace(gl::FRONT);
+        gl::ClearColor(0.81, 0.8, 1.0, 1.0);
     }
 
     pub fn set_projection(&self, proj_mat: Matrix4) {
