@@ -27,10 +27,10 @@ use fps_controller::FPSController;
 use texture::Texture;
 
 pub mod array;
-pub mod shader;
-pub mod cube;
 pub mod cam;
+pub mod cube;
 pub mod fps_controller;
+pub mod shader;
 pub mod texture;
 pub mod vecmath;
 
