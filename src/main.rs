@@ -58,7 +58,7 @@ fn main() {
     let mut buffer = shader.new_buffer();
 
     shader.set_projection(CameraSettings {
-        fov: 90.0,
+        fov: 70.0,
         near_clip: 0.1,
         far_clip: 1000.0,
         aspect_ratio: 1.0
