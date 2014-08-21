@@ -25,6 +25,7 @@ use cam::{Camera, CameraSettings};
 use fps_controller::FPSController;
 use texture::Texture;
 
+pub mod array;
 pub mod shader;
 pub mod cube;
 pub mod cam;
