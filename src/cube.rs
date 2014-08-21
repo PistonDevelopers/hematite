@@ -3,49 +3,61 @@ use vecmath::Vector3;
 /*
         3  ---------  2
           /       / |
-         /  top  /  |
-     7  -------- 6  | 1
+         /  up   /  |
+     6  -------- 7  | 1
        |        |  /
-left   |  front | /  right
+west   |  south | /  east
        |        |/
-     4  -------- 5
+     5  -------- 4
 
 */
 
+/*
+        7  ---------  6
+          /       / |
+         /  up   /  |
+     2  -------- 3  | 5
+       |        |  /
+east   |  north | /  west
+       |        |/
+     1  -------- 0
+
+*/
+
+// Cube faces (clockwise).
 pub static QUADS: [[uint, ..4], ..6] = [
-    [0u,4, 3, 7],   // left
-    [5, 1, 6, 2],   // right
-    [0, 1, 4, 5],   // bottom
-    [2, 3, 6, 7],   // top
-    [4, 5, 7, 6],   // front
-    [1, 0, 2, 3]    // back
+    [1, 0, 5, 4], // down
+    [7, 6, 3, 2], // up
+    [0, 1, 2, 3], // north
+    [4, 5, 6, 7], // south
+    [5, 0, 3, 6], // west
+    [1, 4, 7, 2]  // east
 ];
 
 // Cube vertices.
 pub static VERTICES: [Vector3, ..8] = [
-    // This is the back surface
-    [0.0f32,    0.0,        1.0], // 0
-    [1.0,       0.0,        1.0], // 1
-    [1.0,       1.0,        1.0], // 2
-    [0.0,       1.0,        1.0], // 3
+    // This is the north surface
+    [0.0, 0.0, 0.0], // 0
+    [1.0, 0.0, 0.0], // 1
+    [1.0, 1.0, 0.0], // 2
+    [0.0, 1.0, 0.0], // 3
 
-    // This is the front surface
-    [0.0,       0.0,        0.0], // 4
-    [1.0,       0.0,        0.0], // 5
-    [1.0,       1.0,        0.0], // 6
-    [0.0,       1.0,        0.0]  // 7
+    // This is the south surface
+    [1.0, 0.0, 1.0], // 4
+    [0.0, 0.0, 1.0], // 5
+    [0.0, 1.0, 1.0], // 6
+    [1.0, 1.0, 1.0]  // 7
 ];
 
-
 #[repr(uint)]
-#[deriving(FromPrimitive)]
+#[deriving(PartialEq, Eq, FromPrimitive, Show)]
 pub enum Face {
-    Left = 0,
-    Right = 1,
-    Bottom = 2,
-    Top = 3,
-    Front = 4,
-    Back = 5,
+    Down = 0,
+    Up = 1,
+    North = 2,
+    South = 3,
+    West = 4,
+    East = 5
 }
 
 impl Face {

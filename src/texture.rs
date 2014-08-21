@@ -61,10 +61,10 @@ impl Texture {
         let (u1, v1) = (self.unit_u, self.unit_v);
         let (u, v) = (x as f32 * u1, y as f32 * v1);
         [
-            [u, v],
-            [u + u1, v],
+            [u + u1, v + v1],
             [u, v + v1],
-            [u + u1, v + v1]
+            [u, v],
+            [u + u1, v]
         ]
     }
 }

@@ -86,13 +86,15 @@ fn main() {
                     let (tx, ty) = texture::Grass.get_src_xy();
                     let t = texture.square(tx, ty);
                     let v = [
-                        (v[0], t[3], [1.0, 0.0, 0.0]),
-                        (v[1], t[2], [0.0, 1.0, 0.0]),
-                        (v[2], t[1], [0.0, 0.0, 1.0]),
-                        (v[3], t[0], [1.0, 0.0, 1.0])
+                        (v[0], t[0], [1.0, 0.0, 0.0]),
+                        (v[1], t[1], [0.0, 1.0, 0.0]),
+                        (v[2], t[2], [0.0, 0.0, 1.0]),
+                        (v[3], t[3], [1.0, 0.0, 1.0])
                     ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
+
+                    // Split the clockwise quad into two clockwise triangles.
                     tri.push([v[0], v[1], v[2]]);
-                    tri.push([v[1], v[3], v[2]]);
+                    tri.push([v[2], v[3], v[0]]);
                 }
                 buffer.load_data(tri.as_slice());
 
