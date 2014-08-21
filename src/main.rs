@@ -57,7 +57,6 @@ fn main() {
     };
 
     let shader = shader::Shader::new();
-    let mut buffer = shader.new_buffer();
 
     shader.set_projection(CameraSettings {
         fov: 70.0,
@@ -73,6 +72,7 @@ fn main() {
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
 
+    let buffer = shader::Buffer::new();
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {

@@ -4,6 +4,7 @@ use hgl;
 use hgl::{Program, Triangles, Vbo, Vao};
 use vecmath::Matrix4;
 
+use std::cell::Cell;
 use std::mem;
 
 macro_rules! make_vertex_shader {
@@ -78,7 +79,7 @@ pub struct Vertex {
 
 pub struct Buffer {
     vbo: Vbo,
-    triangles: uint
+    triangles: Cell<uint>
 }
 
 impl Shader {
@@ -125,28 +126,27 @@ impl Shader {
         }
     }
 
-    pub fn new_buffer(&self) -> Buffer {
-        let vbo = Vbo::new();
-        vbo.bind();
-        let s_f32 = mem::size_of::<f32>();
-        self.vao.enable_attrib(&self.program, "position", gl::FLOAT, 3, 8*s_f32 as i32, 0);
-        self.vao.enable_attrib(&self.program, "tex_coord", gl::FLOAT, 2, 8*s_f32 as i32, 3*s_f32);
-        self.vao.enable_attrib(&self.program, "color", gl::FLOAT, 3, 8*s_f32 as i32, 5*s_f32);
-        Buffer {
-            vbo: vbo,
-            triangles: 0
-        }
-    }
-
     pub fn render(&self, buffer: &Buffer) {
         buffer.vbo.bind();
-        self.vao.draw_array(Triangles, 0, (buffer.triangles * 3) as gl::types::GLint);
+        let s_f32 = mem::size_of::<f32>();
+        let total = 8*s_f32 as i32;
+        self.vao.enable_attrib(&self.program, "position", gl::FLOAT, 3, total, 0);
+        self.vao.enable_attrib(&self.program, "tex_coord", gl::FLOAT, 2, total, 3*s_f32);
+        self.vao.enable_attrib(&self.program, "color", gl::FLOAT, 3, total, 5*s_f32);
+        self.vao.draw_array(Triangles, 0, (buffer.triangles.get() * 3) as gl::types::GLint);
     }
 }
 
 impl Buffer {
+    pub fn new() -> Buffer {
+        Buffer {
+            vbo: Vbo::new(),
+            triangles: Cell::new(0)
+        }
+    }
+
     pub fn load_data(&self, data: &[[Vertex, ..3]]) {
         self.vbo.load_data(data, hgl::buffer::DynamicDraw);
-        self.triangles = data.len();
+        self.triangles.set(data.len());
     }
 }
