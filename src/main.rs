@@ -44,6 +44,7 @@ pub mod minecraft {
     pub use self::data_1_8_pre2 as data;
 
     mod data_1_8_pre2;
+    pub mod biome;
     pub mod nbt;
     pub mod region;
 }
