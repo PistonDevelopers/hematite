@@ -1,6 +1,8 @@
 use gfx;
 use image;
-use image::{GenericImage, ImageBuf, Pixel, Rgba};
+use image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
+use std::collections::HashMap;
+use std::mem;
 
 fn load_rgba8(path: &Path) -> Result<ImageBuf<Rgba<u8>>, String> {
     match image::open(path) {
@@ -77,5 +79,103 @@ impl ColorMap {
 
         let (r, g, b, _) = self.image.get_pixel(x as u32, y as u32).channels();
         [r, g, b]
+    }
+}
+
+pub struct AtlasBuilder {
+    image: ImageBuf<Rgba<u8>>,
+    // Base path for loading tiles.
+    path: Path,
+    // Size of an individual tile.
+    unit_width: u32,
+    unit_height: u32,
+    // Size of the entirely occupied square, in tiles.
+    completed_tiles_size: u32,
+    // Position in the current strip.
+    position: u32,
+    // Position cache for loaded tiles (in pixels).
+    tile_positions: HashMap<String, (u32, u32)>,
+    // Opacity cache for rectangles in the atlas.
+    opacity_cache: HashMap<(u32, u32, u32, u32), bool>
+}
+
+impl AtlasBuilder {
+    pub fn new(path: Path, unit_width: u32, unit_height: u32) -> AtlasBuilder {
+        AtlasBuilder {
+            image: ImageBuf::new(unit_width * 4, unit_height * 4),
+            path: path,
+            unit_width: unit_width,
+            unit_height: unit_height,
+            completed_tiles_size: 0,
+            position: 0,
+            tile_positions: HashMap::new(),
+            opacity_cache: HashMap::new()
+        }
+    }
+
+    pub fn load(&mut self, name: &str) -> (u32, u32) {
+        match self.tile_positions.find_equiv(&name) {
+            Some(pos) => return *pos,
+            None => {}
+        }
+
+        let mut path = self.path.join(name);
+        path.set_extension("png");
+        let img = load_rgba8(&path).unwrap();
+
+        let (iw, ih) = img.dimensions();
+        assert!(iw == self.unit_width);
+        assert!((ih % self.unit_height) == 0);
+        if ih > self.unit_height {
+            println!("ignoring {} extra frames in '{}'", (ih / self.unit_height) - 1, name);
+        }
+
+        let (uw, uh) = (self.unit_width, self.unit_height);
+        let (w, h) = self.image.dimensions();
+        let size = self.completed_tiles_size;
+
+        // Expand the image buffer if necessary.
+        if self.position == 0 && (uw * size >= w || uh * size >= h) {
+            let old = mem::replace(&mut self.image, ImageBuf::new(w * 2, h * 2));
+            let mut dest = SubImage::new(&mut self.image, 0, 0, w, h);
+            for ((_, _, a), (_, _, b)) in dest.mut_pixels().zip(old.pixels()) {
+                *a = b;
+            }
+        }
+
+        let (x, y) = if self.position < size {
+            (self.position, size)
+        } else {
+            (size, self.position - size)
+        };
+
+        self.position += 1;
+        if self.position >= size * 2 + 1 {
+            self.position = 0;
+            self.completed_tiles_size += 1;
+        }
+
+        let mut dest = SubImage::new(&mut self.image, x * uw, y * uh, uw, uh);
+        for ((_, _, a), (_, _, b)) in dest.mut_pixels().zip(img.pixels()) {
+            *a = b;
+        }
+
+        *self.tile_positions.find_or_insert(name.to_string(), (x * uw, y * uh))
+    }
+
+    pub fn is_opaque(&mut self, x: u32, y: u32, w: u32, h: u32) -> bool {
+        match self.opacity_cache.find(&(x, y, w, h)) {
+            Some(opaque) => return *opaque,
+            None => {}
+        }
+
+        let tile = SubImage::new(&mut self.image, x, y, w, h);
+        let opaque = !tile.pixels().any(|(_, _, p)| p.alpha() < 255);
+        self.opacity_cache.insert((x, y, w, h), opaque);
+        opaque
+    }
+
+    pub fn complete<D: gfx::Device>(self, d: &mut D) -> Texture {
+        Texture::from_rgba8(self.image, d)
     }
 }
