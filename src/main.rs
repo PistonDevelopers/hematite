@@ -11,6 +11,7 @@ extern crate cgmath;
 
 use sdl2_game_window::GameWindowSDL2 as Window;
 use piston::input;
+use piston::cam;
 use piston::{
     AssetStore,
     GameIterator,
@@ -18,18 +19,15 @@ use piston::{
     GameWindow,
     GameWindowSettings,
     Input,
-    Render
+    Render,
+    Update,
 };
 
 use array::*;
-use cam::{Camera, CameraSettings};
-use fps_controller::FPSController;
 use texture::Texture;
 
 pub mod array;
-pub mod cam;
 pub mod cube;
-pub mod fps_controller;
 pub mod shader;
 pub mod texture;
 pub mod vecmath;
@@ -58,7 +56,7 @@ fn main() {
 
     let shader = shader::Shader::new();
 
-    shader.set_projection(CameraSettings {
+    shader.set_projection(cam::CameraPerspective {
         fov: 70.0,
         near_clip: 0.1,
         far_clip: 1000.0,
@@ -68,8 +66,11 @@ fn main() {
         }
     }.projection());
 
-    let mut camera = Camera::new(0.5, 0.5, 4.0);
-    let mut fps_controller = FPSController::new();
+    let mut camera = cam::Camera::new(0.5, 0.5, 4.0);
+    let mut fps_controller_settings = cam::FPSControllerSettings::default();
+    fps_controller_settings.speed_horizontal = 8.0;
+    fps_controller_settings.speed_vertical = 4.0;
+    let mut fps_controller = cam::FPSController::new(fps_controller_settings);
     camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
 
     let mut capture_cursor = false;
@@ -122,6 +123,12 @@ fn main() {
             }
             _ => {}
         }
-        fps_controller.event(&e, &mut camera);
+
+        // Camera controller.
+        match e {
+            Input(ref args) => fps_controller.input(args, &mut camera),
+            Update(piston::UpdateArgs { dt, .. }) => fps_controller.update(dt, &mut camera),
+            _ => {}
+        }
     }
 }
