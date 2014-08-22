@@ -12,6 +12,9 @@ extern crate libc;
 extern crate cgmath;
 extern crate time;
 
+extern crate flate;
+extern crate serialize;
+
 use sdl2_game_window::GameWindowSDL2 as Window;
 use piston::input;
 use piston::cam;
@@ -33,6 +36,10 @@ pub mod cube;
 pub mod fps_counter;
 pub mod shader;
 pub mod texture;
+
+pub mod minecraft {
+    pub mod nbt;
+}
 
 fn main() {
     let mut window = Window::new(
