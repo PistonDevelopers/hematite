@@ -13,6 +13,8 @@ extern crate cgmath;
 extern crate time;
 
 extern crate flate;
+extern crate native;
+extern crate rustrt;
 extern crate serialize;
 
 use sdl2_game_window::GameWindowSDL2 as Window;
@@ -32,6 +34,7 @@ use array::*;
 use texture::Texture;
 
 pub mod array;
+pub mod chunk;
 pub mod cube;
 pub mod fps_counter;
 pub mod shader;
@@ -39,6 +42,7 @@ pub mod texture;
 
 pub mod minecraft {
     pub mod nbt;
+    pub mod region;
 }
 
 fn main() {
