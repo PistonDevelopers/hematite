@@ -1,63 +1,110 @@
+use std::from_str::FromStr;
+
+use array::*;
 use vecmath::Vector3;
 
 /*
         3  ---------  2
           /       / |
-         /  top  /  |
-     7  -------- 6  | 1
+         /  up   /  |
+     6  -------- 7  | 1
        |        |  /
-left   |  front | /  right
+west   |  south | /  east
        |        |/
-     4  -------- 5
+     5  -------- 4
 
 */
 
+/*
+        7  ---------  6
+          /       / |
+         /  up   /  |
+     2  -------- 3  | 5
+       |        |  /
+east   |  north | /  west
+       |        |/
+     1  -------- 0
+
+*/
+
+// Cube faces (clockwise).
 pub static QUADS: [[uint, ..4], ..6] = [
-    [0u,4, 3, 7],   // left
-    [5, 1, 6, 2],   // right
-    [0, 1, 4, 5],   // bottom
-    [2, 3, 6, 7],   // top
-    [4, 5, 7, 6],   // front
-    [1, 0, 2, 3]    // back
+    [1, 0, 5, 4], // down
+    [7, 6, 3, 2], // up
+    [0, 1, 2, 3], // north
+    [4, 5, 6, 7], // south
+    [5, 0, 3, 6], // west
+    [1, 4, 7, 2]  // east
 ];
 
 // Cube vertices.
 pub static VERTICES: [Vector3, ..8] = [
-    // This is the back surface
-    [0.0f32,    0.0,        1.0], // 0
-    [1.0,       0.0,        1.0], // 1
-    [1.0,       1.0,        1.0], // 2
-    [0.0,       1.0,        1.0], // 3
+    // This is the north surface
+    [0.0, 0.0, 0.0], // 0
+    [1.0, 0.0, 0.0], // 1
+    [1.0, 1.0, 0.0], // 2
+    [0.0, 1.0, 0.0], // 3
 
-    // This is the front surface
-    [0.0,       0.0,        0.0], // 4
-    [1.0,       0.0,        0.0], // 5
-    [1.0,       1.0,        0.0], // 6
-    [0.0,       1.0,        0.0]  // 7
+    // This is the south surface
+    [1.0, 0.0, 1.0], // 4
+    [0.0, 0.0, 1.0], // 5
+    [0.0, 1.0, 1.0], // 6
+    [1.0, 1.0, 1.0]  // 7
 ];
 
-
 #[repr(uint)]
-#[deriving(FromPrimitive)]
+#[deriving(PartialEq, Eq, FromPrimitive, Show)]
 pub enum Face {
-    Left = 0,
-    Right = 1,
-    Bottom = 2,
-    Top = 3,
-    Front = 4,
-    Back = 5,
+    Down = 0,
+    Up = 1,
+    North = 2,
+    South = 3,
+    West = 4,
+    East = 5
 }
 
 impl Face {
-    pub fn vertices(self, x: f32, y: f32, z: f32) -> [Vector3, ..4] {
-        let q = &QUADS[self as uint];
-        let v = &VERTICES;
-        [
-            [x + v[q[0]][0], y + v[q[0]][1], z + v[q[0]][2]],
-            [x + v[q[1]][0], y + v[q[1]][1], z + v[q[1]][2]],
-            [x + v[q[2]][0], y + v[q[2]][1], z + v[q[2]][2]],
-            [x + v[q[3]][0], y + v[q[3]][1], z + v[q[3]][2]]
-        ]
+    pub fn vertices(self, [x, y, z]: Vector3, [sx, sy, sz]: Vector3) -> [Vector3, ..4] {
+        QUADS[self as uint].map(|i| VERTICES[i]).map(|[vx, vy, vz]| {
+            [x + sx * vx, y + sy * vy, z + sz * vz]
+        })
+    }
+
+    pub fn direction(self) -> [i32, ..3] {
+        match self {
+            Down => [0, -1, 0],
+            Up => [0, 1, 0],
+            North => [0, 0, -1],
+            South => [0, 0, 1],
+            West => [-1, 0, 0],
+            East => [1, 0, 0]
+        }
+    }
+
+    pub fn from_direction(d: [i32, ..3]) -> Option<Face> {
+        Some(match d {
+            [0, -1, 0] => Down,
+            [0, 1, 0] => Up,
+            [0, 0, -1] => North,
+            [0, 0, 1] => South,
+            [-1, 0, 0] => West,
+            [1, 0, 0] => East,
+            _ => return None
+        })
+    }
+}
+
+impl FromStr for Face {
+    fn from_str(s: &str) -> Option<Face> {
+        Some(match s {
+            "down" => Down,
+            "up" => Up,
+            "north" => North,
+            "south" => South,
+            "west" => West,
+            "east" => East,
+            _ => return None
+        })
     }
 }
 

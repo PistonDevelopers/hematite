@@ -11,9 +11,7 @@
 *.dummy
 *.exe
 *-test
-/bin/main
-/bin/test-internal
-/bin/test-external
+/assets/minecraft/
 /doc/
 /target/
 /build/
@@ -23,5 +21,4 @@ watch.sh
 /examples/**
 !/examples/*.rs
 !/examples/assets/
-
-Cargo.lock
+*.kdev4
