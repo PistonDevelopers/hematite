@@ -45,6 +45,8 @@ pub mod minecraft {
 
     mod data_1_8_pre2;
     pub mod biome;
+    pub mod block_state;
+    pub mod model;
     pub mod nbt;
     pub mod region;
 }
