@@ -1,10 +1,11 @@
-#![feature(globs, macro_rules)]
+#![feature(globs, macro_rules, phase)]
 
 extern crate debug;
 extern crate piston;
 extern crate sdl2_game_window;
-extern crate gl;
-extern crate hgl;
+extern crate gfx;
+#[phase(plugin)]
+extern crate gfx_macros;
 extern crate image;
 extern crate libc;
 extern crate cgmath;
@@ -42,21 +43,22 @@ fn main() {
             exit_on_esc: true,
         }
     );
+    let (mut device, frame) = window.gfx();
 
     let asset_store = AssetStore::from_folder("../assets");
 
     // Load texture.
     let texture = asset_store.path("texture.png").unwrap();
-    let texture = Texture::from_path(&texture).unwrap();
+    let texture = Texture::from_path(&texture, &mut device).unwrap();
 
     let game_iter_settings = GameIteratorSettings {
         updates_per_second: 120,
         max_frames_per_second: 60,
     };
 
-    let shader = shader::Shader::new();
+    let mut renderer = shader::Renderer::new(device, frame, texture.tex);
 
-    shader.set_projection(cam::CameraPerspective {
+    renderer.set_projection(cam::CameraPerspective {
         fov: 70.0,
         near_clip: 0.1,
         far_clip: 1000.0,
@@ -76,7 +78,6 @@ fn main() {
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
 
-    let buffer = shader::Buffer::new();
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
@@ -99,15 +100,15 @@ fn main() {
                     ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
 
                     // Split the clockwise quad into two clockwise triangles.
-                    tri.push([v[0], v[1], v[2]]);
-                    tri.push([v[2], v[3], v[0]]);
+                    tri.push_all([v[0], v[1], v[2]]);
+                    tri.push_all([v[2], v[3], v[0]]);
                 }
-                buffer.load_data(tri.as_slice());
-
-                shader.set_view(camera.orthogonal());
-                shader.bind();
-                gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-                shader.render(&buffer);
+                let buf = renderer.create_buffer(tri.as_slice());
+                renderer.set_view(camera.orthogonal());
+                renderer.reset();
+                renderer.render(buf);
+                renderer.end_frame();
+                renderer.delete_buffer(buf);
             }
             Input(input::KeyPress { key: input::keyboard::C }) => {
                 println!("Turned cursor capture {}", if capture_cursor { "off" } else { "on" });

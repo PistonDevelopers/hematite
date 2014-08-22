@@ -22,15 +22,14 @@ git = "https://github.com/PistonDevelopers/sdl2_game_window"
 
 git = "https://github.com/PistonDevelopers/rust-image"
 
-[dependencies.hgl]
-
-git = "https://github.com/cmr/hgl-rs"
-
-[dependencies.gl]
-
-git = "https://github.com/bjz/gl-rs"
-
 [dependencies.cgmath]
 
 git = "https://github.com/bjz/cgmath-rs"
 
+[dependencies.gfx]
+
+git = "https://github.com/gfx-rs/gfx-rs"
+
+[dependencies.device]
+
+git = "https://github.com/gfx-rs/gfx-rs"

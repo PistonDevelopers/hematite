@@ -22,3 +22,4 @@ watch.sh
 !/examples/*.rs
 !/examples/assets/
 *.kdev4
+*.trace
