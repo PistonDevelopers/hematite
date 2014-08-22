@@ -47,3 +47,35 @@ impl Texture {
         }
     }
 }
+
+pub struct ColorMap {
+    image: ImageBuf<Rgba<u8>>
+}
+
+impl ColorMap {
+    pub fn from_path(path: &Path) -> Result<ColorMap, String> {
+        let img = try!(load_rgba8(path));
+
+        match img.dimensions() {
+            (256, 256) => Ok(ColorMap {image: img}),
+            (w, h) => Err(format!("ColorMap expected 256x256, found {}x{} in '{}'",
+                                  w, h, path.display()))
+        }
+    }
+
+    pub fn get(&self, x: f32, y: f32) -> [u8, ..3] {
+        // Clamp to [0.0, 1.0].
+        let x = x.max(0.0).min(1.0);
+        let y = y.max(0.0).min(1.0);
+
+        // Scale y from [0.0, 1.0] to [0.0, x], forming a triangle.
+        let y = x * y;
+
+        // Origin is in the bottom-right corner.
+        let x = ((1.0 - x) * 255.0) as u8;
+        let y = ((1.0 - y) * 255.0) as u8;
+
+        let (r, g, b, _) = self.image.get_pixel(x as u32, y as u32).channels();
+        [r, g, b]
+    }
+}
