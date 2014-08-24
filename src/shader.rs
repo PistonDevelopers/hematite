@@ -165,13 +165,9 @@ impl<D: gfx::Device> Renderer<D> {
 
     pub fn render(&mut self, buffer: Buffer) {
         let mesh = gfx::Mesh::from(buffer.buf, buffer.len);
-        self.renderer.draw(
-                &mesh, 
-                mesh.get_slice(device::TriangleList), 
-                &self.frame, 
-                (&self.prog, &self.params), 
-                &self.drawstate
-            ).unwrap();
+        self.renderer.draw(&mesh, mesh.get_slice(device::TriangleList), 
+                           &self.frame, (&self.prog, &self.params), 
+                           &self.drawstate).unwrap();
     }
 
     pub fn end_frame(&mut self) {

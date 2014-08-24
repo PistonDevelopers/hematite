@@ -56,7 +56,7 @@ fn main() {
 
     let game_iter_settings = GameIteratorSettings {
         updates_per_second: 120,
-        max_frames_per_second: 10000,
+        max_frames_per_second: 60,
     };
 
     let mut renderer = shader::Renderer::new(device, frame, texture.tex);
@@ -128,9 +128,8 @@ fn main() {
                     last_render = now;
                 }
 
-                renderer.set_view(first_person.camera(
-                        _args.ext_dt * if extrapolate_time { 1.0 } else { 0.0 }
-                    ).orthogonal());
+                let ext_dt = _args.ext_dt * if extrapolate_time { 1.0 } else { 0.0 };
+                renderer.set_view(first_person.camera(ext_dt).orthogonal());
                 renderer.reset();
                 renderer.render(buffer);
                 renderer.end_frame();
