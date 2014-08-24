@@ -9,6 +9,7 @@ extern crate gfx_macros;
 extern crate image;
 extern crate libc;
 extern crate cgmath;
+extern crate time;
 
 use sdl2_game_window::GameWindowSDL2 as Window;
 use piston::input;
@@ -29,6 +30,7 @@ use texture::Texture;
 
 pub mod array;
 pub mod cube;
+pub mod fps_counter;
 pub mod shader;
 pub mod texture;
 pub mod vecmath;
@@ -75,6 +77,8 @@ fn main() {
     let mut fps_controller = cam::FPSController::new(fps_controller_settings);
     camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
 
+    let mut fps_counter = fps_counter::FPSCounter::new();
+
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
 
@@ -109,6 +113,10 @@ fn main() {
                 renderer.render(buf);
                 renderer.end_frame();
                 renderer.delete_buffer(buf);
+
+                let fps = fps_counter.update();
+                let title = format!("Hematite @ {}FPS", fps);
+                events.game_window.window.set_title(title.as_slice());
             }
             Input(input::KeyPress { key: input::keyboard::C }) => {
                 println!("Turned cursor capture {}", if capture_cursor { "off" } else { "on" });
