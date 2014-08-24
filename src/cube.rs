@@ -1,7 +1,7 @@
 use std::from_str::FromStr;
 
 use array::*;
-use vecmath::Vector3;
+use piston::vecmath::Vector3;
 
 /*
         3  ---------  2
@@ -38,7 +38,7 @@ pub static QUADS: [[uint, ..4], ..6] = [
 ];
 
 // Cube vertices.
-pub static VERTICES: [Vector3, ..8] = [
+pub static VERTICES: [Vector3<f32>, ..8] = [
     // This is the north surface
     [0.0, 0.0, 0.0], // 0
     [1.0, 0.0, 0.0], // 1
@@ -64,7 +64,7 @@ pub enum Face {
 }
 
 impl Face {
-    pub fn vertices(self, [x, y, z]: Vector3, [sx, sy, sz]: Vector3) -> [Vector3, ..4] {
+    pub fn vertices(self, [x, y, z]: Vector3<f32>, [sx, sy, sz]: Vector3<f32>) -> [Vector3<f32>, ..4] {
         QUADS[self as uint].map(|i| VERTICES[i]).map(|[vx, vy, vz]| {
             [x + sx * vx, y + sy * vy, z + sz * vz]
         })

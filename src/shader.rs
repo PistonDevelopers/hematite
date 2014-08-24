@@ -1,6 +1,6 @@
 extern crate device;
 
-use vecmath::Matrix4;
+use piston::vecmath::Matrix4;
 use gfx;
 use gfx::{Device, DeviceHelper};
 
@@ -140,11 +140,11 @@ impl<D: gfx::Device> Renderer<D> {
         }
     }
 
-    pub fn set_projection(&mut self, proj_mat: Matrix4) {
+    pub fn set_projection(&mut self, proj_mat: Matrix4<f32>) {
         self.params.projection = proj_mat;
     }
 
-    pub fn set_view(&mut self, view_mat: Matrix4) {
+    pub fn set_view(&mut self, view_mat: Matrix4<f32>) {
         self.params.view = view_mat;
     }
 
