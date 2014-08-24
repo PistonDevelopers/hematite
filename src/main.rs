@@ -86,10 +86,6 @@ fn main() {
 
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
-    let mut extrapolate_time = false;
-    println!("Press X to extrapolate time");
-    let mut update_cam_render = false;
-    println!("Press Z to update first person camera when rendering");
 
     let buffer = {
         let mut tri = vec![];
@@ -121,15 +117,13 @@ fn main() {
     for e in events {
         match e {
             Render(_args) => {
-                if update_cam_render {
-                    let now = time::precise_time_ns();
-                    let dt = (now - last_render) as f64 / 1_000_000_000.0f64;
-                    first_person.update(dt);
-                    last_render = now;
-                }
+                // Update camera.
+                let now = time::precise_time_ns();
+                let dt = (now - last_render) as f64 / 1_000_000_000.0f64;
+                first_person.update(dt);
+                last_render = now;
 
-                let ext_dt = _args.ext_dt * if extrapolate_time { 1.0 } else { 0.0 };
-                renderer.set_view(first_person.camera(ext_dt).orthogonal());
+                renderer.set_view(first_person.camera(0.0).orthogonal());
                 renderer.reset();
                 renderer.render(buffer);
                 renderer.end_frame();
@@ -145,16 +139,6 @@ fn main() {
 
                 events.game_window.capture_cursor(capture_cursor);
             },
-            Input(input::KeyPress { key: input::keyboard::X }) => {
-                println!("Turned extrapolated time {}", 
-                    if extrapolate_time { "off" } else { "on" });
-                extrapolate_time = !extrapolate_time;
-            },
-            Input(input::KeyPress { key: input::keyboard::Z }) => {
-                println!("Turned update camera on render {}",
-                    if update_cam_render { "off" } else { "on" });
-                update_cam_render = !update_cam_render;
-            },
             Input(input::MouseRelativeMove { .. }) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
@@ -167,8 +151,6 @@ fn main() {
         // Camera controller.
         match e {
             Input(ref args) => first_person.input(args),
-            Update(piston::UpdateArgs { dt, .. }) => 
-                if !update_cam_render { first_person.update(dt) },
             _ => {}
         }
     }
