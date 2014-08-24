@@ -75,7 +75,7 @@ fn main() {
     first_person_settings.speed_horizontal = 8.0;
     first_person_settings.speed_vertical = 4.0;
     let mut first_person = cam::FirstPerson::new(
-        0.5, 0.5, 4.0,
+        [0.5, 0.5, 4.0],
         first_person_settings
     );
 

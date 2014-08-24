@@ -5,7 +5,7 @@ dependencies = [
  "cgmath 0.0.1 (git+https://github.com/bjz/cgmath-rs#e54265cb611c1e585533b21ff3e3c293e7b5bd61)",
  "device 0.1.0 (git+https://github.com/gfx-rs/gfx-rs#34b44588df924299c19fc9a007c444299df994ec)",
  "gfx 0.1.0 (git+https://github.com/gfx-rs/gfx-rs#34b44588df924299c19fc9a007c444299df994ec)",
- "image 0.0.0 (git+https://github.com/PistonDevelopers/rust-image#a82ece006f04c3a5e9a8b240be2e8d0c76dda03a)",
+ "image 0.0.0 (git+https://github.com/PistonDevelopers/rust-image#1a0a55bd31d069939c98973b7b3566385700cb7d)",
  "piston 0.0.0 (git+https://github.com/PistonDevelopers/piston#d19b813225ea941018e4c97c3de404a6d35b3d1f)",
  "sdl2_game_window 0.0.0 (git+https://github.com/PistonDevelopers/sdl2_game_window#de7fb3d9f70dd4323983afe7430fec54c5dee630)",
 ]
@@ -13,10 +13,10 @@ dependencies = [
 [[package]]
 name = "cam"
 version = "0.0.0"
-source = "git+https://github.com/pistondevelopers/cam#b07ff7c1b4cf2489627150feef08fa12c2d12a78"
+source = "git+https://github.com/pistondevelopers/cam#1a5d3aba647e13888b502ad8c35104b1df908522"
 dependencies = [
- "input 0.0.0 (git+https://github.com/pistondevelopers/input#03ebe4159e15831ac9653bc4c0491e1c4c8c85af)",
- "vecmath 0.0.0 (git+https://github.com/pistondevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724)",
+ "input 0.0.0 (git+https://github.com/PistonDevelopers/input#03ebe4159e15831ac9653bc4c0491e1c4c8c85af)",
+ "vecmath 0.0.0 (git+https://github.com/PistonDevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724)",
 ]
 
 [[package]]
@@ -69,18 +69,18 @@ name = "graphics"
 version = "0.0.0"
 source = "git+https://github.com/pistondevelopers/rust-graphics#54843336944d4a0e332aea6ececb8f1446f72d3d"
 dependencies = [
- "vecmath 0.0.0 (git+https://github.com/pistondevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724)",
+ "vecmath 0.0.0 (git+https://github.com/PistonDevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724)",
 ]
 
 [[package]]
 name = "image"
 version = "0.0.0"
-source = "git+https://github.com/PistonDevelopers/rust-image#a82ece006f04c3a5e9a8b240be2e8d0c76dda03a"
+source = "git+https://github.com/PistonDevelopers/rust-image#1a0a55bd31d069939c98973b7b3566385700cb7d"
 
 [[package]]
 name = "input"
 version = "0.0.0"
-source = "git+https://github.com/pistondevelopers/input#03ebe4159e15831ac9653bc4c0491e1c4c8c85af"
+source = "git+https://github.com/PistonDevelopers/input#03ebe4159e15831ac9653bc4c0491e1c4c8c85af"
 
 [[package]]
 name = "khronos_api"
@@ -92,12 +92,12 @@ name = "piston"
 version = "0.0.0"
 source = "git+https://github.com/PistonDevelopers/piston#d19b813225ea941018e4c97c3de404a6d35b3d1f"
 dependencies = [
- "cam 0.0.0 (git+https://github.com/pistondevelopers/cam#b07ff7c1b4cf2489627150feef08fa12c2d12a78)",
+ "cam 0.0.0 (git+https://github.com/pistondevelopers/cam#1a5d3aba647e13888b502ad8c35104b1df908522)",
  "graphics 0.0.0 (git+https://github.com/pistondevelopers/rust-graphics#54843336944d4a0e332aea6ececb8f1446f72d3d)",
- "image 0.0.0 (git+https://github.com/PistonDevelopers/rust-image#a82ece006f04c3a5e9a8b240be2e8d0c76dda03a)",
- "input 0.0.0 (git+https://github.com/pistondevelopers/input#03ebe4159e15831ac9653bc4c0491e1c4c8c85af)",
+ "image 0.0.0 (git+https://github.com/PistonDevelopers/rust-image#1a0a55bd31d069939c98973b7b3566385700cb7d)",
+ "input 0.0.0 (git+https://github.com/PistonDevelopers/input#03ebe4159e15831ac9653bc4c0491e1c4c8c85af)",
  "shader_version 0.0.0 (git+https://github.com/pistondevelopers/shader_version#dfa7eea9709febbc7535dfcfa526fc61f648585f)",
- "vecmath 0.0.0 (git+https://github.com/pistondevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724)",
+ "vecmath 0.0.0 (git+https://github.com/PistonDevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724)",
 ]
 
 [[package]]
@@ -137,5 +137,5 @@ source = "git+https://github.com/pistondevelopers/shader_version#dfa7eea9709febb
 [[package]]
 name = "vecmath"
 version = "0.0.0"
-source = "git+https://github.com/pistondevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724"
+source = "git+https://github.com/PistonDevelopers/vecmath#6e1dd80d0e111d473ecf089203067720a66ad724"
 
