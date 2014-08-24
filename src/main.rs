@@ -71,12 +71,13 @@ fn main() {
         }
     }.projection());
 
-    let mut camera = cam::Camera::new(0.5, 0.5, 4.0);
-    let mut fps_controller_settings = cam::FPSControllerSettings::default();
-    fps_controller_settings.speed_horizontal = 8.0;
-    fps_controller_settings.speed_vertical = 4.0;
-    let mut fps_controller = cam::FPSController::new(fps_controller_settings);
-    camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
+    let mut first_person_settings = cam::FirstPersonSettings::default();
+    first_person_settings.speed_horizontal = 8.0;
+    first_person_settings.speed_vertical = 4.0;
+    let mut first_person = cam::FirstPerson::new(
+        0.5, 0.5, 4.0,
+        first_person_settings
+    );
 
     // Disable V-Sync.
     sdl2::video::gl_set_swap_interval(0);
@@ -114,8 +115,8 @@ fn main() {
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
-            Render(_args) => {
-                renderer.set_view(camera.orthogonal());
+            Render(args) => {
+                renderer.set_view(first_person.camera(args.ext_dt).orthogonal());
                 renderer.reset();
                 renderer.render(buffer);
                 renderer.end_frame();
@@ -141,8 +142,8 @@ fn main() {
 
         // Camera controller.
         match e {
-            Input(ref args) => fps_controller.input(args, &mut camera),
-            Update(piston::UpdateArgs { dt, .. }) => fps_controller.update(dt, &mut camera),
+            Input(ref args) => first_person.input(args),
+            Update(piston::UpdateArgs { dt, .. }) => first_person.update(dt),
             _ => {}
         }
     }
