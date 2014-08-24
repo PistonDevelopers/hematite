@@ -23,7 +23,6 @@ use piston::{
     GameWindowSettings,
     Input,
     Render,
-    Update,
 };
 
 use array::*;
@@ -138,7 +137,7 @@ fn main() {
                 capture_cursor = !capture_cursor;
 
                 events.game_window.capture_cursor(capture_cursor);
-            },
+            }
             Input(input::MouseRelativeMove { .. }) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
