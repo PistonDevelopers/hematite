@@ -86,6 +86,8 @@ fn main() {
 
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
+    let mut extrapolate_time = false;
+    println!("Press X to extrapolate time");
 
     let buffer = {
         let mut tri = vec![];
@@ -115,8 +117,10 @@ fn main() {
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
-            Render(args) => {
-                renderer.set_view(first_person.camera(args.ext_dt).orthogonal());
+            Render(_args) => {
+                renderer.set_view(first_person.camera(
+                        _args.ext_dt * if extrapolate_time { 0.0 } else { 1.0 }
+                    ).orthogonal());
                 renderer.reset();
                 renderer.render(buffer);
                 renderer.end_frame();
@@ -126,11 +130,17 @@ fn main() {
                 events.game_window.window.set_title(title.as_slice());
             }
             Input(input::KeyPress { key: input::keyboard::C }) => {
-                println!("Turned cursor capture {}", if capture_cursor { "off" } else { "on" });
+                println!("Turned cursor capture {}", 
+                    if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
                 events.game_window.capture_cursor(capture_cursor);
-            }
+            },
+            Input(input::KeyPress { key: input::keyboard::X }) => {
+                println!("Turned extrapolated time {}", 
+                    if extrapolate_time { "off" } else { "on" });
+                extrapolate_time = !extrapolate_time;
+            },
             Input(input::MouseRelativeMove { .. }) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
