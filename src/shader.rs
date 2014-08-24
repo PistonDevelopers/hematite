@@ -131,7 +131,7 @@ impl<D: gfx::Device> Renderer<D> {
             params: params,
             frame: frame,
             cd: gfx::ClearData {
-                color: Some(gfx::Color([0.81, 0.8, 1.0, 1.0])),
+                color: Some([0.81, 0.8, 1.0, 1.0]),
                 depth: Some(1.0),
                 stencil: None,
             },
@@ -164,9 +164,10 @@ impl<D: gfx::Device> Renderer<D> {
     }
 
     pub fn render(&mut self, buffer: Buffer) {
-        let mesh = gfx::Mesh::from(buffer.buf, buffer.len, device::TriangleList);
-        self.renderer.draw(&mesh, mesh.get_slice(), &self.frame, (&self.prog, &self.params), &self.drawstate)
-            .unwrap();
+        let mesh = gfx::Mesh::from(buffer.buf, buffer.len);
+        self.renderer.draw(&mesh, mesh.get_slice(device::TriangleList), 
+                           &self.frame, (&self.prog, &self.params), 
+                           &self.drawstate).unwrap();
     }
 
     pub fn end_frame(&mut self) {

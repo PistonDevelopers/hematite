@@ -23,7 +23,6 @@ use piston::{
     GameWindowSettings,
     Input,
     Render,
-    Update,
 };
 
 use array::*;
@@ -56,7 +55,7 @@ fn main() {
 
     let game_iter_settings = GameIteratorSettings {
         updates_per_second: 120,
-        max_frames_per_second: 10000,
+        max_frames_per_second: 60,
     };
 
     let mut renderer = shader::Renderer::new(device, frame, texture.tex);
@@ -71,12 +70,13 @@ fn main() {
         }
     }.projection());
 
-    let mut camera = cam::Camera::new(0.5, 0.5, 4.0);
-    let mut fps_controller_settings = cam::FPSControllerSettings::default();
-    fps_controller_settings.speed_horizontal = 8.0;
-    fps_controller_settings.speed_vertical = 4.0;
-    let mut fps_controller = cam::FPSController::new(fps_controller_settings);
-    camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
+    let mut first_person_settings = cam::FirstPersonSettings::default();
+    first_person_settings.speed_horizontal = 8.0;
+    first_person_settings.speed_vertical = 4.0;
+    let mut first_person = cam::FirstPerson::new(
+        [0.5, 0.5, 4.0],
+        first_person_settings
+    );
 
     // Disable V-Sync.
     sdl2::video::gl_set_swap_interval(0);
@@ -111,11 +111,18 @@ fn main() {
         renderer.create_buffer(tri.as_slice())
     };
 
+    let mut last_render = time::precise_time_ns();
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
             Render(_args) => {
-                renderer.set_view(camera.orthogonal());
+                // Update camera.
+                let now = time::precise_time_ns();
+                let dt = (now - last_render) as f64 / 1_000_000_000.0f64;
+                first_person.update(dt);
+                last_render = now;
+
+                renderer.set_view(first_person.camera(0.0).orthogonal());
                 renderer.reset();
                 renderer.render(buffer);
                 renderer.end_frame();
@@ -125,7 +132,8 @@ fn main() {
                 events.game_window.window.set_title(title.as_slice());
             }
             Input(input::KeyPress { key: input::keyboard::C }) => {
-                println!("Turned cursor capture {}", if capture_cursor { "off" } else { "on" });
+                println!("Turned cursor capture {}", 
+                    if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
                 events.game_window.capture_cursor(capture_cursor);
@@ -141,8 +149,7 @@ fn main() {
 
         // Camera controller.
         match e {
-            Input(ref args) => fps_controller.input(args, &mut camera),
-            Update(piston::UpdateArgs { dt, .. }) => fps_controller.update(dt, &mut camera),
+            Input(ref args) => first_person.input(args),
             _ => {}
         }
     }
