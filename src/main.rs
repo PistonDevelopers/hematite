@@ -2,6 +2,7 @@
 
 extern crate debug;
 extern crate piston;
+extern crate sdl2;
 extern crate sdl2_game_window;
 extern crate gfx;
 #[phase(plugin)]
@@ -9,6 +10,7 @@ extern crate gfx_macros;
 extern crate image;
 extern crate libc;
 extern crate cgmath;
+extern crate time;
 
 use sdl2_game_window::GameWindowSDL2 as Window;
 use piston::input;
@@ -29,6 +31,7 @@ use texture::Texture;
 
 pub mod array;
 pub mod cube;
+pub mod fps_counter;
 pub mod shader;
 pub mod texture;
 pub mod vecmath;
@@ -53,7 +56,7 @@ fn main() {
 
     let game_iter_settings = GameIteratorSettings {
         updates_per_second: 120,
-        max_frames_per_second: 60,
+        max_frames_per_second: 10000,
     };
 
     let mut renderer = shader::Renderer::new(device, frame, texture.tex);
@@ -75,40 +78,51 @@ fn main() {
     let mut fps_controller = cam::FPSController::new(fps_controller_settings);
     camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
 
+    // Disable V-Sync.
+    sdl2::video::gl_set_swap_interval(0);
+
+    let mut fps_counter = fps_counter::FPSCounter::new();
+
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
+
+    let buffer = {
+        let mut tri = vec![];
+        for face in cube::FaceIterator::new() {
+            let xyz = face.vertices([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+            let [u0, v1, u1, v0] = [0.0, 0.75, 0.25, 1.0];
+            let uv = [
+                [u1, v0],
+                [u0, v0],
+                [u0, v1],
+                [u1, v1]
+            ];
+            let v = [
+                (xyz[0], uv[0], [1.0, 0.0, 0.0]),
+                (xyz[1], uv[1], [0.0, 1.0, 0.0]),
+                (xyz[2], uv[2], [0.0, 0.0, 1.0]),
+                (xyz[3], uv[3], [1.0, 0.0, 1.0])
+            ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
+
+            // Split the clockwise quad into two clockwise triangles.
+            tri.push_all([v[0], v[1], v[2]]);
+            tri.push_all([v[2], v[3], v[0]]);
+        }
+        renderer.create_buffer(tri.as_slice())
+    };
 
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
             Render(_args) => {
-                let mut tri = vec![];
-                for face in cube::FaceIterator::new() {
-                    let xyz = face.vertices([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
-                    let [u0, v1, u1, v0] = [0.0, 0.75, 0.25, 1.0];
-                    let uv = [
-                        [u1, v0],
-                        [u0, v0],
-                        [u0, v1],
-                        [u1, v1]
-                    ];
-                    let v = [
-                        (xyz[0], uv[0], [1.0, 0.0, 0.0]),
-                        (xyz[1], uv[1], [0.0, 1.0, 0.0]),
-                        (xyz[2], uv[2], [0.0, 0.0, 1.0]),
-                        (xyz[3], uv[3], [1.0, 0.0, 1.0])
-                    ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
-
-                    // Split the clockwise quad into two clockwise triangles.
-                    tri.push_all([v[0], v[1], v[2]]);
-                    tri.push_all([v[2], v[3], v[0]]);
-                }
-                let buf = renderer.create_buffer(tri.as_slice());
                 renderer.set_view(camera.orthogonal());
                 renderer.reset();
-                renderer.render(buf);
+                renderer.render(buffer);
                 renderer.end_frame();
-                renderer.delete_buffer(buf);
+
+                let fps = fps_counter.update();
+                let title = format!("Hematite @ {}FPS", fps);
+                events.game_window.window.set_title(title.as_slice());
             }
             Input(input::KeyPress { key: input::keyboard::C }) => {
                 println!("Turned cursor capture {}", if capture_cursor { "off" } else { "on" });
