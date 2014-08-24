@@ -2,6 +2,7 @@
 
 extern crate debug;
 extern crate piston;
+extern crate sdl2;
 extern crate sdl2_game_window;
 extern crate gfx;
 #[phase(plugin)]
@@ -55,7 +56,7 @@ fn main() {
 
     let game_iter_settings = GameIteratorSettings {
         updates_per_second: 120,
-        max_frames_per_second: 60,
+        max_frames_per_second: 10000,
     };
 
     let mut renderer = shader::Renderer::new(device, frame, texture.tex);
@@ -76,6 +77,9 @@ fn main() {
     fps_controller_settings.speed_vertical = 4.0;
     let mut fps_controller = cam::FPSController::new(fps_controller_settings);
     camera.set_yaw_pitch(fps_controller.yaw, fps_controller.pitch);
+
+    // Disable V-Sync.
+    sdl2::video::gl_set_swap_interval(0);
 
     let mut fps_counter = fps_counter::FPSCounter::new();
 
