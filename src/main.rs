@@ -86,37 +86,39 @@ fn main() {
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
 
+    let buffer = {
+        let mut tri = vec![];
+        for face in cube::FaceIterator::new() {
+            let xyz = face.vertices([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+            let [u0, v1, u1, v0] = [0.0, 0.75, 0.25, 1.0];
+            let uv = [
+                [u1, v0],
+                [u0, v0],
+                [u0, v1],
+                [u1, v1]
+            ];
+            let v = [
+                (xyz[0], uv[0], [1.0, 0.0, 0.0]),
+                (xyz[1], uv[1], [0.0, 1.0, 0.0]),
+                (xyz[2], uv[2], [0.0, 0.0, 1.0]),
+                (xyz[3], uv[3], [1.0, 0.0, 1.0])
+            ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
+
+            // Split the clockwise quad into two clockwise triangles.
+            tri.push_all([v[0], v[1], v[2]]);
+            tri.push_all([v[2], v[3], v[0]]);
+        }
+        renderer.create_buffer(tri.as_slice())
+    };
+
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
             Render(_args) => {
-                let mut tri = vec![];
-                for face in cube::FaceIterator::new() {
-                    let xyz = face.vertices([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
-                    let [u0, v1, u1, v0] = [0.0, 0.75, 0.25, 1.0];
-                    let uv = [
-                        [u1, v0],
-                        [u0, v0],
-                        [u0, v1],
-                        [u1, v1]
-                    ];
-                    let v = [
-                        (xyz[0], uv[0], [1.0, 0.0, 0.0]),
-                        (xyz[1], uv[1], [0.0, 1.0, 0.0]),
-                        (xyz[2], uv[2], [0.0, 0.0, 1.0]),
-                        (xyz[3], uv[3], [1.0, 0.0, 1.0])
-                    ].map(|(xyz, uv, rgb)| shader::Vertex { xyz: xyz, uv: uv, rgb: rgb });
-
-                    // Split the clockwise quad into two clockwise triangles.
-                    tri.push_all([v[0], v[1], v[2]]);
-                    tri.push_all([v[2], v[3], v[0]]);
-                }
-                let buf = renderer.create_buffer(tri.as_slice());
                 renderer.set_view(camera.orthogonal());
                 renderer.reset();
-                renderer.render(buf);
+                renderer.render(buffer);
                 renderer.end_frame();
-                renderer.delete_buffer(buf);
 
                 let fps = fps_counter.update();
                 let title = format!("Hematite @ {}FPS", fps);
