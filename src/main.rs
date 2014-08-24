@@ -129,7 +129,7 @@ fn main() {
                 }
 
                 renderer.set_view(first_person.camera(
-                        _args.ext_dt * if extrapolate_time { 0.0 } else { 1.0 }
+                        _args.ext_dt * if extrapolate_time { 1.0 } else { 0.0 }
                     ).orthogonal());
                 renderer.reset();
                 renderer.render(buffer);
