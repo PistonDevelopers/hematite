@@ -88,6 +88,8 @@ fn main() {
     println!("Press C to capture mouse");
     let mut extrapolate_time = false;
     println!("Press X to extrapolate time");
+    let mut update_cam_render = false;
+    println!("Press Z to update first person camera when rendering");
 
     let buffer = {
         let mut tri = vec![];
@@ -114,10 +116,18 @@ fn main() {
         renderer.create_buffer(tri.as_slice())
     };
 
+    let mut last_render = time::precise_time_ns();
     let mut events = GameIterator::new(&mut window, &game_iter_settings);
     for e in events {
         match e {
             Render(_args) => {
+                if update_cam_render {
+                    let now = time::precise_time_ns();
+                    let dt = (now - last_render) as f64 / 1_000_000_000.0f64;
+                    first_person.update(dt);
+                    last_render = now;
+                }
+
                 renderer.set_view(first_person.camera(
                         _args.ext_dt * if extrapolate_time { 0.0 } else { 1.0 }
                     ).orthogonal());
@@ -141,6 +151,11 @@ fn main() {
                     if extrapolate_time { "off" } else { "on" });
                 extrapolate_time = !extrapolate_time;
             },
+            Input(input::KeyPress { key: input::keyboard::Z }) => {
+                println!("Turned update camera on render {}",
+                    if update_cam_render { "off" } else { "on" });
+                update_cam_render = !update_cam_render;
+            },
             Input(input::MouseRelativeMove { .. }) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
@@ -153,7 +168,8 @@ fn main() {
         // Camera controller.
         match e {
             Input(ref args) => first_person.input(args),
-            Update(piston::UpdateArgs { dt, .. }) => first_person.update(dt),
+            Update(piston::UpdateArgs { dt, .. }) => 
+                if !update_cam_render { first_person.update(dt) },
             _ => {}
         }
     }
