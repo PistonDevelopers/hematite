@@ -33,7 +33,6 @@ pub mod cube;
 pub mod fps_counter;
 pub mod shader;
 pub mod texture;
-pub mod vecmath;
 
 fn main() {
     let mut window = Window::new(
