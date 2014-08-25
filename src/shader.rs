@@ -1,5 +1,3 @@
-extern crate device;
-
 use piston::vecmath::Matrix4;
 use gfx;
 use gfx::{Device, DeviceHelper};
@@ -165,8 +163,8 @@ impl<D: gfx::Device> Renderer<D> {
 
     pub fn render(&mut self, buffer: Buffer) {
         let mesh = gfx::Mesh::from(buffer.buf, buffer.len);
-        self.renderer.draw(&mesh, mesh.get_slice(device::TriangleList), 
-                           &self.frame, (&self.prog, &self.params), 
+        self.renderer.draw(&mesh, mesh.get_slice(gfx::TriangleList),
+                           &self.frame, (&self.prog, &self.params),
                            &self.drawstate).unwrap();
     }
 
