@@ -1,14 +1,19 @@
 use gfx;
 use piston::AssetStore;
+use piston::vecmath::vec3_add;
 use serialize::json;
+use std::cmp::max;
 use std::collections::HashMap;
 use std::io::fs::File;
 
 use array::*;
 use cube;
-use chunk::BlockState;
+use chunk::{BiomeId, BlockState, Chunk};
+use minecraft::biome::Biomes;
 use minecraft::data;
+use minecraft::model;
 use minecraft::model::{Model, OrthoRotation, Rotate0, Rotate90, Rotate180, Rotate270};
+use shader::Vertex;
 use texture::{AtlasBuilder, Texture};
 
 pub struct BlockStates {
@@ -196,6 +201,101 @@ impl BlockStates {
             false
         } else {
             self.models[i].opaque
+        }
+    }
+}
+
+pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec<Vertex>,
+                   coords: [i32, ..3], chunks: [[[&Chunk, ..3], ..3], ..3],
+                   column_biomes: [[Option<&[[BiomeId, ..16], ..16]>, ..3], ..3]) {
+    let chunk_xyz = coords.map(|x| x as f32 * 16.0);
+    for y in range(0, 16) {
+        for z in range(0, 16) {
+            for x in range(0, 16) {
+                let at = |dx: i32, dy: i32, dz: i32| {
+                    let [x, y, z] = [x + dx as uint, y + dy as uint, z + dz as uint].map(|x| x + 16);
+                    let chunk = chunks[y / 16][z / 16][x / 16];
+                    let [x, y, z] = [x, y, z].map(|x| x % 16);
+                    (chunk.blocks[y][z][x], chunk.light_levels[y][z][x])
+                };
+                let model = match block_states.get_model(at(0, 0, 0).val0()) {
+                    Some(model) => model,
+                    None => continue
+                };
+                let block_xyz = vec3_add([x, y, z].map(|x| x as f32), chunk_xyz);
+                for face in model.faces.iter() {
+                    match face.cull_face {
+                        Some(cull_face) => {
+                            let [dx, dy, dz] = cull_face.direction();
+                            if block_states.is_opaque(at(dx, dy, dz).val0()) {
+                                continue;
+                            }
+                        }
+                        None => {}
+                    }
+
+                    let tint_source = if face.tint {
+                        model.tint_source
+                    } else {
+                        model::NoTint
+                    };
+
+                    let v = face.vertices.map(|vertex| {
+                        // Average tint and light around the vertex.
+                        let (rgb, mut num_colors) = match tint_source {
+                            model::NoTint => ([0xff, 0xff, 0xff], 1.0),
+                            model::GrassTint | model::FoliageTint => ([0x00, 0x00, 0x00], 0.0),
+                            model::RedstoneTint => ([0xff, 0x00, 0x00], 1.0)
+                        };
+                        let mut rgb = rgb.map(|x: u8| x as f32 / 255.0);
+                        let (mut sum_light_level, mut num_light_level) = (0.0, 0.0);
+
+                        let [dx, dy, dz] = vertex.xyz.map(|x| x.round() as i32);
+                        for &dx in [dx - 1, dx].iter() {
+                            for &dz in [dz - 1, dz].iter() {
+                                for &dy in [dy - 1, dy].iter() {
+                                    let (neighbor, light_level) = at(dx, dy, dz);
+                                    if block_states.is_opaque(neighbor) {
+                                        continue;
+                                    }
+                                    let light_level = max(light_level.block_light(), light_level.sky_light());
+                                    sum_light_level += light_level as f32;
+                                    num_light_level += 1.0;
+                                }
+                                match tint_source {
+                                    model::NoTint | model::RedstoneTint => continue,
+                                    model::GrassTint | model::FoliageTint => {}
+                                }
+                                let [x, z] = [x + dx as uint, z + dz as uint].map(|x| x + 16);
+                                let biome = match column_biomes[z / 16][x / 16] {
+                                    Some(biome) => biomes[biome[z % 16][x % 16]],
+                                    None => continue
+                                };
+                                rgb = vec3_add(rgb, match tint_source {
+                                    model::NoTint | model::RedstoneTint => continue,
+                                    model::GrassTint => biome.grass_color,
+                                    model::FoliageTint => biome.foliage_color,
+                                }.map(|x| x as f32 / 255.0));
+                                num_colors += 1.0;
+                            }
+                        }
+
+                        let light_factor = 0.5 + if num_light_level != 0.0 {
+                            sum_light_level / num_light_level / 15.0 / 2.0
+                        } else { 0.0 };
+
+                        Vertex {
+                            xyz: vec3_add(block_xyz, vertex.xyz),
+                            uv: vertex.uv,
+                            rgb: rgb.map(|x| x * light_factor / num_colors)
+                        }
+                    });
+
+                    // Split the clockwise quad into two clockwise triangles.
+                    buffer.push_all([v[0], v[1], v[2]]);
+                    buffer.push_all([v[2], v[3], v[0]]);
+                }
+            }
         }
     }
 }
