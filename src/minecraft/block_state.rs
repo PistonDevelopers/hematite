@@ -17,25 +17,52 @@ use shader::Vertex;
 use texture::{AtlasBuilder, Texture};
 
 pub struct BlockStates {
-    models: Vec<Model>,
+    models: Vec<ModelAndBehavior>,
     texture: Texture
 }
 
-struct BlockStateVariant {
-    model: String,
-    rotate_x: OrthoRotation,
-    rotate_y: OrthoRotation,
-    uvlock: bool
+#[deriving(PartialEq, Eq, Clone)]
+pub enum RandomOffset {
+    NoRandomOffset,
+    RandomOffsetXZ,
+    RandomOffsetXYZ
+}
+
+#[deriving(Clone)]
+pub struct ModelAndBehavior {
+    pub model: Model,
+    pub random_offset: RandomOffset
+}
+
+impl ModelAndBehavior {
+    pub fn empty() -> ModelAndBehavior {
+        ModelAndBehavior {
+            model: Model::empty(),
+            random_offset: NoRandomOffset
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.model.is_empty()
+    }
 }
 
 impl BlockStates {
     pub fn load<D: gfx::Device>(assets: &AssetStore, d: &mut D) -> BlockStates {
+
+        struct Variant {
+            model: String,
+            rotate_x: OrthoRotation,
+            rotate_y: OrthoRotation,
+            uvlock: bool
+        }
+
         let (last_id, _, _) = *data::BLOCK_STATES.last().unwrap();
         let mut models = Vec::with_capacity(last_id as uint + 1);
 
         let mut atlas = AtlasBuilder::new(assets.path("minecraft/textures").unwrap(), 16, 16);
         let mut partial_model_cache = HashMap::new();
-        let mut block_state_cache: HashMap<String, HashMap<String, BlockStateVariant>> = HashMap::new();
+        let mut block_state_cache: HashMap<String, HashMap<String, Variant>> = HashMap::new();
         let variants_str = "variants".to_string();
         let model_str = "model".to_string();
 
@@ -79,7 +106,7 @@ impl BlockStates {
                             }
                             let uvlock = variant.find_with(|k| "uvlock".cmp(&k.as_slice()))
                                                 .map_or(false, |x| x.as_boolean().unwrap());
-                            (k, BlockStateVariant {
+                            (k, Variant {
                                 model: model,
                                 rotate_x: rotate_x,
                                 rotate_y: rotate_y,
@@ -157,7 +184,10 @@ impl BlockStates {
             rotate_faces(&mut model, 2, 1, variant.rotate_x);
             rotate_faces(&mut model, 0, 2, variant.rotate_y);
 
-            models.grow_set(id as uint, &Model::empty(), model);
+            models.grow_set(id as uint, &ModelAndBehavior::empty(), ModelAndBehavior {
+                model: model,
+                random_offset: NoRandomOffset
+            });
         }
 
         drop(partial_model_cache);
@@ -168,10 +198,20 @@ impl BlockStates {
         let v_unit = 1.0 / (texture.height as f32);
 
         for &(id, _, _) in data::BLOCK_STATES.iter() {
-            for face in models.get_mut(id as uint).faces.mut_iter() {
+            for face in models.get_mut(id as uint).model.faces.mut_iter() {
                 for vertex in face.vertices.mut_iter() {
                     vertex.uv[0] *= u_unit;
                     vertex.uv[1] *= v_unit;
+                }
+            }
+        }
+
+        // Patch some models.
+        for &(id, name, _) in data::BLOCK_STATES.iter() {
+            if name == "tall_grass" {
+                // Add a random offset to dead_bush, tall_grass and fern.
+                for &id in [id - 1, id, id + 2].iter() {
+                    models.get_mut(id as uint).random_offset = RandomOffsetXYZ;
                 }
             }
         }
@@ -182,7 +222,7 @@ impl BlockStates {
         }
     }
 
-    pub fn get_model<'a>(&'a self, i: BlockState) -> Option<&'a Model> {
+    pub fn get_model<'a>(&'a self, i: BlockState) -> Option<&'a ModelAndBehavior> {
         let i = i.value as uint;
         if i >= self.models.len() || self.models[i].is_empty() {
             None
@@ -200,7 +240,7 @@ impl BlockStates {
         if i >= self.models.len() {
             false
         } else {
-            self.models[i].opaque
+            self.models[i].model.opaque
         }
     }
 }
@@ -223,6 +263,21 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                     None => continue
                 };
                 let block_xyz = vec3_add([x, y, z].map(|x| x as f32), chunk_xyz);
+                let block_xyz = match model.random_offset {
+                    NoRandomOffset => block_xyz,
+                    random_offset => {
+                        let [x, _, z] = block_xyz;
+                        let seed = (x as i32 * 3129871) as i64 ^ (z as i64) * 116129781;
+                        let value = seed * seed * 42317861 + seed * 11;
+                        let ox = (((value >> 16) & 15) as f32 / 15.0 - 0.5) * 0.5;
+                        let oz = (((value >> 24) & 15) as f32 / 15.0 - 0.5) * 0.5;
+                        let oy = if random_offset == RandomOffsetXYZ {
+                            (((value >> 20) & 15) as f32 / 15.0 - 1.0) * 0.2
+                        } else { 0.0 };
+                        vec3_add(block_xyz, [ox, oy, oz])
+                    }
+                };
+                let model = &model.model;
                 for face in model.faces.iter() {
                     match face.cull_face {
                         Some(cull_face) => {
