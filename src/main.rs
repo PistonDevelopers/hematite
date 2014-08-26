@@ -35,6 +35,7 @@ use piston::{
 use array::*;
 
 use std::cmp::max;
+use std::f32::INFINITY;
 use std::f32::consts::PI;
 use std::io::fs::File;
 
@@ -109,7 +110,7 @@ fn main() {
     }
     println!("Finished loading chunks.");
 
-    renderer.set_projection(cam::CameraPerspective {
+    let projection_mat = cam::CameraPerspective {
         fov: 70.0,
         near_clip: 0.1,
         far_clip: 1000.0,
@@ -117,7 +118,8 @@ fn main() {
             let (w, h) = window.get_size();
             (w as f32) / (h as f32)
         }
-    }.projection());
+    }.projection();
+    renderer.set_projection(projection_mat);
 
     let mut first_person_settings = cam::FirstPersonSettings::default();
     first_person_settings.speed_horizontal = 8.0;
@@ -167,18 +169,52 @@ fn main() {
                 xz_forward = vec3_normalized(xz_forward);
                 camera.position = vec3_add(camera.position, vec3_scale(xz_forward, 0.1));
 
-                renderer.set_view(camera.orthogonal());
+                let view_mat = camera.orthogonal();
+                renderer.set_view(view_mat);
                 renderer.reset();
-                chunk_manager.each_chunk(|_, _, _, _, buffer| {
+                let mut num_chunks = 0u;
+                let mut num_total_chunks = 0u;
+                chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
                     match buffer {
-                        Some(buffer) => renderer.render(buffer),
+                        Some(buffer) => {
+                            num_total_chunks += 1;
+
+                            let inf = INFINITY;
+                            let mut bb_min = [inf, inf, inf];
+                            let mut bb_max = [-inf, -inf, -inf];
+                            let xyz = [cx, cy, cz].map(|x| x as f32 * 16.0);
+                            for &dx in [0.0, 16.0].iter() {
+                                for &dy in [0.0, 16.0].iter() {
+                                    for &dz in [0.0, 16.0].iter() {
+                                        use piston::vecmath::col_mat4_transform;
+                                        let [x, y, z] = vec3_add(xyz, [dx, dy, dz]);
+                                        let xyzw = col_mat4_transform(view_mat, [x, y, z, 1.0]);
+                                        let [x, y, z, w] = col_mat4_transform(projection_mat, xyzw);
+                                        let xyz = vec3_scale([x, y, z], 1.0 / w);
+                                        bb_min = Array::from_fn(|i| bb_min[i].min(xyz[i]));
+                                        bb_max = Array::from_fn(|i| bb_max[i].max(xyz[i]));
+                                    }
+                                }
+                            }
+
+                            let cull_bits: [bool, ..3] = Array::from_fn(|i| {
+                                let (min, max) = (bb_min[i], bb_max[i]);
+                                min.signum() == max.signum() && min.abs().min(max.abs()) >= 1.0
+                            });
+
+                            if !cull_bits.iter().any(|&cull| cull) {
+                                renderer.render(buffer);
+                                num_chunks += 1;
+                            }
+                        }
                         None => {}
                     }
                 });
                 renderer.end_frame();
 
                 let fps = fps_counter.update();
-                let title = format!("Hematite @ {}FPS - {}", fps, world.display());
+                let title = format!("Hematite w/ {}/{}C @ {}FPS - {}",
+                                    num_chunks, num_total_chunks, fps, world.display());
                 events.game_window.window.set_title(title.as_slice());
             }
             Update(_) => {
