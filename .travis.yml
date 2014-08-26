@@ -1,0 +1,18 @@
+language: rust
+os:
+    - linux
+    - osx
+env:
+    global:
+        - LD_LIBRARY_PATH: /usr/local/lib
+before_install:
+    - curl -O http://www.libsdl.org/release/SDL2-2.0.3.tar.gz
+    - tar -xzvf SDL2-2.0.3.tar.gz
+install:
+    - (cd SDL2-2.0.3 && ./configure && make && sudo make install)
+before_script:
+    - rustc -v
+    - cargo -V
+script:
+    - cargo build -v
+    - cargo test -v
