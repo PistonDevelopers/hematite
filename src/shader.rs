@@ -1,6 +1,7 @@
 use piston::vecmath::Matrix4;
 use gfx;
 use gfx::{Device, DeviceHelper};
+use device;
 
 static VERTEX: gfx::ShaderSource = shaders! {
 GLSL_120: b"
@@ -100,32 +101,30 @@ pub struct Buffer {
 }
 
 pub struct Renderer<D: gfx::Device> {
-    device: D,
-    renderer: gfx::Renderer,
+    graphics: gfx::Graphics<D>,
     params: ShaderParam,
     frame: gfx::Frame,
     cd: gfx::ClearData,
-    prog: Program,
+    prog: device::Handle<u32, device::shade::ProgramInfo>,
     drawstate: gfx::DrawState
 }
 
 impl<D: gfx::Device> Renderer<D> {
     pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D> {
-        let renderer = device.create_renderer();
         let sam = device.create_sampler(gfx::tex::SamplerInfo::new(gfx::tex::Scale, gfx::tex::Tile));
+        let mut graphics = gfx::Graphics::new(device);
 
         let params = ShaderParam {
             projection: [[0.0, ..4], ..4],
             view: [[0.0, ..4], ..4],
             s_texture: (tex, Some(sam))
         };
-        let prog = device.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
+        let prog = graphics.device.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::LessEqual, true);
         drawstate.primitive.front_face = gfx::state::Clockwise;
 
         Renderer {
-            device: device,
-            renderer: renderer,
+            graphics: graphics,
             params: params,
             frame: frame,
             cd: gfx::ClearData {
@@ -146,29 +145,28 @@ impl<D: gfx::Device> Renderer<D> {
         self.params.view = view_mat;
     }
 
-    pub fn reset(&mut self) {
-        self.renderer.reset();
-        self.renderer.clear(self.cd, &self.frame);
+    pub fn clear(&mut self) {
+        self.graphics.clear(self.cd, &self.frame);
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {
-        let buf = self.device.create_buffer(data.len(), gfx::UsageStatic);
-        self.device.update_buffer(buf, &data, 0);
+        let buf = self.graphics.device.create_buffer(data.len(), gfx::UsageStatic);
+        self.graphics.device.update_buffer(buf, &data, 0);
         Buffer { buf: buf, len: data.len() as u32 }
     }
 
     pub fn delete_buffer(&mut self, buf: Buffer) {
-        self.device.delete_buffer(buf.buf);
+        self.graphics.device.delete_buffer(buf.buf);
     }
 
     pub fn render(&mut self, buffer: Buffer) {
         let mesh = gfx::Mesh::from(buffer.buf, buffer.len);
-        self.renderer.draw(&mesh, mesh.get_slice(gfx::TriangleList),
-                           &self.frame, (&self.prog, &self.params),
-                           &self.drawstate).unwrap();
+        let batch = self.graphics.make_batch(&mesh, mesh.get_slice(gfx::TriangleList),
+                                             &self.prog, &self.drawstate).unwrap();
+        self.graphics.draw(&batch, &self.params, &self.frame);
     }
 
     pub fn end_frame(&mut self) {
-        self.device.submit(self.renderer.as_buffer())
+        self.graphics.end_frame();
     }
 }

@@ -5,6 +5,7 @@ extern crate piston;
 extern crate sdl2;
 extern crate sdl2_game_window;
 extern crate gfx;
+extern crate device;
 #[phase(plugin)]
 extern crate gfx_macros;
 extern crate image;
@@ -121,7 +122,7 @@ fn main() {
     }.projection();
     renderer.set_projection(projection_mat);
 
-    let mut first_person_settings = cam::FirstPersonSettings::default();
+    let mut first_person_settings = cam::FirstPersonSettings::keyboard_wasd();
     first_person_settings.speed_horizontal = 8.0;
     first_person_settings.speed_vertical = 4.0;
     let mut first_person = cam::FirstPerson::new(
@@ -171,7 +172,7 @@ fn main() {
 
                 let view_mat = camera.orthogonal();
                 renderer.set_view(view_mat);
-                renderer.reset();
+                renderer.clear();
                 let mut num_chunks = 0u;
                 let mut num_total_chunks = 0u;
                 chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
@@ -247,14 +248,14 @@ fn main() {
                     None => {}
                 }
             }
-            Input(input::KeyPress { key: input::keyboard::C }) => {
+            Input(input::Press(input::Keyboard(input::keyboard::C))) => {
                 println!("Turned cursor capture {}", 
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
                 events.game_window.capture_cursor(capture_cursor);
             }
-            Input(input::MouseRelativeMove { .. }) => {
+            Input(input::Move(input::MouseRelative(_, _))) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
                     continue;
