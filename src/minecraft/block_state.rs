@@ -476,12 +476,43 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                             for &dz in [dz - 1, dz].iter() {
                                 for &dy in [dy - 1, dy].iter() {
                                     let (neighbor, light_level) = at([dx, dy, dz]);
-                                    if block_states.is_opaque(neighbor) {
-                                        continue;
+                                    let light_level = max(light_level.block_light(),
+                                                          light_level.sky_light());
+                                    let mut light_level = light_level as f32;
+
+                                    let use_block = match face.ao_face {
+                                        Some(ao_face) => {
+                                            let mut above = true;
+                                            for (i, &x) in ao_face.direction().iter().enumerate() {
+                                                if x != 0 && x != [dx, dy, dz][i] {
+                                                    above = false;
+                                                    break;
+                                                }
+                                            }
+                                            // HACK to support leaves.
+                                            if above {
+                                                match block_states.get_model(neighbor) {
+                                                    Some(model) => {
+                                                        let mut faces = model.model.faces.iter();
+                                                        if faces.all(|&f| f.ao_face.is_some()) {
+                                                            light_level = 0.0;
+                                                        }
+                                                    }
+                                                    None => {}
+                                                }
+                                            }
+
+                                            above
+                                        }
+                                        None => {
+                                            !block_states.is_opaque(neighbor)
+                                        }
+                                    };
+
+                                    if use_block {
+                                        sum_light_level += light_level;
+                                        num_light_level += 1.0;
                                     }
-                                    let light_level = max(light_level.block_light(), light_level.sky_light());
-                                    sum_light_level += light_level as f32;
-                                    num_light_level += 1.0;
                                 }
                                 match tint_source {
                                     model::NoTint | model::RedstoneTint => continue,
@@ -501,14 +532,26 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                             }
                         }
 
-                        let light_factor = 0.5 + if num_light_level != 0.0 {
-                            sum_light_level / num_light_level / 15.0 / 2.0
+                        let light_factor = 0.2 + if num_light_level != 0.0 {
+                            sum_light_level / num_light_level / 15.0 * 0.8
                         } else { 0.0 };
+
+                        // Up, North and South, East and West, Down have different lighting.
+                        let light_factor = light_factor * match face.ao_face {
+                            Some(ao_face) => match ao_face {
+                                cube::Up => 1.0,
+                                cube::North | cube::South => 0.8,
+                                cube::East | cube::West => 0.6,
+                                cube::Down => 0.5
+                            },
+                            None => 1.0
+                        };
 
                         Vertex {
                             xyz: vec3_add(block_xyz, vertex.xyz),
                             uv: vertex.uv,
-                            rgb: rgb.map(|x| x * light_factor / num_colors)
+                            // No clue why the difference of 2 exists.
+                            rgb: rgb.map(|x| x * light_factor / num_colors - 2.0 / 255.0)
                         }
                     });
 

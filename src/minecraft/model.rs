@@ -44,7 +44,8 @@ impl OrthoRotation {
 pub struct Face {
     pub vertices: [Vertex, ..4],
     pub tint: bool,
-    pub cull_face: Option<cube::Face>
+    pub cull_face: Option<cube::Face>,
+    pub ao_face: Option<cube::Face>
 }
 
 impl Clone for Face {
@@ -185,7 +186,8 @@ impl PartialModel {
                     model.faces.push((Face {
                         vertices: Array::from_fn(|i| Vertex { xyz: xyz[i], uv: uvs[i] }),
                         tint: tint,
-                        cull_face: cull_face
+                        cull_face: cull_face,
+                        ao_face: Some(face)
                     }, tex));
                 }
 
@@ -200,6 +202,8 @@ impl PartialModel {
                         let (s, c) = (angle.sin(), angle.cos());
                         let rot = |ix, iy| {
                             for &(ref mut face, _) in model.faces.mut_slice_from(element_start).mut_iter() {
+                                face.ao_face = None;
+
                                 let [ox, oy] = [origin[ix], origin[iy]];
                                 for v in face.vertices.mut_iter() {
                                     let [x, y] = [v.xyz[ix] - ox, v.xyz[iy] - oy];
@@ -241,7 +245,6 @@ impl PartialModel {
 pub struct Model {
     pub faces: Vec<Face>,
     pub opaque: bool,
-    pub no_ambient_occlusion: bool,
     pub tint_source: TintSource
 }
 
@@ -249,7 +252,7 @@ impl Model {
     pub fn load(name: &str, assets: &AssetStore, atlas: &mut AtlasBuilder,
                 cache: &mut HashMap<String, PartialModel>) -> Model {
         PartialModel::load(format!("block/{}", name).as_slice(), assets, atlas, cache, |partial, atlas| {
-            let faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
+            let mut faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
                 fn texture_coords(textures: &HashMap<String, PartialTexture>,
                                   tex: &String) -> Option<(f32, f32)> {
                     match textures.find(tex) {
@@ -290,10 +293,22 @@ impl Model {
                 }
             }
 
+            if !partial.no_ambient_occlusion {
+                if faces.iter().any(|f| f.ao_face.is_none()) {
+                    println!("Warning: model {} uses AO but has faces which are unsuitable", name);
+                }
+            } else {
+                for face in faces.mut_iter() {
+                    face.ao_face = None;
+                }
+            }
+
             let tint_source = if faces.iter().any(|f| f.tint) {
                 match name {
-                    name if name.starts_with("grass_") => GrassTint,
-                    "reeds" | "fern" | "tall_grass" | "double_grass_bottom" | "double_fern_bottom" => GrassTint,
+                    name if name.starts_with("grass_") ||
+                            name.starts_with("double_grass_") ||
+                            name.starts_with("double_fern_") => GrassTint,
+                    "reeds" | "fern" | "tall_grass" => GrassTint,
                     name if name.ends_with("_leaves") || name.ends_with("_stem_fruit") ||
                             name.starts_with("vine_") || name.starts_with("stem_") => FoliageTint,
                     "waterlily" => FoliageTint,
@@ -310,7 +325,6 @@ impl Model {
             Model {
                 faces: faces,
                 opaque: full_faces == (1 << 6) - 1,
-                no_ambient_occlusion: partial.no_ambient_occlusion,
                 tint_source: tint_source
             }
         })
@@ -320,7 +334,6 @@ impl Model {
         Model {
             faces: Vec::new(),
             opaque: false,
-            no_ambient_occlusion: false,
             tint_source: NoTint
         }
     }
