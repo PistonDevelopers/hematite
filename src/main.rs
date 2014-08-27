@@ -34,6 +34,7 @@ use piston::{
 
 use array::*;
 
+use std::cmp::max;
 use std::f32::consts::PI;
 use std::io::fs::File;
 
@@ -61,11 +62,14 @@ fn main() {
     let level = minecraft::nbt::Nbt::from_gzip(File::open(&world.join("level.dat")).read_to_end().unwrap().as_slice()).unwrap();
     println!("{}", level);
     let player_pos: [f32, ..3] = Array::from_iter(level["Data"]["Player"]["Pos"].as_double_list().unwrap().iter().map(|&x| x as f32));
+    let player_chunk = [player_pos.x(), player_pos.z()].map(|x| (x / 16.0).floor() as i32);
     let player_rot = level["Data"]["Player"]["Rotation"].as_float_list().unwrap();
     let player_yaw = player_rot[0];
     let player_pitch = player_rot[1];
 
-    let region = minecraft::region::Region::open(&world.join("region/r.0.0.mca"));
+    let [region_x, region_z] = player_chunk.map(|x| x >> 5);
+    let region_file = world.join(format!("region/r.{}.{}.mca", region_x, region_z));
+    let region = minecraft::region::Region::open(&region_file);
 
     let mut window = Window::new(
         piston::shader_version::opengl::OpenGL_3_3,
@@ -91,11 +95,13 @@ fn main() {
     let mut chunk_manager = chunk::ChunkManager::new();
 
     println!("Started loading chunks...");
-    for cz in range(0, 16) {
-        for cx in range(0, 16) {
+    let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
+    for cz in range(cz_base, cz_base + 16) {
+        for cx in range(cx_base, cx_base + 16) {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
-                    chunk_manager.add_chunk_column(cx as i32, cz as i32, column)
+                    let [cx, cz] = [cx as i32 + region_x * 32, cz as i32 + region_z * 32];
+                    chunk_manager.add_chunk_column(cx, cz, column)
                 }
                 None => {}
             }
