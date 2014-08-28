@@ -364,12 +364,12 @@ impl BlockStates {
         &self.texture
     }
 
-    pub fn is_opaque(&self, i: BlockState) -> bool {
+    pub fn get_opacity(&self, i: BlockState) -> model::Opacity {
         let i = i.value as uint;
         if i >= self.models.len() {
-            false
+            model::Transparent
         } else {
-            self.models[i].model.opaque
+            self.models[i].model.opacity
         }
     }
 }
@@ -407,7 +407,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     let id = this_block.value + offset as u16;
                                     let other = at(dir.xyz()).val0();
                                     (other.value == id ||
-                                     block_states.is_opaque(other), idx)
+                                     block_states.get_opacity(other).is_opaque(), idx)
                                 }
                                 /*IfGroup(dir, group, idx) => {
                                     let other = at(dir.xyz()).val0();
@@ -416,7 +416,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                 IfGroupOrSolid(dir, group, idx) => {
                                     let other = at(dir.xyz()).val0();
                                     (block_states.models[other.value].group == group ||
-                                     block_states.is_opaque(other), idx)
+                                     block_states.get_opacity(other).is_opaque(), idx)
                                 }*/
                             };
                             if cond {
@@ -450,7 +450,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                     match face.cull_face {
                         Some(cull_face) => {
                             let (neighbor, _) = at(cull_face.direction());
-                            if block_states.is_opaque(neighbor) {
+                            if block_states.get_opacity(neighbor).is_opaque() {
                                 continue;
                             }
                         }
@@ -499,23 +499,15 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                                     break;
                                                 }
                                             }
-                                            // HACK to support leaves.
-                                            if above {
-                                                match block_states.get_model(neighbor) {
-                                                    Some(model) => {
-                                                        let mut faces = model.model.faces.iter();
-                                                        if faces.all(|&f| f.ao_face.is_some()) {
-                                                            light_level = 0.0;
-                                                        }
-                                                    }
-                                                    None => {}
-                                                }
+
+                                            if above && block_states.get_opacity(neighbor).is_solid() {
+                                                light_level = 0.0;
                                             }
 
                                             above
                                         }
                                         None => {
-                                            !block_states.is_opaque(neighbor)
+                                            !block_states.get_opacity(neighbor).is_opaque()
                                         }
                                     };
 
