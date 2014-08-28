@@ -43,7 +43,6 @@ use std::io::fs::File;
 pub mod array;
 pub mod chunk;
 pub mod cube;
-pub mod fps_counter;
 pub mod shader;
 pub mod texture;
 
@@ -140,7 +139,7 @@ fn main() {
     // Disable V-Sync.
     sdl2::video::gl_set_swap_interval(0);
 
-    let mut fps_counter = fps_counter::FPSCounter::new();
+    let mut fps_counter = piston::FPSCounter::new();
 
     let mut pending_chunks = vec![];
     chunk_manager.each_chunk_and_neighbors(|coords, buffer, chunks, column_biomes| {
@@ -213,7 +212,7 @@ fn main() {
                 });
                 renderer.end_frame();
 
-                let fps = fps_counter.update();
+                let fps = fps_counter.tick();
                 let title = format!("Hematite w/ {}/{}C @ {}FPS - {}",
                                     num_chunks, num_total_chunks, fps, world.display());
                 events.game_window.window.set_title(title.as_slice());
