@@ -273,14 +273,16 @@ impl BlockStates {
                         xyz[ix] = a * x + b * y + 0.5;
                         xyz[iy] = c * x + d * y + 0.5;
                     }
-                    face.cull_face.mutate(|f| {
+                    let fixup_cube_face = |f: cube::Face| {
                         let [a, b, c, d] = rot_mat;
                         let mut dir = f.direction();
                         let [x, y] = [dir[ix], dir[iy]];
                         dir[ix] = a * x + b * y;
                         dir[iy] = c * x + d * y;
                         cube::Face::from_direction(dir).unwrap()
-                    });
+                    };
+                    face.cull_face.mutate(|f| fixup_cube_face(f));
+                    face.ao_face.mutate(|f| fixup_cube_face(f));
                     if variant.uvlock {
                         // Skip over faces that are constant in the ix or iy axis.
                         let xs = face.vertices.map(|v| v.xyz[ix]);
