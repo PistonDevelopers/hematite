@@ -473,7 +473,8 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                         let mut rgb = rgb.map(|x: u8| x as f32 / 255.0);
                         let (mut sum_light_level, mut num_light_level) = (0.0, 0.0);
 
-                        let [dx, dy, dz] = vertex.xyz.map(|x| x.round() as i32);
+                        let rounded_vertex_xyz = vertex.xyz.map(|x| x.round() as i32);
+                        let [dx, dy, dz] = rounded_vertex_xyz;
                         for &dx in [dx - 1, dx].iter() {
                             for &dz in [dz - 1, dz].iter() {
                                 for &dy in [dy - 1, dy].iter() {
@@ -485,8 +486,15 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     let use_block = match face.ao_face {
                                         Some(ao_face) => {
                                             let mut above = true;
-                                            for (i, &x) in ao_face.direction().iter().enumerate() {
-                                                if x != 0 && x != [dx, dy, dz][i] {
+                                            for (i, &a) in ao_face.direction().iter().enumerate() {
+                                                let da = [dx, dy, dz][i];
+                                                let va = rounded_vertex_xyz[i];
+                                                let above_da = match a {
+                                                    -1 => va - 1,
+                                                    1 => va,
+                                                    _ => da
+                                                };
+                                                if da != above_da {
                                                     above = false;
                                                     break;
                                                 }
