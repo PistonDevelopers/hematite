@@ -273,14 +273,16 @@ impl BlockStates {
                         xyz[ix] = a * x + b * y + 0.5;
                         xyz[iy] = c * x + d * y + 0.5;
                     }
-                    face.cull_face.mutate(|f| {
+                    let fixup_cube_face = |f: cube::Face| {
                         let [a, b, c, d] = rot_mat;
                         let mut dir = f.direction();
                         let [x, y] = [dir[ix], dir[iy]];
                         dir[ix] = a * x + b * y;
                         dir[iy] = c * x + d * y;
                         cube::Face::from_direction(dir).unwrap()
-                    });
+                    };
+                    face.cull_face.mutate(|f| fixup_cube_face(f));
+                    face.ao_face.mutate(|f| fixup_cube_face(f));
                     if variant.uvlock {
                         // Skip over faces that are constant in the ix or iy axis.
                         let xs = face.vertices.map(|v| v.xyz[ix]);
@@ -362,12 +364,12 @@ impl BlockStates {
         &self.texture
     }
 
-    pub fn is_opaque(&self, i: BlockState) -> bool {
+    pub fn get_opacity(&self, i: BlockState) -> model::Opacity {
         let i = i.value as uint;
         if i >= self.models.len() {
-            false
+            model::Transparent
         } else {
-            self.models[i].model.opaque
+            self.models[i].model.opacity
         }
     }
 }
@@ -405,7 +407,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     let id = this_block.value + offset as u16;
                                     let other = at(dir.xyz()).val0();
                                     (other.value == id ||
-                                     block_states.is_opaque(other), idx)
+                                     block_states.get_opacity(other).is_opaque(), idx)
                                 }
                                 /*IfGroup(dir, group, idx) => {
                                     let other = at(dir.xyz()).val0();
@@ -414,7 +416,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                 IfGroupOrSolid(dir, group, idx) => {
                                     let other = at(dir.xyz()).val0();
                                     (block_states.models[other.value].group == group ||
-                                     block_states.is_opaque(other), idx)
+                                     block_states.get_opacity(other).is_opaque(), idx)
                                 }*/
                             };
                             if cond {
@@ -448,7 +450,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                     match face.cull_face {
                         Some(cull_face) => {
                             let (neighbor, _) = at(cull_face.direction());
-                            if block_states.is_opaque(neighbor) {
+                            if block_states.get_opacity(neighbor).is_opaque() {
                                 continue;
                             }
                         }
@@ -471,7 +473,8 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                         let mut rgb = rgb.map(|x: u8| x as f32 / 255.0);
                         let (mut sum_light_level, mut num_light_level) = (0.0, 0.0);
 
-                        let [dx, dy, dz] = vertex.xyz.map(|x| x.round() as i32);
+                        let rounded_vertex_xyz = vertex.xyz.map(|x| x.round() as i32);
+                        let [dx, dy, dz] = rounded_vertex_xyz;
                         for &dx in [dx - 1, dx].iter() {
                             for &dz in [dz - 1, dz].iter() {
                                 for &dy in [dy - 1, dy].iter() {
@@ -483,29 +486,28 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     let use_block = match face.ao_face {
                                         Some(ao_face) => {
                                             let mut above = true;
-                                            for (i, &x) in ao_face.direction().iter().enumerate() {
-                                                if x != 0 && x != [dx, dy, dz][i] {
+                                            for (i, &a) in ao_face.direction().iter().enumerate() {
+                                                let da = [dx, dy, dz][i];
+                                                let va = rounded_vertex_xyz[i];
+                                                let above_da = match a {
+                                                    -1 => va - 1,
+                                                    1 => va,
+                                                    _ => da
+                                                };
+                                                if da != above_da {
                                                     above = false;
                                                     break;
                                                 }
                                             }
-                                            // HACK to support leaves.
-                                            if above {
-                                                match block_states.get_model(neighbor) {
-                                                    Some(model) => {
-                                                        let mut faces = model.model.faces.iter();
-                                                        if faces.all(|&f| f.ao_face.is_some()) {
-                                                            light_level = 0.0;
-                                                        }
-                                                    }
-                                                    None => {}
-                                                }
+
+                                            if above && block_states.get_opacity(neighbor).is_solid() {
+                                                light_level = 0.0;
                                             }
 
                                             above
                                         }
                                         None => {
-                                            !block_states.is_opaque(neighbor)
+                                            !block_states.get_opacity(neighbor).is_opaque()
                                         }
                                     };
 

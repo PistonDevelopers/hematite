@@ -66,6 +66,31 @@ pub struct PartialModel {
     no_ambient_occlusion: bool
 }
 
+#[deriving(PartialEq, Eq, PartialOrd, Ord, Clone)]
+pub enum Opacity {
+    Transparent,
+    TranslucentSolid,
+    TransparentSolid,
+    Opaque
+}
+
+impl Opacity {
+    pub fn is_opaque(self) -> bool {
+        self == Opaque
+    }
+
+    pub fn is_solid(self) -> bool {
+        self != Transparent
+    }
+}
+
+#[deriving(Clone)]
+pub struct Model {
+    pub faces: Vec<Face>,
+    pub opacity: Opacity,
+    pub tint_source: TintSource
+}
+
 impl PartialModel {
     fn load<T>(name: &str, assets: &AssetStore, atlas: &mut AtlasBuilder,
                cache: &mut HashMap<String, PartialModel>,
@@ -241,13 +266,6 @@ impl PartialModel {
     }
 }
 
-#[deriving(Clone)]
-pub struct Model {
-    pub faces: Vec<Face>,
-    pub opaque: bool,
-    pub tint_source: TintSource
-}
-
 impl Model {
     pub fn load(name: &str, assets: &AssetStore, atlas: &mut AtlasBuilder,
                 cache: &mut HashMap<String, PartialModel>) -> Model {
@@ -269,11 +287,11 @@ impl Model {
                 face
             }).collect();
 
-            let mut full_faces: u8 = 0;
+            let mut full_faces = [Transparent, ..6];
             if partial.full_faces.len() >= 6 {
                 for &i in partial.full_faces.iter() {
-                    let mask = 1 << (faces[i].cull_face.unwrap() as uint);
-                    if (full_faces & mask) != 0 {
+                    let face = faces[i].cull_face.unwrap() as uint;
+                    if full_faces[face] == Opaque {
                         continue;
                     }
                     let (mut min_u, mut min_v) = (INFINITY, INFINITY);
@@ -287,8 +305,13 @@ impl Model {
                     }
                     let (u0, v0) = (min_u.floor() as u32, min_v.floor() as u32);
                     let (u1, v1) = (max_u.ceil() as u32, max_v.ceil() as u32);
-                    if atlas.is_opaque(u0, v0, u1 - u0, v1 - v0) {
-                        full_faces |= mask;
+                    let opacity = match atlas.min_alpha(u0, v0, u1 - u0, v1 - v0) {
+                        0 => TransparentSolid,
+                        255 => Opaque,
+                        _ => TranslucentSolid
+                    };
+                    if full_faces[face] < opacity {
+                        full_faces[face] = opacity;
                     }
                 }
             }
@@ -324,7 +347,7 @@ impl Model {
 
             Model {
                 faces: faces,
-                opaque: full_faces == (1 << 6) - 1,
+                opacity: *full_faces.iter().min().unwrap(),
                 tint_source: tint_source
             }
         })
@@ -333,7 +356,7 @@ impl Model {
     pub fn empty() -> Model {
         Model {
             faces: Vec::new(),
-            opaque: false,
+            opacity: Transparent,
             tint_source: NoTint
         }
     }

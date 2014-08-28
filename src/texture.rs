@@ -95,8 +95,8 @@ pub struct AtlasBuilder {
     position: u32,
     // Position cache for loaded tiles (in pixels).
     tile_positions: HashMap<String, (u32, u32)>,
-    // Opacity cache for rectangles in the atlas.
-    opacity_cache: HashMap<(u32, u32, u32, u32), bool>
+    // Lowest-alpha cache for rectangles in the atlas.
+    min_alpha_cache: HashMap<(u32, u32, u32, u32), u8>
 }
 
 impl AtlasBuilder {
@@ -109,7 +109,7 @@ impl AtlasBuilder {
             completed_tiles_size: 0,
             position: 0,
             tile_positions: HashMap::new(),
-            opacity_cache: HashMap::new()
+            min_alpha_cache: HashMap::new()
         }
     }
 
@@ -163,16 +163,16 @@ impl AtlasBuilder {
         *self.tile_positions.find_or_insert(name.to_string(), (x * uw, y * uh))
     }
 
-    pub fn is_opaque(&mut self, x: u32, y: u32, w: u32, h: u32) -> bool {
-        match self.opacity_cache.find(&(x, y, w, h)) {
-            Some(opaque) => return *opaque,
+    pub fn min_alpha(&mut self, x: u32, y: u32, w: u32, h: u32) -> u8 {
+        match self.min_alpha_cache.find(&(x, y, w, h)) {
+            Some(alpha) => return *alpha,
             None => {}
         }
 
         let tile = SubImage::new(&mut self.image, x, y, w, h);
-        let opaque = !tile.pixels().any(|(_, _, p)| p.alpha() < 255);
-        self.opacity_cache.insert((x, y, w, h), opaque);
-        opaque
+        let min_alpha = tile.pixels().map(|(_, _, p)| p.alpha()).min().unwrap_or(0);
+        self.min_alpha_cache.insert((x, y, w, h), min_alpha);
+        min_alpha
     }
 
     pub fn complete<D: gfx::Device>(self, d: &mut D) -> Texture {
