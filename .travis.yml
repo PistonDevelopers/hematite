@@ -4,7 +4,7 @@ os:
     - osx
 env:
     global:
-        - LD_LIBRARY_PATH: /usr/local/lib
+        - secure: b65AZCt2SSC/EaI+3T2GS70/Tkym40yf83Ro32Qj5gztKNEVjo/oOJWw6X+HY29V70S4BojhSpnKxv6Z59Uhk/d9ng4lPcjthv5FL1asfhYgIgQa1id3JI1xfkBFAPloLGk/DeSB7G9BZPyVFbfNKimjBf7ViO+odZulq/AGsGI=
 before_install:
     - curl -O http://www.libsdl.org/release/SDL2-2.0.3.tar.gz
     - tar -xzvf SDL2-2.0.3.tar.gz
@@ -16,3 +16,8 @@ before_script:
 script:
     - cargo build -v
     - cargo test -v
+    - cargo doc -v
+after_success:
+    - cp -R target/doc doc
+    - curl http://www.rust-ci.org/artifacts/put?t=$RUSTCI_TOKEN | sh
+    - rm -r doc
