@@ -160,7 +160,7 @@ impl<D: gfx::Device> Renderer<D> {
     }
 
     pub fn render(&mut self, buffer: Buffer) {
-        let mesh = gfx::Mesh::from(buffer.buf, buffer.len);
+        let mesh = gfx::Mesh::from_format(buffer.buf, buffer.len);
         let batch = self.graphics.make_batch(&mesh, mesh.get_slice(gfx::TriangleList),
                                              &self.prog, &self.drawstate).unwrap();
         self.graphics.draw(&batch, &self.params, &self.frame);
