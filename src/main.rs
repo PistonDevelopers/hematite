@@ -6,6 +6,7 @@ extern crate sdl2;
 extern crate sdl2_game_window;
 extern crate gfx;
 extern crate device;
+extern crate render;
 #[phase(plugin)]
 extern crate gfx_macros;
 extern crate image;
