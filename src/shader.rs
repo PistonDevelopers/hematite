@@ -2,6 +2,7 @@ use piston::vecmath::Matrix4;
 use gfx;
 use gfx::{Device, DeviceHelper};
 use device;
+use render;
 
 static VERTEX: gfx::ShaderSource = shaders! {
 GLSL_120: b"
@@ -97,7 +98,7 @@ impl Clone for Vertex {
 
 pub struct Buffer {
     buf: gfx::BufferHandle<Vertex>,
-    len: u32
+    batch: render::batch::RefBatch<_ShaderParamLink, ShaderParam>
 }
 
 pub struct Renderer<D: gfx::Device> {
@@ -152,7 +153,12 @@ impl<D: gfx::Device> Renderer<D> {
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {
         let buf = self.graphics.device.create_buffer(data.len(), gfx::UsageStatic);
         self.graphics.device.update_buffer(buf, &data, 0);
-        Buffer { buf: buf, len: data.len() as u32 }
+        let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
+        Buffer {
+            buf: buf,
+            batch: self.graphics.make_batch(&mesh, mesh.get_slice(gfx::TriangleList),
+                                            &self.prog, &self.drawstate).unwrap()
+        }
     }
 
     pub fn delete_buffer(&mut self, buf: Buffer) {
@@ -160,10 +166,7 @@ impl<D: gfx::Device> Renderer<D> {
     }
 
     pub fn render(&mut self, buffer: Buffer) {
-        let mesh = gfx::Mesh::from_format(buffer.buf, buffer.len);
-        let batch = self.graphics.make_batch(&mesh, mesh.get_slice(gfx::TriangleList),
-                                             &self.prog, &self.drawstate).unwrap();
-        self.graphics.draw(&batch, &self.params, &self.frame);
+        self.graphics.draw(&buffer.batch, &self.params, &self.frame);
     }
 
     pub fn end_frame(&mut self) {
