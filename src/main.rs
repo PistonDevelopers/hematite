@@ -76,7 +76,7 @@ fn main() {
     let mut window = Window::new(
         piston::shader_version::opengl::OpenGL_3_3,
         GameWindowSettings {
-            title: format!("Hematite - {}", world.display()),
+            title: format!("Hematite loading... - {}", world.filename_display()),
             size: [854, 480],
             fullscreen: false,
             exit_on_esc: true,
@@ -174,7 +174,9 @@ fn main() {
                 renderer.set_view(view_mat);
                 renderer.clear();
                 let mut num_chunks = 0u;
+                let mut num_sorted_chunks = 0u;
                 let mut num_total_chunks = 0u;
+                let start_time = time::precise_time_ns();
                 chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
                     match buffer {
                         Some(buffer) => {
@@ -206,16 +208,25 @@ fn main() {
                             if !cull_bits.iter().any(|&cull| cull) {
                                 renderer.render(buffer);
                                 num_chunks += 1;
+
+                                if bb_min[0] < 0.0 && bb_max[0] > 0.0 || bb_min[1] < 0.0 && bb_max[1] > 0.0 {
+                                    num_sorted_chunks += 1;
+                                }
                             }
                         }
                         None => {}
                     }
                 });
+                let end_time = time::precise_time_ns();
                 renderer.end_frame();
+                let frame_end_time = time::precise_time_ns();
 
                 let fps = fps_counter.tick();
-                let title = format!("Hematite w/ {}/{}C @ {}FPS - {}",
-                                    num_chunks, num_total_chunks, fps, world.display());
+                let title = format!("Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
+                                    num_sorted_chunks, num_chunks, num_total_chunks,
+                                    (end_time - start_time) as f64 / 1e6,
+                                    (frame_end_time - end_time) as f64 / 1e6,
+                                    fps, world.filename_display());
                 events.game_window.window.set_title(title.as_slice());
             }
             Update(_) => {
