@@ -1,4 +1,6 @@
+use device::draw::CommandBuffer;
 use gfx;
+use gfx::Device;
 use image;
 use image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
 use std::collections::HashMap;
@@ -25,11 +27,13 @@ pub struct Texture {
 
 impl Texture {
     /// Loads image by relative file name to the asset root.
-    pub fn from_path<D: gfx::Device>(path: &Path, d: &mut D) -> Result<Texture, String> {
+    pub fn from_path<D: Device<C>, C: CommandBuffer>(path: &Path, d: &mut D)
+                                                     -> Result<Texture, String> {
         Ok(Texture::from_rgba8(try!(load_rgba8(path)), d))
     }
 
-    pub fn from_rgba8<D: gfx::Device>(img: ImageBuf<Rgba<u8>>, d: &mut D) -> Texture {
+    pub fn from_rgba8<D: Device<C>, C: CommandBuffer>(img: ImageBuf<Rgba<u8>>, d: &mut D)
+                                                      -> Texture {
         let (width, height) = img.dimensions();
 
         let mut ti = gfx::tex::TextureInfo::new();
@@ -175,7 +179,7 @@ impl AtlasBuilder {
         min_alpha
     }
 
-    pub fn complete<D: gfx::Device>(self, d: &mut D) -> Texture {
+    pub fn complete<D: Device<C>, C: CommandBuffer>(self, d: &mut D) -> Texture {
         Texture::from_rgba8(self.image, d)
     }
 }

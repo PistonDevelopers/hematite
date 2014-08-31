@@ -2,6 +2,7 @@ use piston::vecmath::Matrix4;
 use gfx;
 use gfx::{Device, DeviceHelper};
 use device;
+use device::draw::CommandBuffer;
 use render;
 
 static VERTEX: gfx::ShaderSource = shaders! {
@@ -101,8 +102,8 @@ pub struct Buffer {
     batch: render::batch::RefBatch<_ShaderParamLink, ShaderParam>
 }
 
-pub struct Renderer<D: gfx::Device> {
-    graphics: gfx::Graphics<D>,
+pub struct Renderer<D: Device<C>, C: CommandBuffer> {
+    graphics: gfx::Graphics<D, C>,
     params: ShaderParam,
     frame: gfx::Frame,
     cd: gfx::ClearData,
@@ -110,8 +111,8 @@ pub struct Renderer<D: gfx::Device> {
     drawstate: gfx::DrawState
 }
 
-impl<D: gfx::Device> Renderer<D> {
-    pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D> {
+impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
+    pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D, C> {
         let sam = device.create_sampler(gfx::tex::SamplerInfo::new(gfx::tex::Scale, gfx::tex::Tile));
         let mut graphics = gfx::Graphics::new(device);
 

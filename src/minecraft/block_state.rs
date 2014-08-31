@@ -1,4 +1,5 @@
-use gfx;
+use device::draw::CommandBuffer;
+use gfx::Device;
 use piston::AssetStore;
 use piston::vecmath::vec3_add;
 use serialize::json;
@@ -109,7 +110,8 @@ impl ModelAndBehavior {
 }
 
 impl BlockStates {
-    pub fn load<D: gfx::Device>(assets: &AssetStore, d: &mut D) -> BlockStates {
+    pub fn load<D: Device<C>, C: CommandBuffer>(assets: &AssetStore, d: &mut D)
+                                                -> BlockStates {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.val0());
         let mut states = Vec::<Description>::with_capacity(next_power_of_two(BLOCK_STATES.len()));
         let mut extras = vec![];
@@ -186,8 +188,9 @@ impl BlockStates {
         BlockStates::load_with_states(assets, d, states)
     }
 
-    fn load_with_states<D: gfx::Device>(assets: &AssetStore, d: &mut D,
-                                        states: Vec<Description>) -> BlockStates {
+    fn load_with_states<D: Device<C>, C: CommandBuffer>(assets: &AssetStore, d: &mut D,
+                                                        states: Vec<Description>)
+                                                        -> BlockStates {
         struct Variant {
             model: String,
             rotate_x: OrthoRotation,
