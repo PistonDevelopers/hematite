@@ -124,7 +124,7 @@ static TAG_LIST: i8 = 9;
 static TAG_COMPOUND: i8 = 10;
 static TAG_INT_ARRAY: i8 = 11;
 
-pub struct NbtReader<'a, R> {
+pub struct NbtReader<'a, R: 'a> {
     reader: &'a mut R
 }
 
