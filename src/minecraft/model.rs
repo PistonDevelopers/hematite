@@ -252,7 +252,7 @@ impl PartialModel {
                         match r.find_with(|k| "axis".cmp(&k.as_slice())).unwrap().as_string().unwrap() {
                             "x" => rot(2, 1),
                             "y" => rot(0, 2),
-                            "z" => rot(0, 1),
+                            "z" => rot(1, 0),
                             axis => fail!("invalid rotation axis {}", axis)
                         }
                     }
