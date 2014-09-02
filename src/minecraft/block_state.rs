@@ -466,7 +466,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                         model::NoTint
                     };
 
-                    let v = face.vertices.map(|vertex| {
+                    buffer.push_all(face.vertices.map(|vertex| {
                         // Average tint and light around the vertex.
                         let (rgb, mut num_colors) = match tint_source {
                             model::NoTint => ([0xff, 0xff, 0xff], 1.0),
@@ -558,11 +558,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                             // No clue why the difference of 2 exists.
                             rgb: rgb.map(|x| x * light_factor / num_colors - 2.0 / 255.0)
                         }
-                    });
-
-                    // Split the clockwise quad into two clockwise triangles.
-                    buffer.push_all([v[0], v[1], v[2]]);
-                    buffer.push_all([v[2], v[3], v[0]]);
+                    }));
                 }
             }
         }
