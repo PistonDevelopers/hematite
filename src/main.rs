@@ -228,6 +228,7 @@ fn main() {
                                     (frame_end_time - end_time) as f64 / 1e6,
                                     fps, world.filename_display());
                 events.game_window.window.set_title(title.as_slice());
+                }
             }
             Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
@@ -249,7 +250,12 @@ fn main() {
                                                             &mut staging_buffer,
                                                             coords, chunks,
                                                             column_biomes);
-                        buffer.set(Some(renderer.create_buffer(staging_buffer.as_slice())));
+                        if !staging_buffer.is_empty() {
+                            let quads = staging_buffer.as_slice();
+                            buffer.set(Some(renderer.create_buffer_of_quads(quads)));
+                        } else {
+                            buffer.set(None);
+                        }
                         staging_buffer.clear();
 
                         if pending_chunks.is_empty() {

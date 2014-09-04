@@ -108,7 +108,8 @@ pub struct Renderer<D: Device<C>, C: CommandBuffer> {
     frame: gfx::Frame,
     cd: gfx::ClearData,
     prog: device::Handle<u32, device::shade::ProgramInfo>,
-    drawstate: gfx::DrawState
+    drawstate: gfx::DrawState,
+    index16_buf: gfx::BufferHandle<u16>
 }
 
 impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
@@ -125,6 +126,18 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::LessEqual, true);
         drawstate.primitive.front_face = gfx::state::Clockwise;
 
+        let num_quads = 0x4000;
+        let mut index16 = Vec::with_capacity(num_quads * 6);
+        for i in range(0, num_quads as u16) {
+            let j = i * 4;
+
+            // Split the clockwise quad into two clockwise triangles.
+            index16.push_all([j, j + 1, j + 2]);
+            index16.push_all([j + 2, j + 3, j]);
+        }
+        let index16_buf = graphics.device.create_buffer(index16.len(), gfx::UsageStatic);
+        graphics.device.update_buffer(index16_buf, &index16.as_slice(), 0);
+
         Renderer {
             graphics: graphics,
             params: params,
@@ -136,6 +149,7 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
             },
             prog: prog,
             drawstate: drawstate,
+            index16_buf: index16_buf
         }
     }
 
@@ -151,15 +165,32 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
         self.graphics.clear(self.cd, &self.frame);
     }
 
-    pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {
+    pub fn create_buffer_with_slice(&mut self, data: &[Vertex],
+                                    mk_slice: |&gfx::Mesh| -> gfx::Slice)
+                                    -> Buffer {
         let buf = self.graphics.device.create_buffer(data.len(), gfx::UsageStatic);
         self.graphics.device.update_buffer(buf, &data, 0);
         let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
         Buffer {
             buf: buf,
-            batch: self.graphics.make_batch(&mesh, mesh.get_slice(gfx::TriangleList),
-                                            &self.prog, &self.drawstate).unwrap()
+            batch: self.graphics.make_batch(&mesh, mk_slice(&mesh), &self.prog,
+                                            &self.drawstate).unwrap()
         }
+    }
+
+    pub fn create_buffer_of_tris(&mut self, data: &[Vertex]) -> Buffer {
+        assert!(data.len() % 3 == 0);
+        self.create_buffer_with_slice(data, |mesh| mesh.get_slice(gfx::TriangleList))
+    }
+
+    pub fn create_buffer_of_quads(&mut self, data: &[Vertex]) -> Buffer {
+        assert!(data.len() % 4 == 0);
+        if data.len() > 0x10000 {
+            fail!("INDEX32 not supported ({} vertices)", data.len());
+        }
+        let num_tris = data.len() / 4 * 6;
+        let slice = gfx::IndexSlice16(gfx::TriangleList, self.index16_buf, 0, num_tris as u32);
+        self.create_buffer_with_slice(data, |_| slice)
     }
 
     pub fn delete_buffer(&mut self, buf: Buffer) {
