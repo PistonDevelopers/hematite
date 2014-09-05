@@ -1,6 +1,6 @@
 use piston::vecmath::Matrix4;
 use gfx;
-use gfx::{Device, DeviceHelper};
+use gfx::{Device, DeviceHelper, ToSlice};
 use device;
 use device::draw::CommandBuffer;
 use render;
@@ -157,8 +157,8 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
         let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
         Buffer {
             buf: buf,
-            batch: self.graphics.make_batch(&mesh, mesh.get_slice(gfx::TriangleList),
-                                            &self.prog, &self.drawstate).unwrap()
+            batch: self.graphics.make_batch(&self.prog, &mesh, mesh.to_slice(gfx::TriangleList),
+                                            &self.drawstate).unwrap()
         }
     }
 

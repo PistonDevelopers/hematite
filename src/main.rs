@@ -19,16 +19,16 @@ extern crate native;
 extern crate rustrt;
 extern crate serialize;
 
-use sdl2_game_window::GameWindowSDL2 as Window;
+use sdl2_game_window::WindowSDL2;
 use piston::input;
 use piston::cam;
 use piston::vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use piston::{
     AssetStore,
-    GameIterator,
-    GameIteratorSettings,
-    GameWindow,
-    GameWindowSettings,
+    EventIterator,
+    EventSettings,
+    Window,
+    WindowSettings,
     Input,
     Render,
     Update
@@ -73,13 +73,14 @@ fn main() {
     let region_file = world.join(format!("region/r.{}.{}.mca", region_x, region_z));
     let region = minecraft::region::Region::open(&region_file);
 
-    let mut window = Window::new(
+    let mut window = WindowSDL2::new(
         piston::shader_version::opengl::OpenGL_3_3,
-        GameWindowSettings {
+        WindowSettings {
             title: format!("Hematite loading... - {}", world.filename_display()),
             size: [854, 480],
             fullscreen: false,
             exit_on_esc: true,
+            samples: 0,
         }
     );
     let (mut device, frame) = window.gfx();
@@ -132,7 +133,7 @@ fn main() {
     first_person.yaw = PI - player_yaw / 180.0 * PI;
     first_person.pitch = player_pitch / 180.0 * PI;
 
-    let game_iter_settings = GameIteratorSettings {
+    let event_settings = EventSettings {
         updates_per_second: 120,
         max_frames_per_second: 10000
     };
@@ -152,7 +153,7 @@ fn main() {
 
     let mut staging_buffer = vec![];
     let mut last_render = time::precise_time_ns();
-    let mut events = GameIterator::new(&mut window, &game_iter_settings);
+    let mut events = EventIterator::new(&mut window, &event_settings);
     for e in events {
         match e {
             Render(_) => {
@@ -227,7 +228,7 @@ fn main() {
                                     (end_time - start_time) as f64 / 1e6,
                                     (frame_end_time - end_time) as f64 / 1e6,
                                     fps, world.filename_display());
-                events.game_window.window.set_title(title.as_slice());
+                events.window.window.set_title(title.as_slice());
             }
             Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
@@ -264,7 +265,7 @@ fn main() {
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
-                events.game_window.capture_cursor(capture_cursor);
+                events.window.capture_cursor(capture_cursor);
             }
             Input(input::Move(input::MouseRelative(_, _))) => {
                 if !capture_cursor {
