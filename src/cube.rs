@@ -64,7 +64,9 @@ pub enum Face {
 }
 
 impl Face {
-    pub fn vertices(self, [x, y, z]: Vector3<f32>, [sx, sy, sz]: Vector3<f32>) -> [Vector3<f32>, ..4] {
+    pub fn vertices(self, base: Vector3<f32>, scale: Vector3<f32>) -> [Vector3<f32>, ..4] {
+        let [x, y, z] = base;
+        let [sx, sy, sz] = scale;
         QUADS[self as uint].map(|i| VERTICES[i]).map(|[vx, vy, vz]| {
             [x + sx * vx, y + sy * vy, z + sz * vz]
         })
