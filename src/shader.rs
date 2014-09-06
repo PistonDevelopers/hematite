@@ -130,9 +130,9 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
             params: params,
             frame: frame,
             cd: gfx::ClearData {
-                color: Some([0.81, 0.8, 1.0, 1.0]),
-                depth: Some(1.0),
-                stencil: None,
+                color: [0.81, 0.8, 1.0, 1.0],
+                depth: 1.0,
+                stencil: 0,
             },
             prog: prog,
             drawstate: drawstate,
@@ -148,7 +148,7 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
     }
 
     pub fn clear(&mut self) {
-        self.graphics.clear(self.cd, &self.frame);
+        self.graphics.clear(self.cd, gfx::Color | gfx::Depth, &self.frame);
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {
