@@ -154,7 +154,12 @@ fn main() {
     let mut staging_buffer = vec![];
     let mut last_render = time::precise_time_ns();
     let mut events = EventIterator::new(&mut window, &event_settings);
-    for e in events {
+    loop {
+        let e = match events.next() {
+                None => { break; }
+                Some(e) => e
+            };
+
         match e {
             Render(_) => {
                 // Update camera.
