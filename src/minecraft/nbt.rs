@@ -252,7 +252,7 @@ impl Decoder {
     }
     fn push_all<T>(&mut self, list: Vec<T>, f: |T| -> Nbt) -> uint {
         let len = list.len();
-        self.stack.extend(list.move_iter().rev().map(f).map(Ok::<Nbt, DecoderError>));
+        self.stack.extend(list.into_iter().rev().map(f).map(Ok::<Nbt, DecoderError>));
         len
     }
 }
@@ -459,7 +459,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
     fn read_map<T>(&mut self, f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
         let obj = try!(expect!(self, Compound));
         let len = obj.len();
-        for (key, value) in obj.move_iter() {
+        for (key, value) in obj.into_iter() {
             self.push(value);
             self.push(String(key));
         }

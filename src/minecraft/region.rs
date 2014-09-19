@@ -48,7 +48,7 @@ impl Region {
         let mut c = nbt.unwrap().into_compound().unwrap();
         let mut level = c.pop_equiv(&"Level").unwrap().into_compound().unwrap();
         let mut chunks = Vec::new();
-        for chunk in level.pop_equiv(&"Sections").unwrap().into_compound_list().unwrap().move_iter() {
+        for chunk in level.pop_equiv(&"Sections").unwrap().into_compound_list().unwrap().into_iter() {
             let y = chunk.find_equiv(&"Y").unwrap().as_byte().unwrap();
             let blocks = chunk.find_equiv(&"Blocks").unwrap().as_bytearray().unwrap();
             let blocks_top = chunk.find_equiv(&"Add").and_then(|x| x.as_bytearray());
