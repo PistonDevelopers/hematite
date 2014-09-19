@@ -9,7 +9,6 @@ extern crate device;
 extern crate render;
 #[phase(plugin)]
 extern crate gfx_macros;
-extern crate image;
 extern crate libc;
 extern crate cgmath;
 extern crate time;
@@ -83,7 +82,11 @@ fn main() {
             samples: 0,
         }
     );
-    let (mut device, frame) = window.gfx();
+    let mut device = gfx::GlDevice::new(|s| unsafe {
+        std::mem::transmute(sdl2::video::gl_get_proc_address(s))
+    });
+    let (w, h) = window.get_size();
+    let frame = gfx::Frame::new(w as u16, h as u16);
 
     let assets = &AssetStore::from_folder("../assets");
 

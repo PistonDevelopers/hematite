@@ -183,7 +183,7 @@ impl BlockStates {
                 polymorph_oracle: polymorph_oracle
             });
         }
-        states.extend(extras.move_iter());
+        states.extend(extras.into_iter());
 
         BlockStates::load_with_states(assets, d, states)
     }
@@ -207,18 +207,18 @@ impl BlockStates {
         let variants_str = "variants".to_string();
         let model_str = "model".to_string();
 
-        for state in states.move_iter() {
+        for state in states.into_iter() {
             let variants = block_state_cache.find_or_insert_with(state.name.to_string(), |name| {
                 let path = assets.path(format!("minecraft/blockstates/{}.json", name).as_slice());
                 match json::from_reader(&mut File::open(&path.unwrap()).unwrap()).unwrap() {
                     json::Object(mut json) => match json.pop(&variants_str).unwrap() {
-                        json::Object(variants) => variants.move_iter().map(|(k, v)| {
+                        json::Object(variants) => variants.into_iter().map(|(k, v)| {
                             let mut variant = match v {
                                 json::Object(o) => o,
                                 json::List(l) => {
                                     println!("ignoring {} extra variants for {}#{}",
                                              l.len() - 1, name, k);
-                                    match l.move_iter().next() {
+                                    match l.into_iter().next() {
                                         Some(json::Object(o)) => Some(o),
                                         _ => None
                                     }.unwrap()
@@ -269,8 +269,8 @@ impl BlockStates {
 
             let rotate_faces = |m: &mut Model, ix, iy, rot_mat: [i32, ..4]| {
                 let [a, b, c, d] = rot_mat.map(|x: i32| x as f32);
-                for face in m.faces.mut_iter() {
-                    for vertex in face.vertices.mut_iter() {
+                for face in m.faces.iter_mut() {
+                    for vertex in face.vertices.iter_mut() {
                         let xyz = &mut vertex.xyz;
                         let [x, y] = [ix, iy].map(|i| xyz[i] - 0.5);
                         xyz[ix] = a * x + b * y + 0.5;
@@ -283,9 +283,15 @@ impl BlockStates {
                         dir[ix] = a * x + b * y;
                         dir[iy] = c * x + d * y;
                         cube::Face::from_direction(dir).unwrap()
+                    }; 
+                    face.cull_face = match face.cull_face {
+                        None => None,
+                        Some(f) => Some(fixup_cube_face(f))
                     };
-                    face.cull_face.mutate(|f| fixup_cube_face(f));
-                    face.ao_face.mutate(|f| fixup_cube_face(f));
+                    face.ao_face = match face.ao_face {
+                        None => None,
+                        Some(f) => Some(fixup_cube_face(f))
+                    };
                     if variant.uvlock {
                         // Skip over faces that are constant in the ix or iy axis.
                         let xs = face.vertices.map(|v| v.xyz[ix]);
@@ -301,7 +307,7 @@ impl BlockStates {
                         let uv_min = [0, 1].map(|i| (uvs[0][i]).min(uvs[1][i])
                                                 .min(uvs[2][i]).min(uvs[3][i]));
                         let [u_base, v_base] = uv_min.map(|x| (x / 16.0).floor() * 16.0);
-                        for vertex in face.vertices.mut_iter() {
+                        for vertex in face.vertices.iter_mut() {
                             let uv = &mut vertex.uv;
                             let [u, v] = [uv[0] - u_base, uv[1] - v_base].map(|x| x - 8.0);
                             uv[0] = a * u - b * v + 8.0 + u_base;
@@ -339,9 +345,9 @@ impl BlockStates {
         let u_unit = 1.0 / (texture.width as f32);
         let v_unit = 1.0 / (texture.height as f32);
 
-        for model in models.mut_iter() {
-            for face in model.model.faces.mut_iter() {
-                for vertex in face.vertices.mut_iter() {
+        for model in models.iter_mut() {
+            for face in model.model.faces.iter_mut() {
+                for vertex in face.vertices.iter_mut() {
                     vertex.uv[0] *= u_unit;
                     vertex.uv[1] *= v_unit;
                 }

@@ -18,10 +18,6 @@ git = "https://github.com/PistonDevelopers/piston"
 
 git = "https://github.com/PistonDevelopers/sdl2_game_window"
 
-[dependencies.image]
-
-git = "https://github.com/PistonDevelopers/rust-image"
-
 [dependencies.cgmath]
 
 git = "https://github.com/bjz/cgmath-rs"

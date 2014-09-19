@@ -226,24 +226,24 @@ impl PartialModel {
 
                         let (s, c) = (angle.sin(), angle.cos());
                         let rot = |ix, iy| {
-                            for &(ref mut face, _) in model.faces.mut_slice_from(element_start).mut_iter() {
+                            for &(ref mut face, _) in model.faces.slice_from_mut(element_start).iter_mut() {
                                 face.ao_face = None;
 
                                 let [ox, oy] = [origin[ix], origin[iy]];
-                                for v in face.vertices.mut_iter() {
+                                for v in face.vertices.iter_mut() {
                                     let [x, y] = [v.xyz[ix] - ox, v.xyz[iy] - oy];
                                     v.xyz[ix] = x * c + y * s;
                                     v.xyz[iy] =-x * s + y * c;
                                 }
 
                                 if rescale {
-                                    for v in face.vertices.mut_iter() {
+                                    for v in face.vertices.iter_mut() {
                                         v.xyz[ix] *= SQRT2;
                                         v.xyz[iy] *= SQRT2;
                                     }
                                 }
 
-                                for v in face.vertices.mut_iter() {
+                                for v in face.vertices.iter_mut() {
                                     v.xyz[ix] += ox;
                                     v.xyz[iy] += oy;
                                 }
@@ -280,7 +280,7 @@ impl Model {
                     }
                 }
                 let (u, v) = texture_coords(&partial.textures, tex).unwrap();
-                for vertex in face.vertices.mut_iter() {
+                for vertex in face.vertices.iter_mut() {
                     vertex.uv[0] += u;
                     vertex.uv[1] += v;
                 }
@@ -321,7 +321,7 @@ impl Model {
                     println!("Warning: model {} uses AO but has faces which are unsuitable", name);
                 }
             } else {
-                for face in faces.mut_iter() {
+                for face in faces.iter_mut() {
                     face.ao_face = None;
                 }
             }

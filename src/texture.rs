@@ -1,8 +1,8 @@
 use device::draw::CommandBuffer;
 use gfx;
 use gfx::Device;
-use image;
-use image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
+use piston::image;
+use piston::image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
 use std::collections::HashMap;
 use std::mem;
 
@@ -43,7 +43,7 @@ impl Texture {
         ti.format = gfx::tex::RGBA8;
 
         let tex = d.create_texture(ti).unwrap();
-        d.update_texture(&tex, &ti.to_image_info(), &img.into_vec()).unwrap();
+        d.update_texture(&tex, &ti.to_image_info(), img.into_vec().as_slice()).unwrap();
         d.generate_mipmap(&tex);
 
         Texture {
