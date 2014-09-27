@@ -18,8 +18,8 @@ pub enum Nbt {
     ByteArray(Vec<u8>),
     IntArray(Vec<i32>),
     NbtString(String),
-    List(ListT),
-    Compound(CompoundT)
+    NbtList(List),
+    NbtCompound(Compound)
 }
 
 impl fmt::Show for Nbt {
@@ -34,14 +34,15 @@ impl fmt::Show for Nbt {
             ByteArray(ref x) => write!(f, "b<{}>", x.as_slice().to_hex()),
             IntArray(ref x) => write!(f, "{}", *x),
             NbtString(ref x) => write!(f, "\"{}\"", *x),
-            List(ref x) => write!(f, "{}", *x),
-            Compound(ref x) => write!(f, "{}", *x)
+            NbtList(ref x) => write!(f, "{}", *x),
+            NbtCompound(ref x) => write!(f, "{}", *x)
         }
     }
 }
 
+/// An ordered list of NBT values.
 #[deriving(Clone, PartialEq, Show)]
-pub enum ListT {
+pub enum List {
     ByteList(Vec<i8>),
     ShortList(Vec<i16>),
     IntList(Vec<i32>),
@@ -51,11 +52,12 @@ pub enum ListT {
     ByteArrayList(Vec<Vec<u8>>),
     IntArrayList(Vec<Vec<i32>>),
     StringList(Vec<String>),
-    ListList(Vec<ListT>),
-    CompoundList(Vec<CompoundT>)
+    ListList(Vec<List>),
+    CompoundList(Vec<Compound>)
 }
 
-pub type CompoundT = HashMap<String, Nbt>;
+/// An unordered list of named NBT values.
+pub type Compound = HashMap<String, Nbt>;
 
 impl Nbt {
     pub fn from_reader<R: Reader>(r: &mut R) -> IoResult<Nbt> {
@@ -77,12 +79,12 @@ impl Nbt {
         match *self { Byte(b) => Some(b), _ => None }
     }
 
-    pub fn into_compound(self) -> Result<CompoundT, Nbt> {
-        match self { Compound(c) => Ok(c), x => Err(x) }
+    pub fn into_compound(self) -> Result<Compound, Nbt> {
+        match self { NbtCompound(c) => Ok(c), x => Err(x) }
     }
 
-    pub fn into_compound_list(self) -> Result<Vec<CompoundT>, Nbt> {
-        match self { List(CompoundList(c)) => Ok(c), x => Err(x) }
+    pub fn into_compound_list(self) -> Result<Vec<Compound>, Nbt> {
+        match self { NbtList(CompoundList(c)) => Ok(c), x => Err(x) }
     }
 
     pub fn as_bytearray<'a>(&'a self) -> Option<&'a [u8]> {
@@ -94,18 +96,18 @@ impl Nbt {
     }
 
     pub fn as_float_list<'a>(&'a self) -> Option<&'a [f32]> {
-        match *self { List(FloatList(ref f)) => Some(f.as_slice()), _ => None }
+        match *self { NbtList(FloatList(ref f)) => Some(f.as_slice()), _ => None }
     }
 
     pub fn as_double_list<'a>(&'a self) -> Option<&'a [f64]> {
-        match *self { List(DoubleList(ref d)) => Some(d.as_slice()), _ => None }
+        match *self { NbtList(DoubleList(ref d)) => Some(d.as_slice()), _ => None }
     }
 }
 
 impl<'a> Index<&'a str, Nbt> for Nbt {
     fn index<'b>(&'b self, s: &&'a str) -> &'b Nbt {
         match *self {
-            Compound(ref c) => c.find_equiv(s).unwrap(),
+            NbtCompound(ref c) => c.find_equiv(s).unwrap(),
             _ => fail!("cannot index non-compound Nbt ({}) with '{}'", self, s)
         }
     }
@@ -161,7 +163,7 @@ impl<'a, R: Reader> NbtReader<'a, R> {
         Ok(v)
     }
 
-    fn compound(&mut self) -> IoResult<CompoundT> {
+    fn compound(&mut self) -> IoResult<Compound> {
         let mut map = HashMap::new();
         loop {
             match try!(self.tag()) {
@@ -174,7 +176,7 @@ impl<'a, R: Reader> NbtReader<'a, R> {
         Ok(map)
     }
 
-    fn list(&mut self) -> IoResult<ListT> {
+    fn list(&mut self) -> IoResult<List> {
         match try!(self.i8()) {
             TAG_END => {
                 assert_eq!(try!(self.i32()), 0);
@@ -210,8 +212,8 @@ impl<'a, R: Reader> NbtReader<'a, R> {
                     TAG_BYTE_ARRAY => self.array_u8().map(ByteArray),
                     TAG_INT_ARRAY => self.array(|r| r.i32()).map(IntArray),
                     TAG_STRING => self.string().map(NbtString),
-                    TAG_LIST => self.list().map(List),
-                    TAG_COMPOUND => self.compound().map(Compound),
+                    TAG_LIST => self.list().map(NbtList),
+                    TAG_COMPOUND => self.compound().map(NbtCompound),
                     tag_type => fail!("Unexpected tag type {}", tag_type)
                 }), name))
             }
@@ -337,7 +339,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
                             -> DecodeResult<T> {
         let name = match try!(self.pop()) {
             NbtString(s) => s,
-            Compound(mut o) => {
+            NbtCompound(mut o) => {
                 let name = match o.pop_equiv(&"variant") {
                     Some(NbtString(s)) => s,
                     Some(val) => return Err(ExpectedError("String", val.to_string())),
@@ -392,7 +394,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
     fn read_struct_field<T>(&mut self, name: &str, _idx: uint,
                             f: |&mut Decoder| -> DecodeResult<T>)
                             -> DecodeResult<T> {
-        let mut obj = try!(expect!(self, Compound));
+        let mut obj = try!(expect!(self, NbtCompound));
 
         let value = match obj.pop_equiv(&name) {
             None => return Err(MissingFieldError(name.to_string())),
@@ -401,7 +403,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
                 try!(f(self))
             }
         };
-        self.push(Compound(obj));
+        self.push(NbtCompound(obj));
         Ok(value)
     }
 
@@ -435,7 +437,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
     }
 
     fn read_seq<T>(&mut self, f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
-        let len = match try!(expect!(self, List)) {
+        let len = match try!(expect!(self, NbtList)) {
             ByteList(list) => self.push_all(list, Byte),
             ShortList(list) => self.push_all(list, Short),
             IntList(list) => self.push_all(list, Int),
@@ -445,8 +447,8 @@ impl serialize::Decoder<DecoderError> for Decoder {
             ByteArrayList(list) => self.push_all(list, ByteArray),
             IntArrayList(list) => self.push_all(list, IntArray),
             StringList(list) => self.push_all(list, NbtString),
-            ListList(list) => self.push_all(list, List),
-            CompoundList(list) => self.push_all(list, Compound)
+            ListList(list) => self.push_all(list, NbtList),
+            CompoundList(list) => self.push_all(list, NbtCompound)
         };
         f(self, len)
     }
@@ -457,7 +459,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
     }
 
     fn read_map<T>(&mut self, f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
-        let obj = try!(expect!(self, Compound));
+        let obj = try!(expect!(self, NbtCompound));
         let len = obj.len();
         for (key, value) in obj.into_iter() {
             self.push(value);
