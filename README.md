@@ -27,3 +27,7 @@ Minecraft stores data in the folder `/Users/<username>/Library/Application Suppo
 * Extract the jar
 * Copy the `minecraft` folder from the new extracted folder and put it in the Hematite assets folder
 * Run `./target/hematite "/Users/<username>/Library/Application Support/minecraft/saves/<world>"`
+
+## Using the World Generator
+
+Run `./target/hematite` without any arguments.

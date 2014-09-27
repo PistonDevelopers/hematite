@@ -34,15 +34,18 @@ use piston::{
 };
 
 use array::*;
+use gen::Generator;
+use gen::minecraft::MinecraftLoader;
+use gen::testgen::TestWorldGenerator;
 
 use std::cmp::max;
 use std::f32::INFINITY;
 use std::f32::consts::PI;
-use std::io::fs::File;
 
 pub mod array;
 pub mod chunk;
 pub mod cube;
+pub mod gen;
 pub mod shader;
 pub mod texture;
 
@@ -58,24 +61,17 @@ pub mod minecraft {
 }
 
 fn main() {
-    let world = Path::new(std::os::args().as_slice().get(1).expect("Usage: ./hematite <path/to/world>").as_slice());
-
-    let level = minecraft::nbt::Nbt::from_gzip(File::open(&world.join("level.dat")).read_to_end().unwrap().as_slice()).unwrap();
-    println!("{}", level);
-    let player_pos: [f32, ..3] = Array::from_iter(level["Data"]["Player"]["Pos"].as_double_list().unwrap().iter().map(|&x| x as f32));
-    let player_chunk = [player_pos.x(), player_pos.z()].map(|x| (x / 16.0).floor() as i32);
-    let player_rot = level["Data"]["Player"]["Rotation"].as_float_list().unwrap();
-    let player_yaw = player_rot[0];
-    let player_pitch = player_rot[1];
-
-    let [region_x, region_z] = player_chunk.map(|x| x >> 5);
-    let region_file = world.join(format!("region/r.{}.{}.mca", region_x, region_z));
-    let region = minecraft::region::Region::open(&region_file);
+    let use_wgen = std::os::args().as_slice().get(1).is_none();
+    let world = if use_wgen {
+        Path::new("")
+    } else {
+        Path::new(std::os::args().as_slice().get(1).expect("Usage: ./hematite <path/to/world>").as_slice())
+    };
 
     let mut window = WindowSDL2::new(
-        piston::shader_version::opengl::OpenGL_3_3,
+        piston::shader_version::opengl::OpenGL_2_1,
         WindowSettings {
-            title: format!("Hematite loading... - {}", world.filename_display()),
+            title: format!("Hematite loading... - {}", world.clone().filename_display()),
             size: [854, 480],
             fullscreen: false,
             exit_on_esc: true,
@@ -100,20 +96,13 @@ fn main() {
 
     let mut chunk_manager = chunk::ChunkManager::new();
 
-    println!("Started loading chunks...");
-    let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
-    for cz in range(cz_base, cz_base + 16) {
-        for cx in range(cx_base, cx_base + 16) {
-            match region.get_chunk_column(cx, cz) {
-                Some(column) => {
-                    let [cx, cz] = [cx as i32 + region_x * 32, cz as i32 + region_z * 32];
-                    chunk_manager.add_chunk_column(cx, cz, column)
-                }
-                None => {}
-            }
-        }
-    }
-    println!("Finished loading chunks.");
+    // Load chunks here.
+    let mut loader: Box<Generator> = if use_wgen { box TestWorldGenerator::new() } else { box MinecraftLoader::new(world.clone()) };
+    loader.generate(&mut chunk_manager);
+
+    let player_yaw = loader.player_yaw().unwrap();
+    let player_pitch = loader.player_pitch().unwrap();
+    let player_pos = loader.player_pos().unwrap();
 
     let projection_mat = cam::CameraPerspective {
         fov: 70.0,
@@ -269,7 +258,7 @@ fn main() {
                 }
             }
             Input(input::Press(input::Keyboard(input::keyboard::C))) => {
-                println!("Turned cursor capture {}", 
+                println!("Turned cursor capture {}",
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
