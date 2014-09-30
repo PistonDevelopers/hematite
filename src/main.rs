@@ -102,8 +102,8 @@ fn main() {
 
     println!("Started loading chunks...");
     let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
-    for cz in range(cz_base, cz_base + 16) {
-        for cx in range(cx_base, cx_base + 16) {
+    for cz in range(cz_base, cz_base + 32) {
+        for cx in range(cx_base, cx_base + 32) {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
                     let [cx, cz] = [cx as i32 + region_x * 32, cz as i32 + region_z * 32];

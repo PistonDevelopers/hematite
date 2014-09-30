@@ -5,6 +5,14 @@ version = "0.0.0"
 authors = ["bvssvni <bvssvni@gmail.com>"]
 tags = []
 
+[profile.dev]
+opt-level = 2
+debug = false
+
+[profile.release]
+opt-level = 2
+debug = false
+
 [[bin]]
 
 name = "hematite"
