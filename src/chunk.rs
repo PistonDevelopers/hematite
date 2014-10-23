@@ -8,7 +8,7 @@ pub struct BlockState {
     pub value: u16
 }
 
-pub static EMPTY_BLOCK: BlockState = BlockState { value: 0 };
+pub const EMPTY_BLOCK: BlockState = BlockState { value: 0 };
 
 pub struct BiomeId {
     pub value: u8

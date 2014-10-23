@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::io::fs::File;
 use std::num::next_power_of_two;
 use std::str::{Owned, SendStr, Slice};
+use std::collections::hashmap::{ Occupied, Vacant };
 
 use array::*;
 use cube;
@@ -208,57 +209,61 @@ impl BlockStates {
         let model_str = "model".to_string();
 
         for state in states.into_iter() {
-            let variants = block_state_cache.find_or_insert_with(state.name.to_string(), |name| {
-                let path = assets.path(format!("minecraft/blockstates/{}.json", name).as_slice());
-                match json::from_reader(&mut File::open(&path.unwrap()).unwrap()).unwrap() {
-                    json::Object(mut json) => match json.pop(&variants_str).unwrap() {
-                        json::Object(variants) => variants.into_iter().map(|(k, v)| {
-                            let mut variant = match v {
-                                json::Object(o) => o,
-                                json::List(l) => {
-                                    println!("ignoring {} extra variants for {}#{}",
-                                             l.len() - 1, name, k);
-                                    match l.into_iter().next() {
-                                        Some(json::Object(o)) => Some(o),
-                                        _ => None
-                                    }.unwrap()
+            let variants = match block_state_cache.entry(state.name.to_string()) {
+                Occupied(entry) => entry.into_mut(),
+                Vacant(entry) => entry.set({
+                    let name = state.name;
+                    let path = assets.path(format!("minecraft/blockstates/{}.json", name).as_slice());
+                    match json::from_reader(&mut File::open(&path.unwrap()).unwrap()).unwrap() {
+                        json::Object(mut json) => match json.pop(&variants_str).unwrap() {
+                            json::Object(variants) => variants.into_iter().map(|(k, v)| {
+                                let mut variant = match v {
+                                    json::Object(o) => o,
+                                    json::List(l) => {
+                                        println!("ignoring {} extra variants for {}#{}",
+                                                 l.len() - 1, name, k);
+                                        match l.into_iter().next() {
+                                            Some(json::Object(o)) => Some(o),
+                                            _ => None
+                                        }.unwrap()
+                                    }
+                                    json => fail!("{}#{} has invalid value {}", name, k, json)
+                                };
+                                let model = match variant.pop(&model_str).unwrap() {
+                                    json::String(s) => s,
+                                    json => fail!("'model' has invalid value {}", json)
+                                };
+                                let rotate_x = variant.find_with(|k| "x".cmp(&k.as_slice())).map_or(Rotate0, |r| {
+                                    match OrthoRotation::from_json(r) {
+                                        Some(r) => r,
+                                        None => fail!("invalid rotation for x {}", r)
+                                    }
+                                });
+                                let rotate_y = variant.find_with(|k| "y".cmp(&k.as_slice())).map_or(Rotate0, |r| {
+                                    match OrthoRotation::from_json(r) {
+                                        Some(r) => r,
+                                        None => fail!("invalid rotation for y {}", r)
+                                    }
+                                });
+                                match variant.find_with(|k| "z".cmp(&k.as_slice())) {
+                                    Some(r) => println!("ignoring z rotation {} in {}", r, name),
+                                    None => {}
                                 }
-                                json => fail!("{}#{} has invalid value {}", name, k, json)
-                            };
-                            let model = match variant.pop(&model_str).unwrap() {
-                                json::String(s) => s,
-                                json => fail!("'model' has invalid value {}", json)
-                            };
-                            let rotate_x = variant.find_with(|k| "x".cmp(&k.as_slice())).map_or(Rotate0, |r| {
-                                match OrthoRotation::from_json(r) {
-                                    Some(r) => r,
-                                    None => fail!("invalid rotation for x {}", r)
-                                }
-                            });
-                            let rotate_y = variant.find_with(|k| "y".cmp(&k.as_slice())).map_or(Rotate0, |r| {
-                                match OrthoRotation::from_json(r) {
-                                    Some(r) => r,
-                                    None => fail!("invalid rotation for y {}", r)
-                                }
-                            });
-                            match variant.find_with(|k| "z".cmp(&k.as_slice())) {
-                                Some(r) => println!("ignoring z rotation {} in {}", r, name),
-                                None => {}
-                            }
-                            let uvlock = variant.find_with(|k| "uvlock".cmp(&k.as_slice()))
-                                                .map_or(false, |x| x.as_boolean().unwrap());
-                            (k, Variant {
-                                model: model,
-                                rotate_x: rotate_x,
-                                rotate_y: rotate_y,
-                                uvlock: uvlock
-                            })
-                        }).collect(),
-                        json => fail!("'variants' has invalid value {}", json)
-                    },
-                    json => fail!("root object has invalid value {}", json)
-                }
-            });
+                                let uvlock = variant.find_with(|k| "uvlock".cmp(&k.as_slice()))
+                                                    .map_or(false, |x| x.as_boolean().unwrap());
+                                (k, Variant {
+                                    model: model,
+                                    rotate_x: rotate_x,
+                                    rotate_y: rotate_y,
+                                    uvlock: uvlock
+                                })
+                            }).collect(),
+                            json => fail!("'variants' has invalid value {}", json)
+                        },
+                        json => fail!("root object has invalid value {}", json)
+                    }
+                })
+            };
 
             let variant = match state.variant {
                 Owned(ref variant) => variants.find(variant),
@@ -283,7 +288,7 @@ impl BlockStates {
                         dir[ix] = a * x + b * y;
                         dir[iy] = c * x + d * y;
                         cube::Face::from_direction(dir).unwrap()
-                    }; 
+                    };
                     face.cull_face = match face.cull_face {
                         None => None,
                         Some(f) => Some(fixup_cube_face(f))
@@ -331,11 +336,15 @@ impl BlockStates {
             rotate_faces(&mut model, 2, 1, variant.rotate_x);
             rotate_faces(&mut model, 0, 2, variant.rotate_y);
 
-            models.grow_set(state.id as uint, &ModelAndBehavior::empty(), ModelAndBehavior {
+            let len = models.len();
+            if state.id as uint >= len {
+                models.grow(state.id as uint - len + 1, ModelAndBehavior::empty());
+            }
+            *models.get_mut(state.id as uint) = ModelAndBehavior {
                 model: model,
                 random_offset: state.random_offset,
                 polymorph_oracle: state.polymorph_oracle
-            });
+            };
         }
 
         drop(partial_model_cache);
