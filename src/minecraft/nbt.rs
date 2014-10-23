@@ -113,18 +113,18 @@ impl<'a> Index<&'a str, Nbt> for Nbt {
     }
 }
 
-static TAG_END: i8 = 0;
-static TAG_BYTE: i8 = 1;
-static TAG_SHORT: i8 = 2;
-static TAG_INT: i8 = 3;
-static TAG_LONG: i8 = 4;
-static TAG_FLOAT: i8 = 5;
-static TAG_DOUBLE: i8 = 6;
-static TAG_BYTE_ARRAY: i8 = 7;
-static TAG_STRING: i8 = 8;
-static TAG_LIST: i8 = 9;
-static TAG_COMPOUND: i8 = 10;
-static TAG_INT_ARRAY: i8 = 11;
+const TAG_END: i8 = 0;
+const TAG_BYTE: i8 = 1;
+const TAG_SHORT: i8 = 2;
+const TAG_INT: i8 = 3;
+const TAG_LONG: i8 = 4;
+const TAG_FLOAT: i8 = 5;
+const TAG_DOUBLE: i8 = 6;
+const TAG_BYTE_ARRAY: i8 = 7;
+const TAG_STRING: i8 = 8;
+const TAG_LIST: i8 = 9;
+const TAG_COMPOUND: i8 = 10;
+const TAG_INT_ARRAY: i8 = 11;
 
 pub struct NbtReader<'a, R: 'a> {
     reader: &'a mut R

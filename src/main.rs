@@ -1,6 +1,6 @@
 #![feature(globs, macro_rules, phase)]
 
-extern crate debug;
+extern crate event;
 extern crate piston;
 extern crate sdl2;
 extern crate sdl2_game_window;
@@ -102,8 +102,8 @@ fn main() {
 
     println!("Started loading chunks...");
     let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
-    for cz in range(cz_base, cz_base + 32) {
-        for cx in range(cx_base, cx_base + 32) {
+    for cz in range(cz_base, cz_base + 16) {
+        for cx in range(cx_base, cx_base + 16) {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
                     let [cx, cz] = [cx as i32 + region_x * 32, cz as i32 + region_z * 32];
@@ -144,7 +144,7 @@ fn main() {
     // Disable V-Sync.
     sdl2::video::gl_set_swap_interval(0);
 
-    let mut fps_counter = piston::FPSCounter::new();
+    let mut fps_counter = event::fps_counter::FPSCounter::new();
 
     let mut pending_chunks = vec![];
     chunk_manager.each_chunk_and_neighbors(|coords, buffer, chunks, column_biomes| {
@@ -155,7 +155,6 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let mut last_render = time::precise_time_ns();
     let mut events = EventIterator::new(&mut window, &event_settings);
     loop {
         let e = match events.next() {
@@ -165,12 +164,6 @@ fn main() {
 
         match e {
             Render(_) => {
-                // Update camera.
-                let now = time::precise_time_ns();
-                let dt = (now - last_render) as f64 / 1_000_000_000.0f64;
-                first_person.update(dt);
-                last_render = now;
-
                 // Apply the same y/z camera offset vanilla minecraft has.
                 let mut camera = first_person.camera(0.0);
                 camera.position[1] += 1.62;
@@ -269,7 +262,7 @@ fn main() {
                 }
             }
             Input(input::Press(input::Keyboard(input::keyboard::C))) => {
-                println!("Turned cursor capture {}", 
+                println!("Turned cursor capture {}",
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
@@ -284,10 +277,6 @@ fn main() {
             _ => {}
         }
 
-        // Camera controller.
-        match e {
-            Input(ref args) => first_person.input(args),
-            _ => {}
-        }
+        first_person.event(&e);
     }
 }

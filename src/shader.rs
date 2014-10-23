@@ -148,7 +148,7 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
     }
 
     pub fn clear(&mut self) {
-        self.graphics.clear(self.cd, gfx::Color | gfx::Depth, &self.frame);
+        self.graphics.clear(self.cd, gfx::COLOR | gfx::DEPTH, &self.frame);
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {

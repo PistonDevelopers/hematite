@@ -1,6 +1,7 @@
 use piston::AssetStore;
 use serialize::json;
 use std::collections::HashMap;
+use std::collections::hashmap::{ Occupied, Vacant };
 use std::f32::consts::{PI, SQRT2};
 use std::f32::INFINITY;
 use std::io::fs::File;
@@ -262,7 +263,10 @@ impl PartialModel {
             None => {}
         }
 
-        f(cache.find_or_insert(name.to_string(), model), atlas)
+        match cache.entry(name.to_string()) {
+            Occupied(entry) => f(entry.get(), atlas),
+            Vacant(entry) => f(entry.set(model), atlas)
+        }
     }
 }
 

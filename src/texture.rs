@@ -4,6 +4,7 @@ use gfx::Device;
 use piston::image;
 use piston::image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
 use std::collections::HashMap;
+use std::collections::hashmap::{ Occupied, Vacant };
 use std::mem;
 
 fn load_rgba8(path: &Path) -> Result<ImageBuf<Rgba<u8>>, String> {
@@ -164,7 +165,10 @@ impl AtlasBuilder {
             *a = b;
         }
 
-        *self.tile_positions.find_or_insert(name.to_string(), (x * uw, y * uh))
+        *match self.tile_positions.entry(name.to_string()) {
+            Occupied(entry) => entry.into_mut(),
+            Vacant(entry) => entry.set((x * uw, y * uh))
+        }
     }
 
     pub fn min_alpha(&mut self, x: u32, y: u32, w: u32, h: u32) -> u8 {
