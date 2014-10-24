@@ -1,8 +1,8 @@
 use device::draw::CommandBuffer;
 use gfx;
 use gfx::Device;
-use piston::image;
-use piston::image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
+use image;
+use image::{GenericImage, ImageBuf, MutableRefImage, Pixel, Rgba, SubImage};
 use std::collections::HashMap;
 use std::collections::hashmap::{ Occupied, Vacant };
 use std::mem;

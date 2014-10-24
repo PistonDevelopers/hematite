@@ -1,7 +1,11 @@
 #![feature(globs, macro_rules, phase)]
 
+extern crate shader_version;
+extern crate input;
+extern crate cam;
+extern crate vecmath;
+extern crate image;
 extern crate event;
-extern crate piston;
 extern crate sdl2;
 extern crate sdl2_game_window;
 extern crate gfx;
@@ -19,11 +23,8 @@ extern crate rustrt;
 extern crate serialize;
 
 use sdl2_game_window::WindowSDL2;
-use piston::input;
-use piston::cam;
-use piston::vecmath::{vec3_add, vec3_scale, vec3_normalized};
-use piston::{
-    AssetStore,
+use vecmath::{vec3_add, vec3_scale, vec3_normalized};
+use event::{
     EventIterator,
     EventSettings,
     Window,
@@ -94,7 +95,7 @@ fn main() {
             world.filename_display()
         );
     let mut window = WindowSDL2::new(
-        piston::shader_version::opengl::OpenGL_3_3,
+        shader_version::opengl::OpenGL_3_3,
         WindowSettings {
             title: loading_title,
             size: [854, 480],
@@ -109,13 +110,13 @@ fn main() {
     let (w, h) = window.get_size();
     let frame = gfx::Frame::new(w as u16, h as u16);
 
-    let assets = &AssetStore::from_folder("../assets");
+    let assets = Path::new("./assets");
 
     // Load biomes.
-    let biomes = Biomes::load(assets);
+    let biomes = Biomes::load(&assets);
 
     // Load block state definitions and models.
-    let block_states = BlockStates::load(assets, &mut device);
+    let block_states = BlockStates::load(&assets, &mut device);
 
     let mut renderer = Renderer::new(device, frame, block_states.texture().tex);
 
@@ -220,7 +221,8 @@ fn main() {
                             for &dx in [0.0, 16.0].iter() {
                                 for &dy in [0.0, 16.0].iter() {
                                     for &dz in [0.0, 16.0].iter() {
-                                        use piston::vecmath::col_mat4_transform;
+                                        use vecmath::col_mat4_transform;
+
                                         let [x, y, z] = vec3_add(xyz, [dx, dy, dz]);
                                         let xyzw = col_mat4_transform(view_mat, [x, y, z, 1.0]);
                                         let [x, y, z, w] = col_mat4_transform(projection_mat, xyzw);

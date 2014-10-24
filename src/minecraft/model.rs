@@ -1,4 +1,4 @@
-use piston::AssetStore;
+
 use serialize::json;
 use std::collections::HashMap;
 use std::collections::hashmap::{ Occupied, Vacant };
@@ -93,15 +93,15 @@ pub struct Model {
 }
 
 impl PartialModel {
-    fn load<T>(name: &str, assets: &AssetStore, atlas: &mut AtlasBuilder,
+    fn load<T>(name: &str, assets: &Path, atlas: &mut AtlasBuilder,
                cache: &mut HashMap<String, PartialModel>,
                f: |&PartialModel, &mut AtlasBuilder| -> T) -> T {
         match cache.find_equiv(&name) {
             Some(model) => return f(model, atlas),
             None => {}
         }
-        let path = assets.path(format!("minecraft/models/{}.json", name).as_slice());
-        let json = json::from_reader(&mut File::open(&path.unwrap()).unwrap()).unwrap();
+        let path = assets.join(Path::new(format!("minecraft/models/{}.json", name).as_slice()));
+        let json = json::from_reader(&mut File::open(&path).unwrap()).unwrap();
         let json = json.as_object().unwrap();
 
         let mut model = match json.find_with(|k| "parent".cmp(&k.as_slice())).and_then(|x| x.as_string()) {
@@ -271,7 +271,7 @@ impl PartialModel {
 }
 
 impl Model {
-    pub fn load(name: &str, assets: &AssetStore, atlas: &mut AtlasBuilder,
+    pub fn load(name: &str, assets: &Path, atlas: &mut AtlasBuilder,
                 cache: &mut HashMap<String, PartialModel>) -> Model {
         PartialModel::load(format!("block/{}", name).as_slice(), assets, atlas, cache, |partial, atlas| {
             let mut faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
