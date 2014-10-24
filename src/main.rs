@@ -1,5 +1,6 @@
 #![feature(globs, macro_rules, phase)]
 
+extern crate gfx_voxel;
 extern crate shader_version;
 extern crate input;
 extern crate cam;
@@ -21,6 +22,10 @@ extern crate flate;
 extern crate native;
 extern crate rustrt;
 extern crate serialize;
+
+// Reexport modules from gfx_voxel while stuff is moving
+// from Hematite to the library.
+pub use gfx_voxel::{ array, cube };
 
 use sdl2_game_window::WindowSDL2;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
@@ -44,9 +49,7 @@ use std::f32::INFINITY;
 use std::f32::consts::PI;
 use std::io::fs::File;
 
-pub mod array;
 pub mod chunk;
-pub mod cube;
 pub mod shader;
 pub mod texture;
 

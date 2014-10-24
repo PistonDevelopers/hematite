@@ -18,6 +18,10 @@ debug = false
 name = "hematite"
 path = "src/main.rs"
 
+[dependencies.gfx_voxel]
+
+git = "https://github.com/PistonDevelopers/gfx_voxel"
+
 [dependencies.cam]
 
 git = "https://github.com/PistonDevelopers/cam"
