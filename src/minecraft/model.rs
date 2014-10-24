@@ -309,7 +309,8 @@ impl Model {
                     }
                     let (u0, v0) = (min_u.floor() as u32, min_v.floor() as u32);
                     let (u1, v1) = (max_u.ceil() as u32, max_v.ceil() as u32);
-                    let opacity = match atlas.min_alpha(u0, v0, u1 - u0, v1 - v0) {
+                    let rect = [u0, v0, u1 - u0, v1 - v0];
+                    let opacity = match atlas.min_alpha(rect) {
                         0 => TransparentSolid,
                         255 => Opaque,
                         _ => TranslucentSolid
