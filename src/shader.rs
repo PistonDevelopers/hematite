@@ -113,13 +113,13 @@ pub struct Renderer<D: Device<C>, C: CommandBuffer> {
 
 impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
     pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D, C> {
-        let sam = device.create_sampler(gfx::tex::SamplerInfo::new(gfx::tex::Scale, gfx::tex::Tile));
+        let sampler = device.create_sampler(gfx::tex::SamplerInfo::new(gfx::tex::Scale, gfx::tex::Tile));
         let mut graphics = gfx::Graphics::new(device);
 
         let params = ShaderParam {
             projection: [[0.0, ..4], ..4],
             view: [[0.0, ..4], ..4],
-            s_texture: (tex, Some(sam))
+            s_texture: (tex, Some(sampler))
         };
         let prog = graphics.device.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::LessEqual, true);
