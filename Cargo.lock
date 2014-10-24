@@ -5,7 +5,7 @@ dependencies = [
  "cam 0.0.0 (git+https://github.com/PistonDevelopers/cam#9ebde7de1218e03643a64c52f28596ab53f0ad4d)",
  "cgmath 0.0.1 (git+https://github.com/bjz/cgmath-rs#498fb602816b838524570f0627fea25f7575c070)",
  "gfx 0.1.0 (git+https://github.com/gfx-rs/gfx-rs#f8ec387c26f85484266eb571d636bf9854e6ce7e)",
- "gfx_voxel 0.0.1 (git+https://github.com/PistonDevelopers/gfx_voxel#b9998c75ce7b65c818aaf67279d1d39ce32efcc4)",
+ "gfx_voxel 0.0.1 (git+https://github.com/PistonDevelopers/gfx_voxel#6432251d7b372c363e462ef0e6cd172252c5280e)",
  "image 0.0.0 (git+https://github.com/PistonDevelopers/image#2184609a44f38b659aa65dafe690ed380c20f538)",
  "sdl2_game_window 0.0.0 (git+https://github.com/PistonDevelopers/sdl2_game_window#2c83eb91d2be0fcefb4432cf10ac6f6bb5e621cf)",
  "vecmath 0.0.0 (git+https://github.com/PistonDevelopers/vecmath#d44b2813651780c53ac58327e045841cda99626e)",
@@ -67,8 +67,10 @@ source = "git+https://github.com/gfx-rs/gfx-rs#f8ec387c26f85484266eb571d636bf985
 [[package]]
 name = "gfx_voxel"
 version = "0.0.1"
-source = "git+https://github.com/PistonDevelopers/gfx_voxel#b9998c75ce7b65c818aaf67279d1d39ce32efcc4"
+source = "git+https://github.com/PistonDevelopers/gfx_voxel#6432251d7b372c363e462ef0e6cd172252c5280e"
 dependencies = [
+ "gfx 0.1.0 (git+https://github.com/gfx-rs/gfx-rs#f8ec387c26f85484266eb571d636bf9854e6ce7e)",
+ "image 0.0.0 (git+https://github.com/PistonDevelopers/image#2184609a44f38b659aa65dafe690ed380c20f538)",
  "vecmath 0.0.0 (git+https://github.com/PistonDevelopers/vecmath#d44b2813651780c53ac58327e045841cda99626e)",
 ]
 
