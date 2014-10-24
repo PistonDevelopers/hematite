@@ -34,6 +34,9 @@ use piston::{
 };
 
 use array::*;
+use minecraft::biome::Biomes;
+use minecraft::block_state::BlockStates;
+use shader::Renderer;
 
 use std::cmp::max;
 use std::f32::INFINITY;
@@ -58,24 +61,42 @@ pub mod minecraft {
 }
 
 fn main() {
-    let world = Path::new(std::os::args().as_slice().get(1).expect("Usage: ./hematite <path/to/world>").as_slice());
+    let args = std::os::args();
+    let world = args.as_slice().get(1).expect(
+            "Usage: ./hematite <path/to/world>"
+        ).as_slice();
+    let world = Path::new(world);
 
-    let level = minecraft::nbt::Nbt::from_gzip(File::open(&world.join("level.dat")).read_to_end().unwrap().as_slice()).unwrap();
+    let level_gzip = File::open(&world.join("level.dat"))
+        .read_to_end().unwrap();
+    let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
+        .unwrap();
     println!("{}", level);
-    let player_pos: [f32, ..3] = Array::from_iter(level["Data"]["Player"]["Pos"].as_double_list().unwrap().iter().map(|&x| x as f32));
-    let player_chunk = [player_pos.x(), player_pos.z()].map(|x| (x / 16.0).floor() as i32);
-    let player_rot = level["Data"]["Player"]["Rotation"].as_float_list().unwrap();
+    let player_pos: [f32, ..3] = Array::from_iter(
+            level["Data"]["Player"]["Pos"]
+            .as_double_list().unwrap().iter().map(|&x| x as f32)
+        );
+    let player_chunk = [player_pos.x(), player_pos.z()]
+        .map(|x| (x / 16.0).floor() as i32);
+    let player_rot = level["Data"]["Player"]["Rotation"]
+        .as_float_list().unwrap();
     let player_yaw = player_rot[0];
     let player_pitch = player_rot[1];
 
     let [region_x, region_z] = player_chunk.map(|x| x >> 5);
-    let region_file = world.join(format!("region/r.{}.{}.mca", region_x, region_z));
+    let region_file = world.join(
+            format!("region/r.{}.{}.mca", region_x, region_z)
+        );
     let region = minecraft::region::Region::open(&region_file);
 
+    let loading_title = format!(
+            "Hematite loading... - {}",
+            world.filename_display()
+        );
     let mut window = WindowSDL2::new(
         piston::shader_version::opengl::OpenGL_3_3,
         WindowSettings {
-            title: format!("Hematite loading... - {}", world.filename_display()),
+            title: loading_title,
             size: [854, 480],
             fullscreen: false,
             exit_on_esc: true,
@@ -91,12 +112,12 @@ fn main() {
     let assets = &AssetStore::from_folder("../assets");
 
     // Load biomes.
-    let biomes = minecraft::biome::Biomes::load(assets);
+    let biomes = Biomes::load(assets);
 
     // Load block state definitions and models.
-    let block_states = minecraft::block_state::BlockStates::load(assets, &mut device);
+    let block_states = BlockStates::load(assets, &mut device);
 
-    let mut renderer = shader::Renderer::new(device, frame, block_states.texture().tex);
+    let mut renderer = Renderer::new(device, frame, block_states.texture().tex);
 
     let mut chunk_manager = chunk::ChunkManager::new();
 
@@ -106,7 +127,10 @@ fn main() {
         for cx in range(cx_base, cx_base + 16) {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
-                    let [cx, cz] = [cx as i32 + region_x * 32, cz as i32 + region_z * 32];
+                    let [cx, cz] = [
+                        cx as i32 + region_x * 32,
+                        cz as i32 + region_z * 32
+                    ];
                     chunk_manager.add_chunk_column(cx, cz, column)
                 }
                 None => {}
@@ -147,9 +171,11 @@ fn main() {
     let mut fps_counter = event::fps_counter::FPSCounter::new();
 
     let mut pending_chunks = vec![];
-    chunk_manager.each_chunk_and_neighbors(|coords, buffer, chunks, column_biomes| {
-        pending_chunks.push((coords, buffer, chunks, column_biomes));
-    });
+    chunk_manager.each_chunk_and_neighbors(
+        |coords, buffer, chunks, column_biomes| {
+            pending_chunks.push((coords, buffer, chunks, column_biomes));
+        }
+    );
 
     let mut capture_cursor = false;
     println!("Press C to capture mouse");
@@ -170,7 +196,10 @@ fn main() {
                 let mut xz_forward = camera.forward;
                 xz_forward[1] = 0.0;
                 xz_forward = vec3_normalized(xz_forward);
-                camera.position = vec3_add(camera.position, vec3_scale(xz_forward, 0.1));
+                camera.position = vec3_add(
+                    camera.position,
+                    vec3_scale(xz_forward, 0.1)
+                );
 
                 let view_mat = camera.orthogonal();
                 renderer.set_view(view_mat);
@@ -204,14 +233,16 @@ fn main() {
 
                             let cull_bits: [bool, ..3] = Array::from_fn(|i| {
                                 let (min, max) = (bb_min[i], bb_max[i]);
-                                min.signum() == max.signum() && min.abs().min(max.abs()) >= 1.0
+                                min.signum() == max.signum()
+                                    && min.abs().min(max.abs()) >= 1.0
                             });
 
                             if !cull_bits.iter().any(|&cull| cull) {
                                 renderer.render(buffer);
                                 num_chunks += 1;
 
-                                if bb_min[0] < 0.0 && bb_max[0] > 0.0 || bb_min[1] < 0.0 && bb_max[1] > 0.0 {
+                                if bb_min[0] < 0.0 && bb_max[0] > 0.0
+                                || bb_min[1] < 0.0 && bb_max[1] > 0.0 {
                                     num_sorted_chunks += 1;
                                 }
                             }
@@ -224,34 +255,46 @@ fn main() {
                 let frame_end_time = time::precise_time_ns();
 
                 let fps = fps_counter.tick();
-                let title = format!("Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
-                                    num_sorted_chunks, num_chunks, num_total_chunks,
-                                    (end_time - start_time) as f64 / 1e6,
-                                    (frame_end_time - end_time) as f64 / 1e6,
-                                    fps, world.filename_display());
+                let title = format!(
+"Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
+                        num_sorted_chunks,
+                        num_chunks,
+                        num_total_chunks,
+                        (end_time - start_time) as f64 / 1e6,
+                        (frame_end_time - end_time) as f64 / 1e6,
+                        fps, world.filename_display()
+                    );
                 events.window.window.set_title(title.as_slice());
             }
             Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
                 // The pending vector should be sorted instead.
-                let closest = pending_chunks.iter().enumerate().min_by(|&(_, &([cx, cy, cz], _, _, _))| {
-                    let [px, py, pz] = first_person.position.map(|x| (x / 16.0).floor() as i32);
-                    let [x2, y2, z2] = [cx - px, cy - py, cz - pz].map(|x| x * x);
-                    x2 + y2 + z2
-                }).map(|(i, _)| i);
+                let closest = pending_chunks.iter().enumerate().min_by(
+                    |&(_, &([cx, cy, cz], _, _, _))| {
+                        let [px, py, pz] = first_person.position.map(|x|
+                            (x / 16.0).floor() as i32);
+                        let [x2, y2, z2] = [cx - px, cy - py, cz - pz]
+                            .map(|x| x * x);
+                        x2 + y2 + z2
+                    }
+                ).map(|(i, _)| i);
 
-                let pending = closest.and_then(|i| pending_chunks.swap_remove(i));
+                let pending = closest.and_then(|i|
+                        pending_chunks.swap_remove(i)
+                    );
                 match pending {
                     Some((coords, buffer, chunks, column_biomes)) => {
                         match buffer.get() {
                             Some(buffer) => renderer.delete_buffer(buffer),
                             None => {}
                         }
-                        minecraft::block_state::fill_buffer(&block_states, &biomes,
-                                                            &mut staging_buffer,
-                                                            coords, chunks,
-                                                            column_biomes);
-                        buffer.set(Some(renderer.create_buffer(staging_buffer.as_slice())));
+                        minecraft::block_state::fill_buffer(
+                            &block_states, &biomes, &mut staging_buffer,
+                            coords, chunks, column_biomes
+                        );
+                        buffer.set(Some(
+                            renderer.create_buffer(staging_buffer.as_slice())
+                        ));
                         staging_buffer.clear();
 
                         if pending_chunks.is_empty() {
