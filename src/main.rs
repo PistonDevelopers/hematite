@@ -25,7 +25,7 @@ extern crate serialize;
 
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
-pub use gfx_voxel::{ array, cube };
+pub use gfx_voxel::{ array, cube, texture };
 
 use sdl2_game_window::WindowSDL2;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
@@ -51,7 +51,6 @@ use std::io::fs::File;
 
 pub mod chunk;
 pub mod shader;
-pub mod texture;
 
 pub mod minecraft {
     pub use self::data_1_8_pre2 as data;
