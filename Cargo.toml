@@ -18,9 +18,17 @@ debug = false
 name = "hematite"
 path = "src/main.rs"
 
-[dependencies.piston]
+[dependencies.cam]
 
-git = "https://github.com/PistonDevelopers/piston"
+git = "https://github.com/PistonDevelopers/cam"
+
+[dependencies.vecmath]
+
+git = "https://github.com/PistonDevelopers/vecmath"
+
+[dependencies.image]
+
+git = "https://github.com/PistonDevelopers/image"
 
 [dependencies.sdl2_game_window]
 

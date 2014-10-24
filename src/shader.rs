@@ -1,4 +1,4 @@
-use piston::vecmath::Matrix4;
+use vecmath::Matrix4;
 use gfx;
 use gfx::{Device, DeviceHelper, ToSlice};
 use device;

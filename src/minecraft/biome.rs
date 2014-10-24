@@ -1,4 +1,3 @@
-use piston::AssetStore;
 
 use chunk::BiomeId;
 use minecraft::data;
@@ -17,11 +16,13 @@ pub struct Biomes {
 }
 
 impl Biomes {
-    pub fn load(assets: &AssetStore) -> Biomes {
+    pub fn load(assets: &Path) -> Biomes {
         let mut biomes = box() ([None, ..256]);
 
-        let grass_colors = ColorMap::from_path(&assets.path("minecraft/textures/colormap/grass.png").unwrap()).unwrap();
-        let foliage_colors = ColorMap::from_path(&assets.path("minecraft/textures/colormap/foliage.png").unwrap()).unwrap();
+        let grass_colors = Path::new("minecraft/textures/colormap/grass.png");
+        let grass_colors = ColorMap::from_path(&assets.join(&grass_colors)).unwrap();
+        let foliage_colors = Path::new("minecraft/textures/colormap/foliage.png");
+        let foliage_colors = ColorMap::from_path(&assets.join(foliage_colors)).unwrap();
 
         for (i, &biome) in data::BIOMES.iter().enumerate() {
             biomes[i] = biome.map(|(name, t, h)| Biome {

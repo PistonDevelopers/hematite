@@ -1,7 +1,6 @@
 use device::draw::CommandBuffer;
 use gfx::Device;
-use piston::AssetStore;
-use piston::vecmath::vec3_add;
+use vecmath::vec3_add;
 use serialize::json;
 use std::cmp::max;
 use std::collections::HashMap;
@@ -111,8 +110,9 @@ impl ModelAndBehavior {
 }
 
 impl BlockStates {
-    pub fn load<D: Device<C>, C: CommandBuffer>(assets: &AssetStore, d: &mut D)
-                                                -> BlockStates {
+    pub fn load<D: Device<C>, C: CommandBuffer>(
+        assets: &Path, d: &mut D
+    ) -> BlockStates {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.val0());
         let mut states = Vec::<Description>::with_capacity(next_power_of_two(BLOCK_STATES.len()));
         let mut extras = vec![];
@@ -189,9 +189,10 @@ impl BlockStates {
         BlockStates::load_with_states(assets, d, states)
     }
 
-    fn load_with_states<D: Device<C>, C: CommandBuffer>(assets: &AssetStore, d: &mut D,
-                                                        states: Vec<Description>)
-                                                        -> BlockStates {
+    fn load_with_states<D: Device<C>, C: CommandBuffer>(
+        assets: &Path, d: &mut D,
+        states: Vec<Description>
+    ) -> BlockStates {
         struct Variant {
             model: String,
             rotate_x: OrthoRotation,
@@ -202,7 +203,7 @@ impl BlockStates {
         let last_id = states.last().map_or(0, |state| state.id);
         let mut models = Vec::with_capacity(last_id as uint + 1);
 
-        let mut atlas = AtlasBuilder::new(assets.path("minecraft/textures").unwrap(), 16, 16);
+        let mut atlas = AtlasBuilder::new(assets.join(Path::new("minecraft/textures")), 16, 16);
         let mut partial_model_cache = HashMap::new();
         let mut block_state_cache: HashMap<String, HashMap<String, Variant>> = HashMap::new();
         let variants_str = "variants".to_string();
@@ -213,8 +214,8 @@ impl BlockStates {
                 Occupied(entry) => entry.into_mut(),
                 Vacant(entry) => entry.set({
                     let name = state.name;
-                    let path = assets.path(format!("minecraft/blockstates/{}.json", name).as_slice());
-                    match json::from_reader(&mut File::open(&path.unwrap()).unwrap()).unwrap() {
+                    let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_slice()));
+                    match json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
                         json::Object(mut json) => match json.pop(&variants_str).unwrap() {
                             json::Object(variants) => variants.into_iter().map(|(k, v)| {
                                 let mut variant = match v {

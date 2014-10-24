@@ -1,7 +1,7 @@
 use std::from_str::FromStr;
 
 use array::*;
-use piston::vecmath::Vector3;
+use vecmath::Vector3;
 
 /*
         3  ---------  2
@@ -133,4 +133,3 @@ impl Iterator<Face> for FaceIterator {
         }
     }
 }
-
