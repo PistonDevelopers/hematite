@@ -38,9 +38,9 @@ git = "https://github.com/PistonDevelopers/vecmath"
 
 git = "https://github.com/PistonDevelopers/image"
 
-[dependencies.sdl2_game_window]
+[dependencies.sdl2_window]
 
-git = "https://github.com/PistonDevelopers/sdl2_game_window"
+git = "https://github.com/PistonDevelopers/sdl2_window"
 
 [dependencies.cgmath]
 

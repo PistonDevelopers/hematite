@@ -8,7 +8,7 @@ dependencies = [
  "gfx 0.1.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "gfx_voxel 0.0.1 (git+https://github.com/PistonDevelopers/gfx_voxel)",
  "image 0.1.0 (git+https://github.com/PistonDevelopers/image)",
- "sdl2_game_window 0.0.0 (git+https://github.com/PistonDevelopers/sdl2_game_window)",
+ "sdl2_window 0.0.0 (git+https://github.com/PistonDevelopers/sdl2_window)",
  "vecmath 0.0.0 (git+https://github.com/PistonDevelopers/vecmath)",
 ]
 
@@ -131,9 +131,9 @@ version = "0.0.1-alpha.1"
 source = "git+https://github.com/AngryLawyer/rust-sdl2#eaf9b4c60a7b333e557ef6c02abfb8bc758d4092"
 
 [[package]]
-name = "sdl2_game_window"
+name = "sdl2_window"
 version = "0.0.0"
-source = "git+https://github.com/PistonDevelopers/sdl2_game_window#2c83eb91d2be0fcefb4432cf10ac6f6bb5e621cf"
+source = "git+https://github.com/PistonDevelopers/sdl2_window#00302f009e69a778087f53eb3e7bee51bef1845a"
 dependencies = [
  "event 0.0.0 (git+https://github.com/pistondevelopers/event)",
  "gl 0.0.1 (git+https://github.com/bjz/gl-rs)",

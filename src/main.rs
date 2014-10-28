@@ -9,7 +9,7 @@ extern crate vecmath;
 extern crate image;
 extern crate event;
 extern crate sdl2;
-extern crate sdl2_game_window;
+extern crate sdl2_window;
 extern crate gfx;
 extern crate device;
 extern crate render;
@@ -28,7 +28,7 @@ extern crate serialize;
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube, texture };
 
-use sdl2_game_window::WindowSDL2;
+use sdl2_window::Sdl2Window;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use event::{
     EventIterator,
@@ -97,7 +97,7 @@ fn main() {
             "Hematite loading... - {}",
             world.filename_display()
         );
-    let mut window = WindowSDL2::new(
+    let mut window = Sdl2Window::new(
         shader_version::opengl::OpenGL_3_3,
         WindowSettings {
             title: loading_title,
