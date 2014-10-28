@@ -26,6 +26,10 @@ git = "https://github.com/PistonDevelopers/gfx_voxel"
 
 git = "https://github.com/PistonDevelopers/cam"
 
+[dependencies.fps_counter]
+
+git = "https://github.com/PistonDevelopers/fps_counter"
+
 [dependencies.vecmath]
 
 git = "https://github.com/PistonDevelopers/vecmath"

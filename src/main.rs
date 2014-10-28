@@ -3,6 +3,7 @@
 extern crate gfx_voxel;
 extern crate shader_version;
 extern crate input;
+extern crate fps_counter;
 extern crate cam;
 extern crate vecmath;
 extern crate image;
@@ -171,7 +172,7 @@ fn main() {
     // Disable V-Sync.
     sdl2::video::gl_set_swap_interval(0);
 
-    let mut fps_counter = event::fps_counter::FPSCounter::new();
+    let mut fps_counter = fps_counter::FPSCounter::new();
 
     let mut pending_chunks = vec![];
     chunk_manager.each_chunk_and_neighbors(
