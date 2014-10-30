@@ -228,22 +228,22 @@ impl BlockStates {
                                             _ => None
                                         }.unwrap()
                                     }
-                                    json => fail!("{}#{} has invalid value {}", name, k, json)
+                                    json => panic!("{}#{} has invalid value {}", name, k, json)
                                 };
                                 let model = match variant.pop(&model_str).unwrap() {
                                     json::String(s) => s,
-                                    json => fail!("'model' has invalid value {}", json)
+                                    json => panic!("'model' has invalid value {}", json)
                                 };
                                 let rotate_x = variant.find_with(|k| "x".cmp(&k.as_slice())).map_or(Rotate0, |r| {
                                     match OrthoRotation::from_json(r) {
                                         Some(r) => r,
-                                        None => fail!("invalid rotation for x {}", r)
+                                        None => panic!("invalid rotation for x {}", r)
                                     }
                                 });
                                 let rotate_y = variant.find_with(|k| "y".cmp(&k.as_slice())).map_or(Rotate0, |r| {
                                     match OrthoRotation::from_json(r) {
                                         Some(r) => r,
-                                        None => fail!("invalid rotation for y {}", r)
+                                        None => panic!("invalid rotation for y {}", r)
                                     }
                                 });
                                 match variant.find_with(|k| "z".cmp(&k.as_slice())) {
@@ -259,9 +259,9 @@ impl BlockStates {
                                     uvlock: uvlock
                                 })
                             }).collect(),
-                            json => fail!("'variants' has invalid value {}", json)
+                            json => panic!("'variants' has invalid value {}", json)
                         },
-                        json => fail!("root object has invalid value {}", json)
+                        json => panic!("root object has invalid value {}", json)
                     }
                 })
             };

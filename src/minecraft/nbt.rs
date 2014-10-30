@@ -108,7 +108,7 @@ impl<'a> Index<&'a str, Nbt> for Nbt {
     fn index<'b>(&'b self, s: &&'a str) -> &'b Nbt {
         match *self {
             NbtCompound(ref c) => c.find_equiv(s).unwrap(),
-            _ => fail!("cannot index non-compound Nbt ({}) with '{}'", self, s)
+            _ => panic!("cannot index non-compound Nbt ({}) with '{}'", self, s)
         }
     }
 }
@@ -193,7 +193,7 @@ impl<'a, R: Reader> NbtReader<'a, R> {
             TAG_STRING => self.array(|r| r.string()).map(StringList),
             TAG_LIST => self.array(|r| r.list()).map(ListList),
             TAG_COMPOUND => self.array(|r| r.compound()).map(CompoundList),
-            tag_type => fail!("Unexpected tag type {}", tag_type)
+            tag_type => panic!("Unexpected tag type {}", tag_type)
         }
     }
 
@@ -214,7 +214,7 @@ impl<'a, R: Reader> NbtReader<'a, R> {
                     TAG_STRING => self.string().map(NbtString),
                     TAG_LIST => self.list().map(NbtList),
                     TAG_COMPOUND => self.compound().map(NbtCompound),
-                    tag_type => fail!("Unexpected tag type {}", tag_type)
+                    tag_type => panic!("Unexpected tag type {}", tag_type)
                 }), name))
             }
         })

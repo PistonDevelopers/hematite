@@ -66,7 +66,7 @@ impl Region {
         let nbt = match sectors[4] {
             1 => Nbt::from_gzip(sectors.slice(5, 4 + len)),
             2 => Nbt::from_zlib(sectors.slice(5, 4 + len)),
-            c => fail!("unknown region chunk compression method {}", c)
+            c => panic!("unknown region chunk compression method {}", c)
         };
 
         let mut c = nbt.unwrap().into_compound().unwrap();

@@ -184,7 +184,7 @@ impl PartialModel {
                     let rotation = o.find_with(|k| "rotation".cmp(&k.as_slice())).map_or(Rotate0, |r| {
                         match OrthoRotation::from_json(r) {
                             Some(r) => r,
-                            None => fail!("invalid rotation for face {}", r)
+                            None => panic!("invalid rotation for face {}", r)
                         }
                     });
 
@@ -254,7 +254,7 @@ impl PartialModel {
                             "x" => rot(2, 1),
                             "y" => rot(0, 2),
                             "z" => rot(1, 0),
-                            axis => fail!("invalid rotation axis {}", axis)
+                            axis => panic!("invalid rotation axis {}", axis)
                         }
                     }
                     None => {}
