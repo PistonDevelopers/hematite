@@ -121,7 +121,7 @@ fn main() {
     // Load block state definitions and models.
     let block_states = BlockStates::load(&assets, &mut device);
 
-    let mut renderer = Renderer::new(device, frame, block_states.texture().tex);
+    let mut renderer = Renderer::new(device, frame, block_states.texture().handle);
 
     let mut chunk_manager = chunk::ChunkManager::new();
 

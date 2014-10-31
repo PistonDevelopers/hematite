@@ -127,7 +127,7 @@ impl Region {
             if y as uint >= len {
                 chunks.grow(y as uint - len + 1, *EMPTY_CHUNK);
             }
-            *chunks.get_mut(y as uint) = chunk;
+            chunks[y as uint] = chunk;
         }
         let biomes = level.find_equiv(&"Biomes")
             .unwrap().as_bytearray().unwrap();

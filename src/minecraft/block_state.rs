@@ -1,3 +1,4 @@
+
 use device::draw::CommandBuffer;
 use gfx::Device;
 use vecmath::vec3_add;
@@ -146,7 +147,7 @@ impl BlockStates {
                         random_offset: RandomOffsetXZ,
                         polymorph_oracle: vec![]
                     });
-                    states.get_mut(j).random_offset = RandomOffsetXZ;
+                    states[j].random_offset = RandomOffsetXZ;
 
                     let next_index = polymorph_oracle.len() as u8;
                     polymorph_oracle.push_all([
@@ -341,7 +342,7 @@ impl BlockStates {
             if state.id as uint >= len {
                 models.grow(state.id as uint - len + 1, ModelAndBehavior::empty());
             }
-            *models.get_mut(state.id as uint) = ModelAndBehavior {
+            models[state.id as uint] = ModelAndBehavior {
                 model: model,
                 random_offset: state.random_offset,
                 polymorph_oracle: state.polymorph_oracle
@@ -352,8 +353,9 @@ impl BlockStates {
         drop(block_state_cache);
 
         let texture = atlas.complete(d);
-        let u_unit = 1.0 / (texture.width as f32);
-        let v_unit = 1.0 / (texture.height as f32);
+        let (width, height) = texture.get_size();
+        let u_unit = 1.0 / (width as f32);
+        let v_unit = 1.0 / (height as f32);
 
         for model in models.iter_mut() {
             for face in model.model.faces.iter_mut() {
