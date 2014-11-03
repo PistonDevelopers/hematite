@@ -39,13 +39,13 @@ name = "event"
 version = "0.0.0"
 source = "git+https://github.com/pistondevelopers/event#9b308af5f0f16d312c423f35ac8f7e7adbc1e5e5"
 dependencies = [
- "input 0.0.0 (git+https://github.com/pistondevelopers/input)",
+ "input 0.0.0 (git+https://github.com/PistonDevelopers/input)",
 ]
 
 [[package]]
 name = "fps_counter"
 version = "0.0.0"
-source = "git+https://github.com/PistonDevelopers/fps_counter#01dbafa20cc92c2b752f64326395b992a673bd29"
+source = "git+https://github.com/PistonDevelopers/fps_counter#daa7cc82f9de6f20c36039ed04f4a42c2857cda7"
 
 [[package]]
 name = "gfx"
@@ -62,7 +62,7 @@ name = "gfx_gl"
 version = "0.1.0"
 source = "git+https://github.com/gfx-rs/gfx_gl.git#ed681503da2e7ed9343003e78af4767e8e4e33a8"
 dependencies = [
- "gl_generator 0.0.1 (git+https://github.com/bjz/gl-rs)",
+ "gl_generator 0.0.1 (git+https://github.com/bjz/gl-rs.git)",
 ]
 
 [[package]]
@@ -93,17 +93,17 @@ dependencies = [
 [[package]]
 name = "gl"
 version = "0.0.1"
-source = "git+https://github.com/bjz/gl-rs#df380704256f6eb9c9cf6850181bb7250995c50a"
+source = "git+https://github.com/bjz/gl-rs.git#df380704256f6eb9c9cf6850181bb7250995c50a"
 dependencies = [
- "gl_generator 0.0.1 (git+https://github.com/bjz/gl-rs)",
+ "gl_generator 0.0.1 (git+https://github.com/bjz/gl-rs.git)",
 ]
 
 [[package]]
 name = "gl_generator"
 version = "0.0.1"
-source = "git+https://github.com/bjz/gl-rs#df380704256f6eb9c9cf6850181bb7250995c50a"
+source = "git+https://github.com/bjz/gl-rs.git#df380704256f6eb9c9cf6850181bb7250995c50a"
 dependencies = [
- "khronos_api 0.0.1 (git+https://github.com/bjz/gl-rs)",
+ "khronos_api 0.0.1 (git+https://github.com/bjz/gl-rs.git)",
  "rust-xml 0.1.0 (git+https://github.com/netvl/rust-xml)",
 ]
 
@@ -115,12 +115,12 @@ source = "git+https://github.com/PistonDevelopers/image#475682495f1a8626ecca217a
 [[package]]
 name = "input"
 version = "0.0.0"
-source = "git+https://github.com/pistondevelopers/input#27bfb0e86d6f01c26098eab279ae3a07eaac909a"
+source = "git+https://github.com/PistonDevelopers/input#27bfb0e86d6f01c26098eab279ae3a07eaac909a"
 
 [[package]]
 name = "khronos_api"
 version = "0.0.1"
-source = "git+https://github.com/bjz/gl-rs#df380704256f6eb9c9cf6850181bb7250995c50a"
+source = "git+https://github.com/bjz/gl-rs.git#df380704256f6eb9c9cf6850181bb7250995c50a"
 
 [[package]]
 name = "render"
@@ -146,8 +146,8 @@ version = "0.0.0"
 source = "git+https://github.com/PistonDevelopers/sdl2_window#98aad0d980e4bd8ca62983d172552c8966722f83"
 dependencies = [
  "event 0.0.0 (git+https://github.com/pistondevelopers/event)",
- "gl 0.0.1 (git+https://github.com/bjz/gl-rs)",
- "input 0.0.0 (git+https://github.com/pistondevelopers/input)",
+ "gl 0.0.1 (git+https://github.com/bjz/gl-rs.git)",
+ "input 0.0.0 (git+https://github.com/PistonDevelopers/input)",
  "sdl2 0.0.1-alpha.1 (git+https://github.com/AngryLawyer/rust-sdl2)",
  "shader_version 0.0.0 (git+https://github.com/pistondevelopers/shader_version)",
 ]
