@@ -269,7 +269,7 @@ impl BlockStates {
 
             let variant = match state.variant {
                 Owned(ref variant) => variants.find(variant),
-                Slice(ref variant) => variants.find_equiv(variant)
+                Slice(ref variant) => variants.find_equiv(*variant)
             }.unwrap();
             let mut model = Model::load(variant.model.as_slice(), assets,
                                         &mut atlas, &mut partial_model_cache);

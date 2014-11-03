@@ -70,22 +70,22 @@ impl Region {
         };
 
         let mut c = nbt.unwrap().into_compound().unwrap();
-        let mut level = c.pop_equiv(&"Level").unwrap().into_compound().unwrap();
+        let mut level = c.pop_equiv("Level").unwrap().into_compound().unwrap();
         let mut chunks = Vec::new();
-        for chunk in level.pop_equiv(&"Sections")
+        for chunk in level.pop_equiv("Sections")
             .unwrap().into_compound_list().unwrap().into_iter() {
 
-            let y = chunk.find_equiv(&"Y")
+            let y = chunk.find_equiv("Y")
                 .unwrap().as_byte().unwrap();
-            let blocks = chunk.find_equiv(&"Blocks")
+            let blocks = chunk.find_equiv("Blocks")
                 .unwrap().as_bytearray().unwrap();
-            let blocks_top = chunk.find_equiv(&"Add")
+            let blocks_top = chunk.find_equiv("Add")
                 .and_then(|x| x.as_bytearray());
-            let blocks_data = chunk.find_equiv(&"Data")
+            let blocks_data = chunk.find_equiv("Data")
                 .unwrap().as_bytearray().unwrap();
-            let block_light = chunk.find_equiv(&"BlockLight")
+            let block_light = chunk.find_equiv("BlockLight")
                 .unwrap().as_bytearray().unwrap();
-            let sky_light = chunk.find_equiv(&"SkyLight")
+            let sky_light = chunk.find_equiv("SkyLight")
                 .unwrap().as_bytearray().unwrap();
 
             fn array_16x16x16<T>(
@@ -129,7 +129,7 @@ impl Region {
             }
             chunks[y as uint] = chunk;
         }
-        let biomes = level.find_equiv(&"Biomes")
+        let biomes = level.find_equiv("Biomes")
             .unwrap().as_bytearray().unwrap();
         Some(ChunkColumn {
             chunks: chunks,
