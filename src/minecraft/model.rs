@@ -96,7 +96,7 @@ impl PartialModel {
     fn load<T>(name: &str, assets: &Path, atlas: &mut AtlasBuilder,
                cache: &mut HashMap<String, PartialModel>,
                f: |&PartialModel, &mut AtlasBuilder| -> T) -> T {
-        match cache.find_equiv(&name) {
+        match cache.find_equiv(name) {
             Some(model) => return f(model, atlas),
             None => {}
         }
