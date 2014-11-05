@@ -228,7 +228,7 @@ pub struct Decoder {
 
 #[deriving(Clone, PartialEq, Eq, Show)]
 pub enum DecoderError {
-    ExpectedError(&'static str, String),
+    ExpectedError(String, String),
     MissingFieldError(String),
     UnknownVariantError(String),
     ApplicationError(String)
@@ -270,7 +270,7 @@ macro_rules! expect(
         match $s.pop() {
             Ok($t(v)) => Ok(v),
             Ok(other) => {
-                Err(ExpectedError(stringify!($t), other.to_string()))
+                Err(ExpectedError(stringify!($t).to_string(), other.to_string()))
             }
             Err(e) => Err(e)
         }
@@ -280,7 +280,7 @@ macro_rules! expect(
 
 impl serialize::Decoder<DecoderError> for Decoder {
     fn read_nil(&mut self) -> DecodeResult<()> {
-        Err(ExpectedError("()", try!(self.pop()).to_string()))
+        Err(ExpectedError("()".to_string(), try!(self.pop()).to_string()))
     }
 
     fn read_u64(&mut self) -> DecodeResult<u64> { expect!(self, Long as u64) }
@@ -299,7 +299,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
             Short(x) => Ok(x as int),
             Int(x) => Ok(x as int),
             Long(x) => Ok(x as int),
-            other => Err(ExpectedError("int", other.to_string()))
+            other => Err(ExpectedError("int".to_string(), other.to_string()))
         }
     }
     fn read_uint(&mut self) -> DecodeResult<uint> { Ok(try!(self.read_int()) as uint) }
@@ -321,7 +321,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
                 _ => ()
             }
         }
-        Err(ExpectedError("single character string", s))
+        Err(ExpectedError("single character string".to_string(), s))
     }
 
     fn read_str(&mut self) -> DecodeResult<String> {
@@ -342,7 +342,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
             NbtCompound(mut o) => {
                 let name = match o.pop_equiv("variant") {
                     Some(NbtString(s)) => s,
-                    Some(val) => return Err(ExpectedError("String", val.to_string())),
+                    Some(val) => return Err(ExpectedError("String".to_string(), val.to_string())),
                     None => return Err(MissingFieldError("variant".to_string()))
                 };
                 match o.pop_equiv("fields") {
@@ -355,7 +355,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
                 name
             }
             nbt => {
-                return Err(ExpectedError("String or Compound", nbt.to_string()))
+                return Err(ExpectedError("String or Compound".to_string(), nbt.to_string()))
             }
         };
         let idx = match names.iter().position(|n| *n == name.as_slice()) {
@@ -407,8 +407,14 @@ impl serialize::Decoder<DecoderError> for Decoder {
         Ok(value)
     }
 
-    fn read_tuple<T>(&mut self, f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
-        self.read_seq(f)
+    fn read_tuple<T>(&mut self, tuple_len: uint, f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
+        self.read_seq(|d, len| {
+            if len == tuple_len {
+                f(d)
+            } else {
+                Err(ExpectedError(format!("Tuple{}", tuple_len), format!("Tuple{}", len)))
+            }
+        })
     }
 
     fn read_tuple_arg<T>(&mut self, idx: uint,
@@ -417,9 +423,10 @@ impl serialize::Decoder<DecoderError> for Decoder {
     }
 
     fn read_tuple_struct<T>(&mut self, _name: &str,
-                            f: |&mut Decoder, uint| -> DecodeResult<T>)
+                            len: uint,
+                            f: |&mut Decoder| -> DecodeResult<T>)
                             -> DecodeResult<T> {
-        self.read_tuple(f)
+        self.read_tuple(len, f)
     }
 
     fn read_tuple_struct_arg<T>(&mut self, idx: uint,
