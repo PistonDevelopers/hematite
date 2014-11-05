@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use std::io::fs::File;
 use std::num::next_power_of_two;
 use std::str::{Owned, SendStr, Slice};
-use std::collections::hashmap::{ Occupied, Vacant };
+use std::collections::hash_map::{ Occupied, Vacant };
 
 use array::*;
 use cube;
