@@ -98,7 +98,7 @@ fn main() {
             "Hematite loading... - {}",
             world.filename_display()
         );
-    let mut window = Sdl2Window::new(
+    let window = Sdl2Window::new(
         shader_version::opengl::OpenGL_3_3,
         WindowSettings {
             title: loading_title,
