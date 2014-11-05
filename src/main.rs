@@ -1,5 +1,6 @@
 #![feature(globs, macro_rules, phase)]
 
+extern crate current;
 extern crate gfx_voxel;
 extern crate shader_version;
 extern crate input;
@@ -29,11 +30,11 @@ extern crate serialize;
 pub use gfx_voxel::{ array, cube, texture };
 
 use std::cell::RefCell;
+use current::Set;
 use sdl2_window::Sdl2Window;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use event::{
-    Events,
-    EventSettings,
+    Events, Ups, MaxFps,
     Window,
     WindowSettings,
     Input,
@@ -165,11 +166,6 @@ fn main() {
     first_person.yaw = PI - player_yaw / 180.0 * PI;
     first_person.pitch = player_pitch / 180.0 * PI;
 
-    let event_settings = EventSettings {
-        updates_per_second: 120,
-        max_frames_per_second: 10000
-    };
-
     // Disable V-Sync.
     sdl2::video::gl_set_swap_interval(0);
 
@@ -187,7 +183,9 @@ fn main() {
 
     let mut staging_buffer = vec![];
     let window = RefCell::new(window);
-    for e in Events::new(&window, &event_settings) {
+    for e in Events::new(&window)
+        .set(Ups(120))
+        .set(MaxFps(10_000)) {
         match e {
             Render(_) => {
                 // Apply the same y/z camera offset vanilla minecraft has.
