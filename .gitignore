@@ -23,3 +23,5 @@ watch.sh
 !/examples/assets/
 *.kdev4
 *.trace
+
+Cargo.lock
