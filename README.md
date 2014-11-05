@@ -2,6 +2,8 @@
 
 A simple Minecraft written in Rust with the Piston game engine
 
+![screenshot](./screenshot.png)
+
 ## Getting Started
 `cargo build --release`
 
