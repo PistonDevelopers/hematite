@@ -32,7 +32,7 @@ use std::cell::RefCell;
 use sdl2_window::Sdl2Window;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use event::{
-    EventIterator,
+    Events,
     EventSettings,
     Window,
     WindowSettings,
@@ -187,7 +187,7 @@ fn main() {
 
     let mut staging_buffer = vec![];
     let window = RefCell::new(window);
-    for e in EventIterator::new(&window, &event_settings) {
+    for e in Events::new(&window, &event_settings) {
         match e {
             Render(_) => {
                 // Apply the same y/z camera offset vanilla minecraft has.
