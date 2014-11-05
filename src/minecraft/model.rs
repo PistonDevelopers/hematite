@@ -1,7 +1,7 @@
 
 use serialize::json;
 use std::collections::HashMap;
-use std::collections::hashmap::{ Occupied, Vacant };
+use std::collections::hash_map::{ Occupied, Vacant };
 use std::f32::consts::{PI, SQRT2};
 use std::f32::INFINITY;
 use std::io::fs::File;

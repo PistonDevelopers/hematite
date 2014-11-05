@@ -28,6 +28,7 @@ extern crate serialize;
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube, texture };
 
+use std::cell::RefCell;
 use sdl2_window::Sdl2Window;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use event::{
@@ -185,13 +186,8 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let mut events = EventIterator::new(&mut window, &event_settings);
-    loop {
-        let e = match events.next() {
-                None => { break; }
-                Some(e) => e
-            };
-
+    let window = RefCell::new(window);
+    for e in EventIterator::new(&window, &event_settings) {
         match e {
             Render(_) => {
                 // Apply the same y/z camera offset vanilla minecraft has.
@@ -269,7 +265,7 @@ fn main() {
                         (frame_end_time - end_time) as f64 / 1e6,
                         fps, world.filename_display()
                     );
-                events.window.window.set_title(title.as_slice());
+                window.borrow_mut().window.set_title(title.as_slice());
             }
             Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
@@ -314,7 +310,7 @@ fn main() {
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
-                events.window.capture_cursor(capture_cursor);
+                window.borrow_mut().capture_cursor(capture_cursor);
             }
             Input(input::Move(input::MouseRelative(_, _))) => {
                 if !capture_cursor {
