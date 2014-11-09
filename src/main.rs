@@ -30,17 +30,15 @@ extern crate serialize;
 pub use gfx_voxel::{ array, cube, texture };
 
 use std::cell::RefCell;
-use current::Set;
+use current::{ Get, Set };
 use sdl2_window::Sdl2Window;
 use vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use event::{
     Events, Ups, MaxFps,
-    Window,
     WindowSettings,
-    Input,
-    Render,
-    Update
+    Input, Render, Update
 };
+use event::window::{ CaptureCursor, Size };
 
 use array::*;
 use minecraft::biome::Biomes;
@@ -112,7 +110,7 @@ fn main() {
     let mut device = gfx::GlDevice::new(|s| unsafe {
         std::mem::transmute(sdl2::video::gl_get_proc_address(s))
     });
-    let (w, h) = window.get_size();
+    let Size([w, h]) = window.get();
     let frame = gfx::Frame::new(w as u16, h as u16);
 
     let assets = Path::new("./assets");
@@ -150,7 +148,7 @@ fn main() {
         near_clip: 0.1,
         far_clip: 1000.0,
         aspect_ratio: {
-            let (w, h) = window.get_size();
+            let Size([w, h]) = window.get();
             (w as f32) / (h as f32)
         }
     }.projection();
@@ -182,8 +180,8 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let window = RefCell::new(window);
-    for e in Events::new(&window)
+    let ref window = RefCell::new(window);
+    for e in Events::new(window)
         .set(Ups(120))
         .set(MaxFps(10_000)) {
         match e {
@@ -308,7 +306,7 @@ fn main() {
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
-                window.borrow_mut().capture_cursor(capture_cursor);
+                window.set(CaptureCursor(capture_cursor));
             }
             Input(input::Move(input::MouseRelative(_, _))) => {
                 if !capture_cursor {

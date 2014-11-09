@@ -80,7 +80,7 @@ impl ChunkManager {
         for &(x, z) in self.chunk_columns.keys() {
             let columns = [-1, 0, 1].map(
                     |dz| [-1, 0, 1].map(
-                        |dx| self.chunk_columns.find(&(x + dx, z + dz))
+                        |dx| self.chunk_columns.get(&(x + dx, z + dz))
                     )
                 );
             let central = columns[1][1].unwrap();

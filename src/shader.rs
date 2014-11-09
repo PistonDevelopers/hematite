@@ -5,7 +5,7 @@ use device;
 use device::draw::CommandBuffer;
 use render;
 
-static VERTEX: gfx::ShaderSource = shaders! {
+static VERTEX: gfx::ShaderSource<'static> = shaders! {
 GLSL_120: b"
     #version 120
     uniform mat4 projection, view;
@@ -40,7 +40,7 @@ GLSL_150: b"
 "
 };
 
-static FRAGMENT: gfx::ShaderSource = shaders!{
+static FRAGMENT: gfx::ShaderSource<'static> = shaders!{
 GLSL_120: b"
     #version 120
 

@@ -104,7 +104,7 @@ impl PartialModel {
         let json = json::from_reader(&mut File::open(&path).unwrap()).unwrap();
         let json = json.as_object().unwrap();
 
-        let mut model = match json.find_with(|k| "parent".cmp(&k.as_slice())).and_then(|x| x.as_string()) {
+        let mut model = match json.find_with(|k| "parent".cmp(k.as_slice())).and_then(|x| x.as_string()) {
             Some(parent) => PartialModel::load(parent, assets, atlas, cache, |m, _| m.clone()),
             None => PartialModel {
                 textures: HashMap::new(),
@@ -114,12 +114,12 @@ impl PartialModel {
             }
         };
 
-        match json.find_with(|k| "ambientocclusion".cmp(&k.as_slice())).and_then(|x| x.as_boolean()) {
+        match json.find_with(|k| "ambientocclusion".cmp(k.as_slice())).and_then(|x| x.as_boolean()) {
             Some(ambient_occlusion) => model.no_ambient_occlusion = !ambient_occlusion,
             None => {}
         }
 
-        match json.find_with(|k| "textures".cmp(&k.as_slice())).and_then(|x| x.as_object()) {
+        match json.find_with(|k| "textures".cmp(k.as_slice())).and_then(|x| x.as_object()) {
             Some(textures) => for (name, tex) in textures.iter() {
                 let tex = tex.as_string().unwrap();
                 let tex = if tex.starts_with("#") {
@@ -132,22 +132,22 @@ impl PartialModel {
             },
             None => {}
         }
-        match json.find_with(|k| "elements".cmp(&k.as_slice())).and_then(|x| x.as_list()) {
+        match json.find_with(|k| "elements".cmp(k.as_slice())).and_then(|x| x.as_list()) {
             Some(elements) => for element in elements.iter().map(|x| x.as_object().unwrap()) {
                 fn array3_num<T>(json: &json::Json, f: |f64| -> T) -> [T, ..3] {
                     Array::from_iter(json.as_list().unwrap().iter().map(|x| f(x.as_f64().unwrap())))
                 }
-                let from = array3_num(element.find_with(|k| "from".cmp(&k.as_slice())).unwrap(), |x| x as f32 / 16.0);
-                let to = array3_num(element.find_with(|k| "to".cmp(&k.as_slice())).unwrap(), |x| x as f32 / 16.0);
+                let from = array3_num(element.find_with(|k| "from".cmp(k.as_slice())).unwrap(), |x| x as f32 / 16.0);
+                let to = array3_num(element.find_with(|k| "to".cmp(k.as_slice())).unwrap(), |x| x as f32 / 16.0);
                 let scale = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
 
                 let is_full_cube = from == [0.0, 0.0, 0.0] && to == [1.0, 1.0, 1.0];
                 let element_start = model.faces.len();
 
-                for (k, v) in element.find_with(|k| "faces".cmp(&k.as_slice())).unwrap().as_object().unwrap().iter() {
+                for (k, v) in element.find_with(|k| "faces".cmp(k.as_slice())).unwrap().as_object().unwrap().iter() {
                     let face: cube::Face = from_str(k.as_slice()).unwrap();
                     let o = v.as_object().unwrap();
-                    let [u0, v0, u1, v1] = match o.find_with(|k| "uv".cmp(&k.as_slice())) {
+                    let [u0, v0, u1, v1] = match o.find_with(|k| "uv".cmp(k.as_slice())) {
                         Some(uv) => {
                             Array::from_iter(uv.as_list().unwrap().iter().map(|x| x.as_f64().unwrap() as f32))
                         }
@@ -158,11 +158,11 @@ impl PartialModel {
                         }.map(|x| x * 16.0)
                     };
 
-                    let tex = o.find_with(|k| "texture".cmp(&k.as_slice())).unwrap().as_string().unwrap();
+                    let tex = o.find_with(|k| "texture".cmp(k.as_slice())).unwrap().as_string().unwrap();
                     assert!(tex.starts_with("#"));
                     let tex = tex.slice_from(1).to_string();
 
-                    let cull_face = o.find_with(|k| "cullface".cmp(&k.as_slice())).map(|s| {
+                    let cull_face = o.find_with(|k| "cullface".cmp(k.as_slice())).map(|s| {
                         from_str(s.as_string().unwrap()).unwrap()
                     });
 
@@ -170,7 +170,7 @@ impl PartialModel {
                         println!("odd case: cull_face = {} for face = {}", cull_face.unwrap(), face);
                     }
 
-                    let tint = o.find_with(|k| "tintindex".cmp(&k.as_slice())).map(|x| {
+                    let tint = o.find_with(|k| "tintindex".cmp(k.as_slice())).map(|x| {
                         let x = x.as_i64().unwrap();
                         if x != 0 {
                             println!("odd case: tint_index = {}", x);
@@ -181,7 +181,7 @@ impl PartialModel {
                         model.full_faces.push(model.faces.len());
                     }
 
-                    let rotation = o.find_with(|k| "rotation".cmp(&k.as_slice())).map_or(Rotate0, |r| {
+                    let rotation = o.find_with(|k| "rotation".cmp(k.as_slice())).map_or(Rotate0, |r| {
                         match OrthoRotation::from_json(r) {
                             Some(r) => r,
                             None => panic!("invalid rotation for face {}", r)
@@ -217,13 +217,13 @@ impl PartialModel {
                     }, tex));
                 }
 
-                match element.find_with(|k| "rotation".cmp(&k.as_slice())) {
+                match element.find_with(|k| "rotation".cmp(k.as_slice())) {
                     Some(r) => {
                         let r = r.as_object().unwrap();
-                        let angle = r.find_with(|k| "angle".cmp(&k.as_slice())).unwrap().as_f64().unwrap();
+                        let angle = r.find_with(|k| "angle".cmp(k.as_slice())).unwrap().as_f64().unwrap();
                         let angle = angle as f32 / 180.0 * PI;
-                        let rescale = r.find_with(|k| "rescale".cmp(&k.as_slice())).map_or(false, |x| x.as_boolean().unwrap());
-                        let origin = array3_num(r.find_with(|k| "origin".cmp(&k.as_slice())).unwrap(), |x| x as f32 / 16.0);
+                        let rescale = r.find_with(|k| "rescale".cmp(k.as_slice())).map_or(false, |x| x.as_boolean().unwrap());
+                        let origin = array3_num(r.find_with(|k| "origin".cmp(k.as_slice())).unwrap(), |x| x as f32 / 16.0);
 
                         let (s, c) = (angle.sin(), angle.cos());
                         let rot = |ix, iy| {
@@ -250,7 +250,7 @@ impl PartialModel {
                                 }
                             }
                         };
-                        match r.find_with(|k| "axis".cmp(&k.as_slice())).unwrap().as_string().unwrap() {
+                        match r.find_with(|k| "axis".cmp(k.as_slice())).unwrap().as_string().unwrap() {
                             "x" => rot(2, 1),
                             "y" => rot(0, 2),
                             "z" => rot(1, 0),
@@ -277,7 +277,7 @@ impl Model {
             let mut faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
                 fn texture_coords(textures: &HashMap<String, PartialTexture>,
                                   tex: &String) -> Option<(f32, f32)> {
-                    match textures.find(tex) {
+                    match textures.get(tex) {
                         Some(&TextureVariable(ref tex)) => texture_coords(textures, tex),
                         Some(&TextureCoords(u, v)) => Some((u, v)),
                         None => None
