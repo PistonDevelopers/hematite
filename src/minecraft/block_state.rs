@@ -217,7 +217,7 @@ impl BlockStates {
                     let name = state.name;
                     let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_slice()));
                     match json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
-                        json::Object(mut json) => match json.pop(&variants_str).unwrap() {
+                        json::Object(mut json) => match json.remove(&variants_str).unwrap() {
                             json::Object(variants) => variants.into_iter().map(|(k, v)| {
                                 let mut variant = match v {
                                     json::Object(o) => o,
@@ -231,27 +231,27 @@ impl BlockStates {
                                     }
                                     json => panic!("{}#{} has invalid value {}", name, k, json)
                                 };
-                                let model = match variant.pop(&model_str).unwrap() {
+                                let model = match variant.remove(&model_str).unwrap() {
                                     json::String(s) => s,
                                     json => panic!("'model' has invalid value {}", json)
                                 };
-                                let rotate_x = variant.find_with(|k| "x".cmp(&k.as_slice())).map_or(Rotate0, |r| {
+                                let rotate_x = variant.find_with(|k| "x".cmp(k.as_slice())).map_or(Rotate0, |r| {
                                     match OrthoRotation::from_json(r) {
                                         Some(r) => r,
                                         None => panic!("invalid rotation for x {}", r)
                                     }
                                 });
-                                let rotate_y = variant.find_with(|k| "y".cmp(&k.as_slice())).map_or(Rotate0, |r| {
+                                let rotate_y = variant.find_with(|k| "y".cmp(k.as_slice())).map_or(Rotate0, |r| {
                                     match OrthoRotation::from_json(r) {
                                         Some(r) => r,
                                         None => panic!("invalid rotation for y {}", r)
                                     }
                                 });
-                                match variant.find_with(|k| "z".cmp(&k.as_slice())) {
+                                match variant.find_with(|k| "z".cmp(k.as_slice())) {
                                     Some(r) => println!("ignoring z rotation {} in {}", r, name),
                                     None => {}
                                 }
-                                let uvlock = variant.find_with(|k| "uvlock".cmp(&k.as_slice()))
+                                let uvlock = variant.find_with(|k| "uvlock".cmp(k.as_slice()))
                                                     .map_or(false, |x| x.as_boolean().unwrap());
                                 (k, Variant {
                                     model: model,
@@ -268,7 +268,7 @@ impl BlockStates {
             };
 
             let variant = match state.variant {
-                Owned(ref variant) => variants.find(variant),
+                Owned(ref variant) => variants.get(variant),
                 Slice(variant) => variants.find_equiv(variant)
             }.unwrap();
             let mut model = Model::load(variant.model.as_slice(), assets,
