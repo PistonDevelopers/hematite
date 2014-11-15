@@ -1,6 +1,4 @@
-use native;
-use rustrt::rtio;
-use rustrt::rtio::RtioFileStream;
+use libc;
 use std::cell::Cell;
 use std::os;
 
@@ -22,19 +20,25 @@ pub struct Region {
 
 impl Region {
     pub fn open(filename: &Path) -> Region {
-        let mut file = native::io::file::open(
-                &filename.as_str().unwrap().to_c_str(),
-                rtio::Open,
-                rtio::Read
-            ).ok().unwrap();
-        let min_len = file.fstat().ok().unwrap().size as uint;
-        let options = [
-                os::MapFd(file.fd()),
+        use std::mem::zeroed;
+
+        unsafe {
+            let fd = libc::open(
+                    filename.as_str().unwrap().to_c_str().as_ptr(),
+                    libc::consts::os::posix88::O_RDONLY,
+                    libc::consts::os::posix88::S_IREAD
+                );
+            let mut stat = zeroed();
+            libc::fstat(fd, &mut stat);
+            let min_len = stat.st_size as uint;
+            let options = [
+                os::MapFd(fd),
                 os::MapReadable
             ];
 
-        Region {
-            mmap: os::MemoryMap::new(min_len, options).unwrap()
+            Region {
+                mmap: os::MemoryMap::new(min_len, options).unwrap()
+            }
         }
     }
 
