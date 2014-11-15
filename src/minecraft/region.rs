@@ -36,9 +36,11 @@ impl Region {
                 os::MapReadable
             ];
 
-            Region {
+            let res = Region {
                 mmap: os::MemoryMap::new(min_len, options).unwrap()
-            }
+            };
+            libc::close(fd);
+            res
         }
     }
 
