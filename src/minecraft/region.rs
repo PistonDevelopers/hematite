@@ -19,7 +19,7 @@ pub struct Region {
 }
 
 impl Region {
-    pub fn open(filename: &Path) -> Region {
+    pub fn open(filename: &Path) -> Result<Region, String> {
         use std::mem::zeroed;
 
         unsafe {
@@ -28,6 +28,11 @@ impl Region {
                     libc::consts::os::posix88::O_RDONLY,
                     libc::consts::os::posix88::S_IREAD
                 );
+            // If a negative file descriptor is returned,
+            // an error occured when attempting to open the file.
+            if fd < 0 {
+                return Err(format!("An error occured when opening `{}`: {}", filename.as_str(), fd));
+            }
             let mut stat = zeroed();
             libc::fstat(fd, &mut stat);
             let min_len = stat.st_size as uint;
@@ -40,7 +45,7 @@ impl Region {
                 mmap: os::MemoryMap::new(min_len, options).unwrap()
             };
             libc::close(fd);
-            res
+            Ok(res)
         }
     }
 
