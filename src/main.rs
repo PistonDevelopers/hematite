@@ -91,7 +91,7 @@ fn main() {
     let region_file = world.join(
             format!("region/r.{}.{}.mca", region_x, region_z)
         );
-    let region = minecraft::region::Region::open(&region_file);
+    let region = minecraft::region::Region::open(&region_file).unwrap();
 
     let loading_title = format!(
             "Hematite loading... - {}",
