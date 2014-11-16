@@ -34,3 +34,4 @@ Minecraft stores data in the folder `/Users/<username>/Library/Application Suppo
 
 ![dependencies](./Cargo.png)
 
+[How to contribute](https://github.com/PistonDevelopers/piston/blob/master/CONTRIBUTING.md)
