@@ -5,8 +5,11 @@ use std::collections::hash_map::{ Occupied, Vacant };
 use std::f32::consts::{PI, SQRT2};
 use std::f32::INFINITY;
 use std::io::fs::File;
+use std::num::Float;
+use std::num::FloatMath;
 
 use array::*;
+use self::OrthoRotation::*;
 use cube;
 use texture::AtlasBuilder;
 
@@ -16,11 +19,11 @@ pub struct Vertex {
 }
 
 #[deriving(Clone)]
-pub enum TintSource {
-    NoTint,
-    GrassTint,
-    FoliageTint,
-    RedstoneTint
+pub enum Tint {
+    None,
+    Grass,
+    Foliage,
+    Redstone
 }
 
 pub enum OrthoRotation {
@@ -55,8 +58,8 @@ impl Clone for Face {
 
 #[deriving(Clone)]
 enum PartialTexture {
-    TextureVariable(String),
-    TextureCoords(f32, f32)
+    Variable(String),
+    Coords(f32, f32)
 }
 
 #[deriving(Clone)]
@@ -77,11 +80,11 @@ pub enum Opacity {
 
 impl Opacity {
     pub fn is_opaque(self) -> bool {
-        self == Opaque
+        self == Opacity::Opaque
     }
 
     pub fn is_solid(self) -> bool {
-        self != Transparent
+        self != Opacity::Transparent
     }
 }
 
@@ -89,14 +92,14 @@ impl Opacity {
 pub struct Model {
     pub faces: Vec<Face>,
     pub opacity: Opacity,
-    pub tint_source: TintSource
+    pub tint_source: Tint
 }
 
 impl PartialModel {
     fn load<T>(name: &str, assets: &Path, atlas: &mut AtlasBuilder,
                cache: &mut HashMap<String, PartialModel>,
                f: |&PartialModel, &mut AtlasBuilder| -> T) -> T {
-        match cache.find_equiv(name) {
+        match cache.get(name) {
             Some(model) => return f(model, atlas),
             None => {}
         }
@@ -123,10 +126,10 @@ impl PartialModel {
             Some(textures) => for (name, tex) in textures.iter() {
                 let tex = tex.as_string().unwrap();
                 let tex = if tex.starts_with("#") {
-                    TextureVariable(tex.slice_from(1).to_string())
+                    PartialTexture::Variable(tex.slice_from(1).to_string())
                 } else {
                     let (u, v) = atlas.load(tex);
-                    TextureCoords(u as f32, v as f32)
+                    PartialTexture::Coords(u as f32, v as f32)
                 };
                 model.textures.insert(name.clone(), tex);
             },
@@ -278,8 +281,8 @@ impl Model {
                 fn texture_coords(textures: &HashMap<String, PartialTexture>,
                                   tex: &String) -> Option<(f32, f32)> {
                     match textures.get(tex) {
-                        Some(&TextureVariable(ref tex)) => texture_coords(textures, tex),
-                        Some(&TextureCoords(u, v)) => Some((u, v)),
+                        Some(&PartialTexture::Variable(ref tex)) => texture_coords(textures, tex),
+                        Some(&PartialTexture::Coords(u, v)) => Some((u, v)),
                         None => None
                     }
                 }
@@ -291,11 +294,11 @@ impl Model {
                 face
             }).collect();
 
-            let mut full_faces = [Transparent, ..6];
+            let mut full_faces = [Opacity::Transparent, ..6];
             if partial.full_faces.len() >= 6 {
                 for &i in partial.full_faces.iter() {
                     let face = faces[i].cull_face.unwrap() as uint;
-                    if full_faces[face] == Opaque {
+                    if full_faces[face] == Opacity::Opaque {
                         continue;
                     }
                     let (mut min_u, mut min_v) = (INFINITY, INFINITY);
@@ -311,9 +314,9 @@ impl Model {
                     let (u1, v1) = (max_u.ceil() as u32, max_v.ceil() as u32);
                     let rect = [u0, v0, u1 - u0, v1 - v0];
                     let opacity = match atlas.min_alpha(rect) {
-                        0 => TransparentSolid,
-                        255 => Opaque,
-                        _ => TranslucentSolid
+                        0 => Opacity::TransparentSolid,
+                        255 => Opacity::Opaque,
+                        _ => Opacity::TranslucentSolid
                     };
                     if full_faces[face] < opacity {
                         full_faces[face] = opacity;
@@ -335,19 +338,19 @@ impl Model {
                 match name {
                     name if name.starts_with("grass_") ||
                             name.starts_with("double_grass_") ||
-                            name.starts_with("double_fern_") => GrassTint,
-                    "reeds" | "fern" | "tall_grass" => GrassTint,
+                            name.starts_with("double_fern_") => Tint::Grass,
+                    "reeds" | "fern" | "tall_grass" => Tint::Grass,
                     name if name.ends_with("_leaves") || name.ends_with("_stem_fruit") ||
-                            name.starts_with("vine_") || name.starts_with("stem_") => FoliageTint,
-                    "waterlily" => FoliageTint,
-                    name if name.starts_with("redstone_") => RedstoneTint,
+                            name.starts_with("vine_") || name.starts_with("stem_") => Tint::Foliage,
+                    "waterlily" => Tint::Foliage,
+                    name if name.starts_with("redstone_") => Tint::Redstone,
                     _ => {
                         println!("tint source not known for '{}'", name);
-                        NoTint
+                        Tint::None
                     }
                 }
             } else {
-                NoTint
+                Tint::None
             };
 
             Model {
@@ -361,8 +364,8 @@ impl Model {
     pub fn empty() -> Model {
         Model {
             faces: Vec::new(),
-            opacity: Transparent,
-            tint_source: NoTint
+            opacity: Opacity::Transparent,
+            tint_source: Tint::None
         }
     }
 

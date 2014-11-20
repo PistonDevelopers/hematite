@@ -6,6 +6,10 @@ use std::collections::HashMap;
 use std::fmt;
 use std::io::{BufReader, IoResult};
 
+use self::Nbt::*;
+use self::List::*;
+use self::DecoderError::*;
+
 /// Represents a NBT value
 #[deriving(Clone, PartialEq)]
 pub enum Nbt {
@@ -107,7 +111,7 @@ impl Nbt {
 impl<'a> Index<&'a str, Nbt> for Nbt {
     fn index<'b>(&'b self, s: &&'a str) -> &'b Nbt {
         match *self {
-            NbtCompound(ref c) => c.find_equiv(*s).unwrap(),
+            NbtCompound(ref c) => c.get(*s).unwrap(),
             _ => panic!("cannot index non-compound Nbt ({}) with '{}'", self, s)
         }
     }
@@ -340,12 +344,12 @@ impl serialize::Decoder<DecoderError> for Decoder {
         let name = match try!(self.pop()) {
             NbtString(s) => s,
             NbtCompound(mut o) => {
-                let name = match o.pop_equiv("variant") {
+                let name = match o.remove("variant") {
                     Some(NbtString(s)) => s,
                     Some(val) => return Err(ExpectedError("String".to_string(), val.to_string())),
                     None => return Err(MissingFieldError("variant".to_string()))
                 };
-                match o.pop_equiv("fields") {
+                match o.remove("fields") {
                     Some(v) => {
                         self.push(v);
                         try!(self.read_seq(|_, _| Ok(())));
@@ -396,7 +400,7 @@ impl serialize::Decoder<DecoderError> for Decoder {
                             -> DecodeResult<T> {
         let mut obj = try!(expect!(self, NbtCompound));
 
-        let value = match obj.pop_equiv(name) {
+        let value = match obj.remove(name) {
             None => return Err(MissingFieldError(name.to_string())),
             Some(v) => {
                 self.stack.push(Ok(v));

@@ -36,7 +36,7 @@ use vecmath::{vec3_add, vec3_scale, vec3_normalized};
 use event::{
     Events, Ups, MaxFps,
     WindowSettings,
-    Input, Render, Update
+    Event
 };
 use event::window::{ CaptureCursor, Size };
 
@@ -46,6 +46,8 @@ use minecraft::block_state::BlockStates;
 use shader::Renderer;
 
 use std::cmp::max;
+use std::num::Float;
+use std::num::FloatMath;
 use std::f32::INFINITY;
 use std::f32::consts::PI;
 use std::io::fs::File;
@@ -185,7 +187,7 @@ fn main() {
         .set(Ups(120))
         .set(MaxFps(10_000)) {
         match e {
-            Render(_) => {
+            Event::Render(_) => {
                 // Apply the same y/z camera offset vanilla minecraft has.
                 let mut camera = first_person.camera(0.0);
                 camera.position[1] += 1.62;
@@ -263,7 +265,7 @@ fn main() {
                     );
                 window.borrow_mut().window.set_title(title.as_slice());
             }
-            Update(_) => {
+            Event::Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
                 // The pending vector should be sorted instead.
                 let closest = pending_chunks.iter().enumerate().min_by(
@@ -301,14 +303,14 @@ fn main() {
                     None => {}
                 }
             }
-            Input(input::Press(input::Keyboard(input::keyboard::C))) => {
+            Event::Input(input::Press(input::Keyboard(input::keyboard::C))) => {
                 println!("Turned cursor capture {}",
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
                 window.set(CaptureCursor(capture_cursor));
             }
-            Input(input::Move(input::MouseRelative(_, _))) => {
+            Event::Input(input::Move(input::MouseRelative(_, _))) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
                     continue;

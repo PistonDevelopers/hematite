@@ -36,7 +36,7 @@ impl Region {
             let mut stat = zeroed();
             libc::fstat(fd, &mut stat);
             let min_len = stat.st_size as uint;
-            let options = [
+            let options = &[
                 os::MapFd(fd),
                 os::MapReadable
             ];
@@ -81,22 +81,22 @@ impl Region {
         };
 
         let mut c = nbt.unwrap().into_compound().unwrap();
-        let mut level = c.pop_equiv("Level").unwrap().into_compound().unwrap();
+        let mut level = c.remove("Level").unwrap().into_compound().unwrap();
         let mut chunks = Vec::new();
-        for chunk in level.pop_equiv("Sections")
+        for chunk in level.remove("Sections")
             .unwrap().into_compound_list().unwrap().into_iter() {
 
-            let y = chunk.find_equiv("Y")
+            let y = chunk.get("Y")
                 .unwrap().as_byte().unwrap();
-            let blocks = chunk.find_equiv("Blocks")
+            let blocks = chunk.get("Blocks")
                 .unwrap().as_bytearray().unwrap();
-            let blocks_top = chunk.find_equiv("Add")
+            let blocks_top = chunk.get("Add")
                 .and_then(|x| x.as_bytearray());
-            let blocks_data = chunk.find_equiv("Data")
+            let blocks_data = chunk.get("Data")
                 .unwrap().as_bytearray().unwrap();
-            let block_light = chunk.find_equiv("BlockLight")
+            let block_light = chunk.get("BlockLight")
                 .unwrap().as_bytearray().unwrap();
-            let sky_light = chunk.find_equiv("SkyLight")
+            let sky_light = chunk.get("SkyLight")
                 .unwrap().as_bytearray().unwrap();
 
             fn array_16x16x16<T>(
@@ -140,7 +140,7 @@ impl Region {
             }
             chunks[y as uint] = chunk;
         }
-        let biomes = level.find_equiv("Biomes")
+        let biomes = level.get("Biomes")
             .unwrap().as_bytearray().unwrap();
         Some(ChunkColumn {
             chunks: chunks,

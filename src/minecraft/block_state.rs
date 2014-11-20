@@ -6,9 +6,11 @@ use serialize::json;
 use std::cmp::max;
 use std::collections::HashMap;
 use std::io::fs::File;
-use std::num::next_power_of_two;
 use std::str::{Owned, SendStr, Slice};
 use std::collections::hash_map::{ Occupied, Vacant };
+use std::num::UnsignedInt;
+use std::num::Float;
+use std::num::FloatMath;
 
 use array::*;
 use cube;
@@ -16,9 +18,12 @@ use chunk::{BiomeId, BlockState, Chunk};
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
 use minecraft::model;
-use minecraft::model::{Model, OrthoRotation, Rotate0, Rotate90, Rotate180, Rotate270};
+use minecraft::model::{Model, OrthoRotation};
+use minecraft::model::OrthoRotation::*;
 use shader::Vertex;
 use texture::{AtlasBuilder, Texture};
+
+use self::PolymorphDecision::*;
 
 pub struct BlockStates {
     models: Vec<ModelAndBehavior>,
@@ -27,41 +32,41 @@ pub struct BlockStates {
 
 #[deriving(PartialEq, Eq, Clone)]
 pub enum RandomOffset {
-    NoRandomOffset,
-    RandomOffsetXZ,
-    RandomOffsetXYZ
+    None,
+    XZ,
+    XYZ
 }
 
 #[deriving(PartialEq, Eq, Clone)]
-pub enum Direction {
-    DirDown,
-    DirUp,
-    DirNorth,
-    DirSouth,
-    DirWest,
-    DirEast,
+pub enum Dir {
+    Down,
+    Up,
+    North,
+    South,
+    West,
+    East,
 
     // Some diagonal directions (used by redstone).
-    DirUpNorth,
-    DirUpSouth,
-    DirUpWest,
-    DirUpEast
+    UpNorth,
+    UpSouth,
+    UpWest,
+    UpEast
 }
 
-impl Direction {
+impl Dir {
     pub fn xyz(self) -> [i32, ..3] {
         match self {
-            DirDown => [0, -1, 0],
-            DirUp => [0, 1, 0],
-            DirNorth => [0, 0, -1],
-            DirSouth => [0, 0, 1],
-            DirWest => [-1, 0, 0],
-            DirEast => [1, 0, 0],
+            Dir::Down => [0, -1, 0],
+            Dir::Up => [0, 1, 0],
+            Dir::North => [0, 0, -1],
+            Dir::South => [0, 0, 1],
+            Dir::West => [-1, 0, 0],
+            Dir::East => [1, 0, 0],
 
-            DirUpNorth => [0, 1, -1],
-            DirUpSouth => [0, 1, 1],
-            DirUpWest => [-1, 1, 0],
-            DirUpEast => [1, 1, 0]
+            Dir::UpNorth => [0, 1, -1],
+            Dir::UpSouth => [0, 1, 1],
+            Dir::UpWest => [-1, 1, 0],
+            Dir::UpEast => [1, 1, 0]
         }
     }
 }
@@ -75,10 +80,10 @@ pub enum PolymorphDecision {
     // or jumps to the provided u8 'else' index otherwise.
     // Blocks are specified with a signed offset from the block itself.
     // The 'OrSolid' variants also check for any solid blocks.
-    IfBlock(Direction, i8, u8),
-    IfBlockOrSolid(Direction, i8, u8),
-    //IfGroup(Direction, Group, u8),
-    //IfGroupOrSolid(Direction, Group, u8)
+    IfBlock(Dir, i8, u8),
+    IfBlockOrSolid(Dir, i8, u8),
+    //IfGroup(Dir, Group, u8),
+    //IfGroupOrSolid(Dir, Group, u8)
 }
 
 struct Description {
@@ -100,7 +105,7 @@ impl ModelAndBehavior {
     pub fn empty() -> ModelAndBehavior {
         ModelAndBehavior {
             model: Model::empty(),
-            random_offset: NoRandomOffset,
+            random_offset: RandomOffset::None,
             polymorph_oracle: vec![]
         }
     }
@@ -115,13 +120,13 @@ impl BlockStates {
         assets: &Path, d: &mut D
     ) -> BlockStates {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.val0());
-        let mut states = Vec::<Description>::with_capacity(next_power_of_two(BLOCK_STATES.len()));
+        let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
         let mut extras = vec![];
         let mut flower1 = None::<u16>;
         let mut flower2 = None::<u16>;
         for (i, &(id, name, variant)) in BLOCK_STATES.iter().enumerate() {
             let mut polymorph_oracle = vec![];
-            let mut random_offset = NoRandomOffset;
+            let mut random_offset = RandomOffset::None;
 
             // Find double_plant.
             if variant == "half=upper" {
@@ -144,18 +149,18 @@ impl BlockStates {
                         id: last_id,
                         name: lower_name,
                         variant: Slice("half=upper"),
-                        random_offset: RandomOffsetXZ,
+                        random_offset: RandomOffset::XZ,
                         polymorph_oracle: vec![]
                     });
-                    states[j].random_offset = RandomOffsetXZ;
+                    states[j].random_offset = RandomOffset::XZ;
 
                     let next_index = polymorph_oracle.len() as u8;
-                    polymorph_oracle.push_all([
-                        IfBlock(DirDown, (BLOCK_STATES[j].val0() - id) as i8, next_index + 2),
+                    polymorph_oracle.push_all(&[
+                        IfBlock(Dir::Down, (BLOCK_STATES[j].val0() - id) as i8, next_index + 2),
                         PickBlockState(last_id)
                     ]);
                 }
-                random_offset = RandomOffsetXZ;
+                random_offset = RandomOffset::XZ;
                 polymorph_oracle.push(PickBlockState(id));
             }
 
@@ -164,11 +169,11 @@ impl BlockStates {
             } else if name == "poppy" {
                 flower2 = Some(id);
             } else if ["dead_bush", "tall_grass", "fern"].contains(&name) {
-                random_offset = RandomOffsetXYZ;
+                random_offset = RandomOffset::XYZ;
             }
 
             if flower1 == Some(id & !0xf) || flower2 == Some(id & !0xf) {
-                random_offset = RandomOffsetXZ;
+                random_offset = RandomOffset::XZ;
             }
 
             let variant = if variant.ends_with(",shape=outer_right") {
@@ -269,7 +274,7 @@ impl BlockStates {
 
             let variant = match state.variant {
                 Owned(ref variant) => variants.get(variant),
-                Slice(variant) => variants.find_equiv(variant)
+                Slice(variant) => variants.get(variant)
             }.unwrap();
             let mut model = Model::load(variant.model.as_slice(), assets,
                                         &mut atlas, &mut partial_model_cache);
@@ -388,7 +393,7 @@ impl BlockStates {
     pub fn get_opacity(&self, i: BlockState) -> model::Opacity {
         let i = i.value as uint;
         if i >= self.models.len() {
-            model::Transparent
+            model::Opacity::Transparent
         } else {
             self.models[i].model.opacity
         }
@@ -453,14 +458,14 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                 };
                 let block_xyz = vec3_add([x, y, z].map(|x| x as f32), chunk_xyz);
                 let block_xyz = match model.random_offset {
-                    NoRandomOffset => block_xyz,
+                    RandomOffset::None => block_xyz,
                     random_offset => {
                         let [x, _, z] = block_xyz;
                         let seed = (x as i32 * 3129871) as i64 ^ (z as i64) * 116129781;
                         let value = seed * seed * 42317861 + seed * 11;
                         let ox = (((value >> 16) & 15) as f32 / 15.0 - 0.5) * 0.5;
                         let oz = (((value >> 24) & 15) as f32 / 15.0 - 0.5) * 0.5;
-                        let oy = if random_offset == RandomOffsetXYZ {
+                        let oy = if random_offset == RandomOffset::XYZ {
                             (((value >> 20) & 15) as f32 / 15.0 - 1.0) * 0.2
                         } else { 0.0 };
                         vec3_add(block_xyz, [ox, oy, oz])
@@ -481,15 +486,15 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                     let tint_source = if face.tint {
                         model.tint_source
                     } else {
-                        model::NoTint
+                        model::Tint::None
                     };
 
                     let v = face.vertices.map(|vertex| {
                         // Average tint and light around the vertex.
                         let (rgb, mut num_colors) = match tint_source {
-                            model::NoTint => ([0xff, 0xff, 0xff], 1.0),
-                            model::GrassTint | model::FoliageTint => ([0x00, 0x00, 0x00], 0.0),
-                            model::RedstoneTint => ([0xff, 0x00, 0x00], 1.0)
+                            model::Tint::None => ([0xff, 0xff, 0xff], 1.0),
+                            model::Tint::Grass | model::Tint::Foliage => ([0x00, 0x00, 0x00], 0.0),
+                            model::Tint::Redstone => ([0xff, 0x00, 0x00], 1.0)
                         };
                         let mut rgb = rgb.map(|x: u8| x as f32 / 255.0);
                         let (mut sum_light_level, mut num_light_level) = (0.0, 0.0);
@@ -538,8 +543,8 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     }
                                 }
                                 match tint_source {
-                                    model::NoTint | model::RedstoneTint => continue,
-                                    model::GrassTint | model::FoliageTint => {}
+                                    model::Tint::None | model::Tint::Redstone => continue,
+                                    model::Tint::Grass | model::Tint::Foliage => {}
                                 }
                                 let [x, z] = [x + dx as uint, z + dz as uint].map(|x| x + 16);
                                 let biome = match column_biomes[z / 16][x / 16] {
@@ -547,9 +552,9 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     None => continue
                                 };
                                 rgb = vec3_add(rgb, match tint_source {
-                                    model::NoTint | model::RedstoneTint => continue,
-                                    model::GrassTint => biome.grass_color,
-                                    model::FoliageTint => biome.foliage_color,
+                                    model::Tint::None | model::Tint::Redstone => continue,
+                                    model::Tint::Grass => biome.grass_color,
+                                    model::Tint::Foliage => biome.foliage_color,
                                 }.map(|x| x as f32 / 255.0));
                                 num_colors += 1.0;
                             }
@@ -579,8 +584,8 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                     });
 
                     // Split the clockwise quad into two clockwise triangles.
-                    buffer.push_all([v[0], v[1], v[2]]);
-                    buffer.push_all([v[2], v[3], v[0]]);
+                    buffer.push_all(&[v[0], v[1], v[2]]);
+                    buffer.push_all(&[v[2], v[3], v[0]]);
                 }
             }
         }
