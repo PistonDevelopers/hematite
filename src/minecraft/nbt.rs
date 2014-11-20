@@ -29,17 +29,17 @@ pub enum Nbt {
 impl fmt::Show for Nbt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Byte(x) => write!(f, "{}b", x),
-            Short(x) => write!(f, "{}s", x),
-            Int(x) => write!(f, "{}i", x),
-            Long(x) => write!(f, "{}L", x),
-            Float(x) => write!(f, "{:.1f}f", x),
-            Double(x) => write!(f, "{:.1f}", x),
-            ByteArray(ref x) => write!(f, "b<{}>", x.as_slice().to_hex()),
-            IntArray(ref x) => write!(f, "{}", *x),
-            NbtString(ref x) => write!(f, "\"{}\"", *x),
-            NbtList(ref x) => write!(f, "{}", *x),
-            NbtCompound(ref x) => write!(f, "{}", *x)
+            Nbt::Byte(x) => write!(f, "{}b", x),
+            Nbt::Short(x) => write!(f, "{}s", x),
+            Nbt::Int(x) => write!(f, "{}i", x),
+            Nbt::Long(x) => write!(f, "{}L", x),
+            Nbt::Float(x) => write!(f, "{:.1}f", x),
+            Nbt::Double(x) => write!(f, "{:.1}", x),
+            Nbt::ByteArray(ref x) => write!(f, "b<{}>", x.as_slice().to_hex()),
+            Nbt::IntArray(ref x) => write!(f, "{}", *x),
+            Nbt::NbtString(ref x) => write!(f, "\"{}\"", *x),
+            Nbt::NbtList(ref x) => write!(f, "{}", *x),
+            Nbt::NbtCompound(ref x) => write!(f, "{}", *x)
         }
     }
 }
