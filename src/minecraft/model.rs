@@ -135,10 +135,10 @@ impl PartialModel {
             },
             None => {}
         }
-        match json.find_with(|k| "elements".cmp(k.as_slice())).and_then(|x| x.as_list()) {
+        match json.find_with(|k| "elements".cmp(k.as_slice())).and_then(|x| x.as_array()) {
             Some(elements) => for element in elements.iter().map(|x| x.as_object().unwrap()) {
                 fn array3_num<T>(json: &json::Json, f: |f64| -> T) -> [T, ..3] {
-                    Array::from_iter(json.as_list().unwrap().iter().map(|x| f(x.as_f64().unwrap())))
+                    Array::from_iter(json.as_array().unwrap().iter().map(|x| f(x.as_f64().unwrap())))
                 }
                 let from = array3_num(element.find_with(|k| "from".cmp(k.as_slice())).unwrap(), |x| x as f32 / 16.0);
                 let to = array3_num(element.find_with(|k| "to".cmp(k.as_slice())).unwrap(), |x| x as f32 / 16.0);
@@ -152,7 +152,7 @@ impl PartialModel {
                     let o = v.as_object().unwrap();
                     let [u0, v0, u1, v1] = match o.find_with(|k| "uv".cmp(k.as_slice())) {
                         Some(uv) => {
-                            Array::from_iter(uv.as_list().unwrap().iter().map(|x| x.as_f64().unwrap() as f32))
+                            Array::from_iter(uv.as_array().unwrap().iter().map(|x| x.as_f64().unwrap() as f32))
                         }
                         None => match face {
                             cube::West | cube::East => [from[2], from[1], to[2], to[1]],
