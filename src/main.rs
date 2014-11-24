@@ -21,7 +21,6 @@ extern crate cgmath;
 extern crate time;
 
 extern crate flate;
-extern crate native;
 extern crate rustrt;
 extern crate serialize;
 

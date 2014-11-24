@@ -226,7 +226,7 @@ impl BlockStates {
                             json::Object(variants) => variants.into_iter().map(|(k, v)| {
                                 let mut variant = match v {
                                     json::Object(o) => o,
-                                    json::List(l) => {
+                                    json::Array(l) => {
                                         println!("ignoring {} extra variants for {}#{}",
                                                  l.len() - 1, name, k);
                                         match l.into_iter().next() {
