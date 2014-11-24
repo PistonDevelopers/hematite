@@ -42,10 +42,6 @@ git = "https://github.com/PistonDevelopers/image"
 
 git = "https://github.com/PistonDevelopers/sdl2_window"
 
-[dependencies.cgmath]
-
-git = "https://github.com/bjz/cgmath-rs"
-
 [dependencies.gfx]
 
 git = "https://github.com/gfx-rs/gfx-rs"

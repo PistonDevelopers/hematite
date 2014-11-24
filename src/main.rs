@@ -17,7 +17,6 @@ extern crate render;
 #[phase(plugin)]
 extern crate gfx_macros;
 extern crate libc;
-extern crate cgmath;
 extern crate time;
 
 extern crate flate;
