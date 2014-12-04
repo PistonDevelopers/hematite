@@ -113,7 +113,12 @@ pub struct Renderer<D: Device<C>, C: CommandBuffer> {
 
 impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
     pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D, C> {
-        let sampler = device.create_sampler(gfx::tex::SamplerInfo::new(gfx::tex::Scale, gfx::tex::Tile));
+        let sampler = device.create_sampler(
+                gfx::tex::SamplerInfo::new(
+                    gfx::tex::FilterMethod::Scale, 
+                    gfx::tex::WrapMode::Tile
+                )
+            );
         let mut graphics = gfx::Graphics::new(device);
 
         let params = ShaderParam {
@@ -122,8 +127,8 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
             s_texture: (tex, Some(sampler))
         };
         let prog = graphics.device.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
-        let mut drawstate = gfx::DrawState::new().depth(gfx::state::LessEqual, true);
-        drawstate.primitive.front_face = gfx::state::Clockwise;
+        let mut drawstate = gfx::DrawState::new().depth(gfx::state::Comparison::LessEqual, true);
+        drawstate.primitive.front_face = gfx::state::WindingOrder::Clockwise;
 
         Renderer {
             graphics: graphics,
@@ -157,8 +162,12 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
         let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
         Buffer {
             buf: buf,
-            batch: self.graphics.make_batch(&self.prog, &mesh, mesh.to_slice(gfx::TriangleList),
-                                            &self.drawstate).unwrap()
+            batch: self.graphics.make_batch(
+                    &self.prog, 
+                    &mesh, 
+                    mesh.to_slice(gfx::PrimitiveType::TriangleList),
+                    &self.drawstate
+                ).unwrap()
         }
     }
 

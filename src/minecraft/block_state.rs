@@ -6,7 +6,8 @@ use serialize::json;
 use std::cmp::max;
 use std::collections::HashMap;
 use std::io::fs::File;
-use std::str::{Owned, SendStr, Slice};
+use std::borrow::Cow;
+use std::str::{Owned, SendStr};
 use std::collections::hash_map::{ Occupied, Vacant };
 use std::num::UnsignedInt;
 use std::num::Float;
@@ -136,7 +137,7 @@ impl BlockStates {
                 let (_, lower_name, lower_variant) = BLOCK_STATES[i - 1];
                 assert!(lower_name == name && lower_variant == "half=lower");
                 let lower = BLOCK_STATES.slice_to(i - 1).iter().enumerate().rev();
-                let mut lower = lower.take_while(|&(i, &(id, _, variant))| {
+                let lower = lower.take_while(|&(i, &(id, _, variant))| {
                     id + 1 == BLOCK_STATES[i + 1].val0() && variant == "half=lower"
                 });
                 // Note: excluding paeonia itself, which works as-is.
@@ -148,7 +149,7 @@ impl BlockStates {
                     extras.push(Description {
                         id: last_id,
                         name: lower_name,
-                        variant: Slice("half=upper"),
+                        variant: Cow::Borrowed("half=upper"),
                         random_offset: RandomOffset::XZ,
                         polymorph_oracle: vec![]
                     });
@@ -177,9 +178,9 @@ impl BlockStates {
             }
 
             let variant = if variant.ends_with(",shape=outer_right") {
-                Owned(format!("{}=straight", variant.slice_to(variant.len() - 12)))
+                Cow::Owned(format!("{}=straight", variant.slice_to(variant.len() - 12)))
             } else {
-                Slice(variant)
+                Cow::Borrowed(variant)
             };
 
             states.push(Description {
@@ -222,22 +223,22 @@ impl BlockStates {
                     let name = state.name;
                     let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_slice()));
                     match json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
-                        json::Object(mut json) => match json.remove(&variants_str).unwrap() {
-                            json::Object(variants) => variants.into_iter().map(|(k, v)| {
+                        json::Json::Object(mut json) => match json.remove(&variants_str).unwrap() {
+                            json::Json::Object(variants) => variants.into_iter().map(|(k, v)| {
                                 let mut variant = match v {
-                                    json::Object(o) => o,
-                                    json::Array(l) => {
+                                    json::Json::Object(o) => o,
+                                    json::Json::Array(l) => {
                                         println!("ignoring {} extra variants for {}#{}",
                                                  l.len() - 1, name, k);
                                         match l.into_iter().next() {
-                                            Some(json::Object(o)) => Some(o),
+                                            Some(json::Json::Object(o)) => Some(o),
                                             _ => None
                                         }.unwrap()
                                     }
                                     json => panic!("{}#{} has invalid value {}", name, k, json)
                                 };
                                 let model = match variant.remove(&model_str).unwrap() {
-                                    json::String(s) => s,
+                                    json::Json::String(s) => s,
                                     json => panic!("'model' has invalid value {}", json)
                                 };
                                 let rotate_x = variant.find_with(|k| "x".cmp(k.as_slice())).map_or(Rotate0, |r| {
@@ -273,8 +274,8 @@ impl BlockStates {
             };
 
             let variant = match state.variant {
-                Owned(ref variant) => variants.get(variant),
-                Slice(variant) => variants.get(variant)
+                Cow::Owned(ref variant) => variants.get(variant),
+                Cow::Borrowed(variant) => variants.get(variant)
             }.unwrap();
             let mut model = Model::load(variant.model.as_slice(), assets,
                                         &mut atlas, &mut partial_model_cache);
