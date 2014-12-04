@@ -98,7 +98,7 @@ fn main() {
             world.filename_display()
         );
     let window = Sdl2Window::new(
-        shader_version::opengl::OpenGL_3_3,
+        shader_version::opengl::OpenGL::OpenGL_3_3,
         WindowSettings {
             title: loading_title,
             size: [854, 480],
@@ -184,6 +184,11 @@ fn main() {
     for e in Events::new(window)
         .set(Ups(120))
         .set(MaxFps(10_000)) {
+        use input::Motion::MouseRelative;
+        use input::InputEvent::{ Move, Press };
+        use input::keyboard::Key;
+        use input::Button::Keyboard;
+
         match e {
             Event::Render(_) => {
                 // Apply the same y/z camera offset vanilla minecraft has.
@@ -301,14 +306,14 @@ fn main() {
                     None => {}
                 }
             }
-            Event::Input(input::Press(input::Keyboard(input::keyboard::C))) => {
+            Event::Input(Press(Keyboard(Key::C))) => {
                 println!("Turned cursor capture {}",
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
                 window.set(CaptureCursor(capture_cursor));
             }
-            Event::Input(input::Move(input::MouseRelative(_, _))) => {
+            Event::Input(Move(MouseRelative(_, _))) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
                     continue;
