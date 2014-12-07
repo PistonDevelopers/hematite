@@ -115,7 +115,7 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
     pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D, C> {
         let sampler = device.create_sampler(
                 gfx::tex::SamplerInfo::new(
-                    gfx::tex::FilterMethod::Scale, 
+                    gfx::tex::FilterMethod::Scale,
                     gfx::tex::WrapMode::Tile
                 )
             );
@@ -157,14 +157,14 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {
-        let buf = self.graphics.device.create_buffer(data.len(), gfx::UsageStatic);
+        let buf = self.graphics.device.create_buffer(data.len(), gfx::BufferUsage::Static);
         self.graphics.device.update_buffer(buf, data, 0);
         let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
         Buffer {
             buf: buf,
             batch: self.graphics.make_batch(
-                    &self.prog, 
-                    &mesh, 
+                    &self.prog,
+                    &mesh,
                     mesh.to_slice(gfx::PrimitiveType::TriangleList),
                     &self.drawstate
                 ).unwrap()
