@@ -98,7 +98,7 @@ fn main() {
             world.filename_display()
         );
     let window = Sdl2Window::new(
-        shader_version::opengl::OpenGL::OpenGL_3_3,
+        shader_version::OpenGL::_3_3,
         WindowSettings {
             title: loading_title,
             size: [854, 480],
