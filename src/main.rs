@@ -185,7 +185,7 @@ fn main() {
         .set(Ups(120))
         .set(MaxFps(10_000)) {
         use input::Motion::MouseRelative;
-        use input::InputEvent::{ Move, Press };
+        use input::Input::{ Move, Press };
         use input::keyboard::Key;
         use input::Button::Keyboard;
 
