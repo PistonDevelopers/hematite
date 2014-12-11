@@ -18,11 +18,15 @@ debug = false
 name = "hematite"
 path = "src/main.rs"
 
-[dependencies.gfx_voxel]
+[dependencies.pistoncore-sdl2_window]
+
+git = "https://github.com/PistonDevelopers/sdl2_window"
+
+[dependencies.piston3d-gfx_voxel]
 
 git = "https://github.com/PistonDevelopers/gfx_voxel"
 
-[dependencies.cam]
+[dependencies.piston3d-cam]
 
 git = "https://github.com/PistonDevelopers/cam"
 
@@ -37,10 +41,6 @@ git = "https://github.com/PistonDevelopers/vecmath"
 [dependencies.image]
 
 git = "https://github.com/PistonDevelopers/image"
-
-[dependencies.sdl2_window]
-
-git = "https://github.com/PistonDevelopers/sdl2_window"
 
 [dependencies.gfx]
 
