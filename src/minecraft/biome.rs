@@ -3,6 +3,7 @@ use chunk::BiomeId;
 use minecraft::data;
 use texture::ColorMap;
 
+#[deriving(Copy)]
 pub struct Biome {
     pub name: &'static str,
     pub temperature: f32,

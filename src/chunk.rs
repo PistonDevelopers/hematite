@@ -4,16 +4,19 @@ use std::collections::HashMap;
 use array::*;
 use shader::Buffer;
 
+#[deriving(Copy)]
 pub struct BlockState {
     pub value: u16
 }
 
 pub const EMPTY_BLOCK: BlockState = BlockState { value: 0 };
 
+#[deriving(Copy)]
 pub struct BiomeId {
     pub value: u8
 }
 
+#[deriving(Copy)]
 pub struct LightLevel {
     pub value: u8
 }
@@ -30,6 +33,7 @@ impl LightLevel {
 pub const SIZE: uint = 16;
 
 /// A chunk of SIZE x SIZE x SIZE blocks, in YZX order.
+#[deriving(Copy)]
 pub struct Chunk {
     pub blocks: [[[BlockState, ..SIZE], ..SIZE], ..SIZE],
     pub light_levels: [[[LightLevel, ..SIZE], ..SIZE], ..SIZE]
