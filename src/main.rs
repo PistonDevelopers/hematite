@@ -20,7 +20,6 @@ extern crate libc;
 extern crate time;
 
 extern crate flate;
-extern crate rustrt;
 extern crate serialize;
 
 // Reexport modules from gfx_voxel while stuff is moving
