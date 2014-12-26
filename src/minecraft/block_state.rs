@@ -7,8 +7,7 @@ use std::cmp::max;
 use std::collections::HashMap;
 use std::io::fs::File;
 use std::borrow::Cow;
-use std::str::{Owned, SendStr};
-use std::collections::hash_map::{ Occupied, Vacant };
+use std::collections::hash_map::Entry::{ Occupied, Vacant };
 use std::num::UnsignedInt;
 use std::num::Float;
 use std::num::FloatMath;
@@ -90,7 +89,7 @@ pub enum PolymorphDecision {
 struct Description {
     id: u16,
     name: &'static str,
-    variant: SendStr,
+    variant: Cow<'static, String, str>,
     random_offset: RandomOffset,
     polymorph_oracle: Vec<PolymorphDecision>
 }

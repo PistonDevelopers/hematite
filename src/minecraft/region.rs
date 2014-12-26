@@ -37,8 +37,8 @@ impl Region {
             libc::fstat(fd, &mut stat);
             let min_len = stat.st_size as uint;
             let options = &[
-                os::MapFd(fd),
-                os::MapReadable
+                os::MapOption::MapFd(fd),
+                os::MapOption::MapReadable
             ];
 
             let res = Region {
