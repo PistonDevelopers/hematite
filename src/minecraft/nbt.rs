@@ -280,7 +280,7 @@ macro_rules! expect(
         }
     });
     ($s:expr, $t:ident as $to:ty) => (expect!($s, $t).map(|x| x as $to))
-)
+);
 
 impl serialize::Decoder<DecoderError> for Decoder {
     fn read_nil(&mut self) -> DecodeResult<()> {
