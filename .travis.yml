@@ -13,9 +13,6 @@ before_install:
     - tar -xzvf SDL2-2.0.3.tar.gz
 install:
     - (cd SDL2-2.0.3 && ./configure && make && sudo make install)
-before_script:
-    - rustc -v
-    - cargo -V
 script:
     - cargo build -v
     - cargo test -v
