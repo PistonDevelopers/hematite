@@ -13,12 +13,13 @@ use self::OrthoRotation::*;
 use cube;
 use texture::AtlasBuilder;
 
+#[deriving(Copy)]
 pub struct Vertex {
     pub xyz: [f32, ..3],
     pub uv: [f32, ..2]
 }
 
-#[deriving(Clone)]
+#[deriving(Copy, Clone)]
 pub enum Tint {
     None,
     Grass,
@@ -26,6 +27,7 @@ pub enum Tint {
     Redstone
 }
 
+#[deriving(Copy)]
 pub enum OrthoRotation {
     Rotate0,
     Rotate90,
@@ -45,6 +47,7 @@ impl OrthoRotation {
     }
 }
 
+#[deriving(Copy)]
 pub struct Face {
     pub vertices: [Vertex, ..4],
     pub tint: bool,
@@ -70,7 +73,7 @@ pub struct PartialModel {
     no_ambient_occlusion: bool
 }
 
-#[deriving(PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[deriving(Copy, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub enum Opacity {
     Transparent,
     TranslucentSolid,
