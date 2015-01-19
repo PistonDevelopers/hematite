@@ -1,5 +1,5 @@
 // (name, temperature, humidity)
-pub static BIOMES: [Option<(&'static str, f32, f32)>, ..256] = [
+pub static BIOMES: [Option<(&'static str, f32, f32)>; 256] = [
     Some(("Ocean", 0.5, 0.5)),
     Some(("Plains", 0.8, 0.4)),
     Some(("Desert", 2.0, 0.0)),

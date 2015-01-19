@@ -4,19 +4,19 @@ use std::collections::HashMap;
 use array::*;
 use shader::Buffer;
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct BlockState {
     pub value: u16
 }
 
 pub const EMPTY_BLOCK: BlockState = BlockState { value: 0 };
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct BiomeId {
     pub value: u8
 }
 
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct LightLevel {
     pub value: u8
 }
@@ -30,13 +30,13 @@ impl LightLevel {
     }
 }
 
-pub const SIZE: uint = 16;
+pub const SIZE: usize = 16;
 
 /// A chunk of SIZE x SIZE x SIZE blocks, in YZX order.
-#[deriving(Copy)]
+#[derive(Copy)]
 pub struct Chunk {
-    pub blocks: [[[BlockState, ..SIZE], ..SIZE], ..SIZE],
-    pub light_levels: [[[LightLevel, ..SIZE], ..SIZE], ..SIZE]
+    pub blocks: [[[BlockState; SIZE]; SIZE]; SIZE],
+    pub light_levels: [[[LightLevel; SIZE]; SIZE]; SIZE]
 }
 
 impl Clone for Chunk {
@@ -47,14 +47,14 @@ impl Clone for Chunk {
 
 // TODO: Change to const pointer.
 pub const EMPTY_CHUNK: &'static Chunk = &Chunk {
-    blocks: [[[EMPTY_BLOCK, ..SIZE], ..SIZE], ..SIZE],
-    light_levels: [[[LightLevel {value: 0xf0}, ..SIZE], ..SIZE], ..SIZE]
+    blocks: [[[EMPTY_BLOCK; SIZE]; SIZE]; SIZE],
+    light_levels: [[[LightLevel {value: 0xf0}; SIZE]; SIZE]; SIZE]
 };
 
 pub struct ChunkColumn {
     pub chunks: Vec<Chunk>,
-    pub buffers: [Cell<Option<Buffer>>, ..SIZE],
-    pub biomes: [[BiomeId, ..SIZE], ..SIZE]
+    pub buffers: [Cell<Option<Buffer>>; SIZE],
+    pub biomes: [[BiomeId; SIZE]; SIZE]
 }
 
 pub struct ChunkManager {
@@ -72,15 +72,13 @@ impl ChunkManager {
         self.chunk_columns.insert((x, z), c);
     }
 
-    pub fn each_chunk_and_neighbors<'a>(
-        &'a self,
-        f: |
-            coords: [i32, ..3],
-            buffer: &'a Cell<Option<Buffer>>,
-            chunks: [[[&'a Chunk, ..3], ..3], ..3],
-            biomes: [[Option<&'a [[BiomeId, ..SIZE], ..SIZE]>, ..3], ..3]
-        |
-    ) {
+    pub fn each_chunk_and_neighbors<'a, F>(&'a self, mut f: F)
+        where F: FnMut(/*coords:*/ [i32; 3],
+                       /*buffer:*/ &'a Cell<Option<Buffer>>,
+                       /*chunks:*/ [[[&'a Chunk; 3]; 3]; 3],
+                       /*biomes:*/ [[Option<&'a [[BiomeId; SIZE]; SIZE]>; 3]; 3])
+
+    {
         for &(x, z) in self.chunk_columns.keys() {
             let columns = [-1, 0, 1].map(
                     |dz| [-1, 0, 1].map(
@@ -94,7 +92,7 @@ impl ChunkManager {
                     columns.map(
                         |cz| cz.map(
                             |cx| cx.and_then(
-                                |c| c.chunks.as_slice().get(y as uint)
+                                |c| c.chunks.as_slice().get(y as usize)
                             ).unwrap_or(EMPTY_CHUNK)
                         )
                     )
@@ -105,14 +103,13 @@ impl ChunkManager {
         }
     }
 
-    pub fn each_chunk(
-        &self,
-        f: |x: i32, y: i32, z: i32, c: &Chunk, b: Option<Buffer>|
-    ) {
+    pub fn each_chunk<F>(&self, mut f: F)
+        where F: FnMut(/*x:*/ i32, /*y:*/ i32, /*z:*/ i32, /*c:*/ &Chunk, /*b:*/ Option<Buffer>)
+    {
         for (&(x, z), c) in self.chunk_columns.iter() {
             for (y, (c, b)) in c.chunks.iter()
                 .zip(c.buffers.iter()).enumerate() {
-                
+
                 f(x, y as i32, z, c, b.get())
             }
         }

@@ -1,27 +1,25 @@
-
-use device::draw::CommandBuffer;
-use gfx::Device;
-use vecmath::vec3_add;
-use serialize::json;
+use std::borrow::Cow;
 use std::cmp::max;
+use std::collections::hash_map::Entry::{ Occupied, Vacant };
 use std::collections::HashMap;
 use std::io::fs::File;
-use std::borrow::Cow;
-use std::collections::hash_map::Entry::{ Occupied, Vacant };
-use std::num::UnsignedInt;
 use std::num::Float;
-use std::num::FloatMath;
+use std::num::UnsignedInt;
 
 use array::*;
-use cube;
 use chunk::{BiomeId, BlockState, Chunk};
+use cube;
+use device::draw::CommandBuffer;
+use gfx::Device;
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
 use minecraft::model;
-use minecraft::model::{Model, OrthoRotation};
 use minecraft::model::OrthoRotation::*;
+use minecraft::model::{ Model, OrthoRotation };
+use serialize::json;
 use shader::Vertex;
-use texture::{AtlasBuilder, Texture};
+use texture::{ AtlasBuilder, Texture };
+use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
 
@@ -30,14 +28,14 @@ pub struct BlockStates {
     texture: Texture
 }
 
-#[deriving(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum RandomOffset {
     None,
     XZ,
     XYZ
 }
 
-#[deriving(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 pub enum Dir {
     Down,
     Up,
@@ -54,7 +52,7 @@ pub enum Dir {
 }
 
 impl Dir {
-    pub fn xyz(self) -> [i32, ..3] {
+    pub fn xyz(self) -> [i32; 3] {
         match self {
             Dir::Down => [0, -1, 0],
             Dir::Up => [0, 1, 0],
@@ -71,7 +69,7 @@ impl Dir {
     }
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub enum PolymorphDecision {
     // Stop and use this block state ID for the model.
     PickBlockState(u16),
@@ -94,7 +92,7 @@ struct Description {
     polymorph_oracle: Vec<PolymorphDecision>
 }
 
-#[deriving(Clone)]
+#[derive(Clone)]
 pub struct ModelAndBehavior {
     pub model: Model,
     pub random_offset: RandomOffset,
@@ -116,10 +114,10 @@ impl ModelAndBehavior {
 }
 
 impl BlockStates {
-    pub fn load<D: Device<C>, C: CommandBuffer>(
+    pub fn load<D: Device>(
         assets: &Path, d: &mut D
     ) -> BlockStates {
-        let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.val0());
+        let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.0);
         let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
         let mut extras = vec![];
         let mut flower1 = None::<u16>;
@@ -137,7 +135,7 @@ impl BlockStates {
                 assert!(lower_name == name && lower_variant == "half=lower");
                 let lower = BLOCK_STATES.slice_to(i - 1).iter().enumerate().rev();
                 let lower = lower.take_while(|&(i, &(id, _, variant))| {
-                    id + 1 == BLOCK_STATES[i + 1].val0() && variant == "half=lower"
+                    id + 1 == BLOCK_STATES[i + 1].0 && variant == "half=lower"
                 });
                 // Note: excluding paeonia itself, which works as-is.
                 let num_plants = lower.count();
@@ -156,7 +154,7 @@ impl BlockStates {
 
                     let next_index = polymorph_oracle.len() as u8;
                     polymorph_oracle.push_all(&[
-                        IfBlock(Dir::Down, (BLOCK_STATES[j].val0() - id) as i8, next_index + 2),
+                        IfBlock(Dir::Down, (BLOCK_STATES[j].0 - id) as i8, next_index + 2),
                         PickBlockState(last_id)
                     ]);
                 }
@@ -195,7 +193,7 @@ impl BlockStates {
         BlockStates::load_with_states(assets, d, states)
     }
 
-    fn load_with_states<D: Device<C>, C: CommandBuffer>(
+    fn load_with_states<D: Device>(
         assets: &Path, d: &mut D,
         states: Vec<Description>
     ) -> BlockStates {
@@ -207,22 +205,19 @@ impl BlockStates {
         }
 
         let last_id = states.last().map_or(0, |state| state.id);
-        let mut models = Vec::with_capacity(last_id as uint + 1);
-
+        let mut models = Vec::with_capacity(last_id as usize + 1);
         let mut atlas = AtlasBuilder::new(assets.join(Path::new("minecraft/textures")), 16, 16);
         let mut partial_model_cache = HashMap::new();
         let mut block_state_cache: HashMap<String, HashMap<String, Variant>> = HashMap::new();
-        let variants_str = "variants".to_string();
-        let model_str = "model".to_string();
 
         for state in states.into_iter() {
             let variants = match block_state_cache.entry(state.name.to_string()) {
                 Occupied(entry) => entry.into_mut(),
-                Vacant(entry) => entry.set({
+                Vacant(entry) => entry.insert({
                     let name = state.name;
                     let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_slice()));
-                    match json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
-                        json::Json::Object(mut json) => match json.remove(&variants_str).unwrap() {
+                    match json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
+                        json::Json::Object(mut json) => match json.remove("variants").unwrap() {
                             json::Json::Object(variants) => variants.into_iter().map(|(k, v)| {
                                 let mut variant = match v {
                                     json::Json::Object(o) => o,
@@ -236,28 +231,27 @@ impl BlockStates {
                                     }
                                     json => panic!("{}#{} has invalid value {}", name, k, json)
                                 };
-                                let model = match variant.remove(&model_str).unwrap() {
+                                let model = match variant.remove("model").unwrap() {
                                     json::Json::String(s) => s,
                                     json => panic!("'model' has invalid value {}", json)
                                 };
-                                let rotate_x = variant.find_with(|k| "x".cmp(k.as_slice())).map_or(Rotate0, |r| {
-                                    match OrthoRotation::from_json(r) {
+                                let rotate_x = variant.remove("x").map_or(Rotate0, |r| {
+                                    match OrthoRotation::from_json(&r) {
                                         Some(r) => r,
                                         None => panic!("invalid rotation for x {}", r)
                                     }
                                 });
-                                let rotate_y = variant.find_with(|k| "y".cmp(k.as_slice())).map_or(Rotate0, |r| {
-                                    match OrthoRotation::from_json(r) {
+                                let rotate_y = variant.remove("y").map_or(Rotate0, |r| {
+                                    match OrthoRotation::from_json(&r) {
                                         Some(r) => r,
                                         None => panic!("invalid rotation for y {}", r)
                                     }
                                 });
-                                match variant.find_with(|k| "z".cmp(k.as_slice())) {
+                                match variant.remove("z") {
                                     Some(r) => println!("ignoring z rotation {} in {}", r, name),
                                     None => {}
                                 }
-                                let uvlock = variant.find_with(|k| "uvlock".cmp(k.as_slice()))
-                                                    .map_or(false, |x| x.as_boolean().unwrap());
+                                let uvlock = variant.remove("uvlock").map_or(false, |x| x.as_boolean().unwrap());
                                 (k, Variant {
                                     model: model,
                                     rotate_x: rotate_x,
@@ -279,7 +273,7 @@ impl BlockStates {
             let mut model = Model::load(variant.model.as_slice(), assets,
                                         &mut atlas, &mut partial_model_cache);
 
-            let rotate_faces = |m: &mut Model, ix, iy, rot_mat: [i32, ..4]| {
+            let rotate_faces = |&: m: &mut Model, ix: usize, iy: usize, rot_mat: [i32; 4]| {
                 let [a, b, c, d] = rot_mat.map(|x: i32| x as f32);
                 for face in m.faces.iter_mut() {
                     for vertex in face.vertices.iter_mut() {
@@ -288,7 +282,7 @@ impl BlockStates {
                         xyz[ix] = a * x + b * y + 0.5;
                         xyz[iy] = c * x + d * y + 0.5;
                     }
-                    let fixup_cube_face = |f: cube::Face| {
+                    let fixup_cube_face = |&: f: cube::Face| {
                         let [a, b, c, d] = rot_mat;
                         let mut dir = f.direction();
                         let [x, y] = [dir[ix], dir[iy]];
@@ -328,15 +322,16 @@ impl BlockStates {
                     }
                 }
             };
-            let rotate_faces = |m: &mut Model, ix, iy, r: OrthoRotation| {
+
+            let rotate_faces = |&: m: &mut Model, ix: usize, iy: usize, r: OrthoRotation| {
                 match r {
                     Rotate0 => {}
-                    Rotate90 => rotate_faces(m, ix, iy, [0,-1,
-                                                         1, 0]),
-                    Rotate180 => rotate_faces(m, ix, iy, [-1, 0,
-                                                           0,-1]),
-                    Rotate270 => rotate_faces(m, ix, iy, [0, 1,
-                                                         -1, 0]),
+                    Rotate90 =>  rotate_faces(m, ix, iy, [ 0, -1,
+                                                           1,  0]),
+                    Rotate180 => rotate_faces(m, ix, iy, [-1,  0,
+                                                           0, -1]),
+                    Rotate270 => rotate_faces(m, ix, iy, [ 0,  1,
+                                                          -1,  0]),
                 }
             };
 
@@ -344,10 +339,11 @@ impl BlockStates {
             rotate_faces(&mut model, 0, 2, variant.rotate_y);
 
             let len = models.len();
-            if state.id as uint >= len {
-                models.grow(state.id as uint - len + 1, ModelAndBehavior::empty());
+            if state.id as usize >= len {
+                models.resize(state.id as usize + 1, ModelAndBehavior::empty());
             }
-            models[state.id as uint] = ModelAndBehavior {
+
+            models[state.id as usize] = ModelAndBehavior {
                 model: model,
                 random_offset: state.random_offset,
                 polymorph_oracle: state.polymorph_oracle
@@ -378,7 +374,7 @@ impl BlockStates {
     }
 
     pub fn get_model<'a>(&'a self, i: BlockState) -> Option<&'a ModelAndBehavior> {
-        let i = i.value as uint;
+        let i = i.value as usize;
         if i >= self.models.len() || self.models[i].is_empty() {
             None
         } else {
@@ -391,7 +387,7 @@ impl BlockStates {
     }
 
     pub fn get_opacity(&self, i: BlockState) -> model::Opacity {
-        let i = i.value as uint;
+        let i = i.value as usize;
         if i >= self.models.len() {
             model::Opacity::Transparent
         } else {
@@ -401,46 +397,46 @@ impl BlockStates {
 }
 
 pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec<Vertex>,
-                   coords: [i32, ..3], chunks: [[[&Chunk, ..3], ..3], ..3],
-                   column_biomes: [[Option<&[[BiomeId, ..16], ..16]>, ..3], ..3]) {
+                   coords: [i32; 3], chunks: [[[&Chunk; 3]; 3]; 3],
+                   column_biomes: [[Option<&[[BiomeId; 16]; 16]>; 3]; 3]) {
     let chunk_xyz = coords.map(|x| x as f32 * 16.0);
     for y in range(0, 16) {
         for z in range(0, 16) {
             for x in range(0, 16) {
-                let at = |dir: [i32, ..3]| {
-                    let [dx, dy, dz] = dir.map(|x| x as uint);
+                let at = |&: dir: [i32; 3]| {
+                    let [dx, dy, dz] = dir.map(|x| x as usize);
                     let [x, y, z] = [x + dx, y + dy, z + dz].map(|x| x + 16);
                     let chunk = chunks[y / 16][z / 16][x / 16];
                     let [x, y, z] = [x, y, z].map(|x| x % 16);
                     (chunk.blocks[y][z][x], chunk.light_levels[y][z][x])
                 };
-                let this_block = at([0, 0, 0]).val0();
+                let this_block = at([0, 0, 0]).0;
                 let model = match block_states.get_model(this_block) {
                     Some(model) if !model.polymorph_oracle.is_empty() => {
                         let mut i = 0;
                         let result;
                         loop {
-                            let (cond, idx) = match model.polymorph_oracle[i] {
+                            let (cond, idx) = match model.polymorph_oracle[i].clone() {
                                 PickBlockState(id) => {
-                                    result = &block_states.models[id as uint];
+                                    result = &block_states.models[id as usize];
                                     break;
                                 }
                                 IfBlock(dir, offset, idx) => {
                                     let id = this_block.value + offset as u16;
-                                    (at(dir.xyz()).val0().value == id, idx)
+                                    (at(dir.xyz()).0.value == id, idx)
                                 }
                                 IfBlockOrSolid(dir, offset, idx) => {
                                     let id = this_block.value + offset as u16;
-                                    let other = at(dir.xyz()).val0();
+                                    let other = at(dir.xyz()).0;
                                     (other.value == id ||
                                      block_states.get_opacity(other).is_opaque(), idx)
                                 }
                                 /*IfGroup(dir, group, idx) => {
-                                    let other = at(dir.xyz()).val0();
+                                    let other = at(dir.xyz()).0;
                                     (block_states.models[other.value].group == group, idx)
                                 }
                                 IfGroupOrSolid(dir, group, idx) => {
-                                    let other = at(dir.xyz()).val0();
+                                    let other = at(dir.xyz()).0;
                                     (block_states.models[other.value].group == group ||
                                      block_states.get_opacity(other).is_opaque(), idx)
                                 }*/
@@ -448,7 +444,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                             if cond {
                                 i += 1;
                             } else {
-                                i = idx as uint;
+                                i = idx as usize;
                             }
                         }
                         result
@@ -457,7 +453,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                     None => continue
                 };
                 let block_xyz = vec3_add([x, y, z].map(|x| x as f32), chunk_xyz);
-                let block_xyz = match model.random_offset {
+                let block_xyz = match model.random_offset.clone() {
                     RandomOffset::None => block_xyz,
                     random_offset => {
                         let [x, _, z] = block_xyz;
@@ -546,7 +542,7 @@ pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec
                                     model::Tint::None | model::Tint::Redstone => continue,
                                     model::Tint::Grass | model::Tint::Foliage => {}
                                 }
-                                let [x, z] = [x + dx as uint, z + dz as uint].map(|x| x + 16);
+                                let [x, z] = [x + dx as usize, z + dz as usize].map(|x| x + 16);
                                 let biome = match column_biomes[z / 16][x / 16] {
                                     Some(biome) => biomes[biome[z % 16][x % 16]],
                                     None => continue

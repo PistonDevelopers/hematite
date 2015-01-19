@@ -1,12 +1,12 @@
-use vecmath::Matrix4;
-use gfx;
-use gfx::{Device, DeviceHelper, ToSlice};
 use device;
 use device::draw::CommandBuffer;
+use gfx;
+use gfx::{ Device, DeviceHelper, ToSlice };
 use render;
+use vecmath::Matrix4;
 
 static VERTEX: gfx::ShaderSource<'static> = shaders! {
-GLSL_120: b"
+glsl_120: b"
     #version 120
     uniform mat4 projection, view;
 
@@ -21,8 +21,8 @@ GLSL_120: b"
         v_color = color;
         gl_Position = projection * view * vec4(position, 1.0);
     }
-"
-GLSL_150: b"
+",
+glsl_150: b"
     #version 150 core
     uniform mat4 projection, view;
 
@@ -41,7 +41,7 @@ GLSL_150: b"
 };
 
 static FRAGMENT: gfx::ShaderSource<'static> = shaders!{
-GLSL_120: b"
+glsl_120: b"
     #version 120
 
     uniform sampler2D s_texture;
@@ -55,8 +55,8 @@ GLSL_120: b"
             discard;
         gl_FragColor = tex_color * vec4(v_color, 1.0);
     }
-"
-GLSL_150: b"
+",
+glsl_150: b"
     #version 150 core
     out vec4 out_color;
 
@@ -75,20 +75,22 @@ GLSL_150: b"
 };
 
 #[shader_param(Program)]
+#[derive(Copy)]
 pub struct ShaderParam {
-    pub projection: [[f32, ..4], ..4],
-    pub view: [[f32, ..4], ..4],
+    pub projection: [[f32; 4]; 4],
+    pub view: [[f32; 4]; 4],
     pub s_texture: gfx::shade::TextureParam,
 }
 
 #[vertex_format]
+#[derive(Copy)]
 pub struct Vertex {
     #[name="position"]
-    pub xyz: [f32, ..3],
+    pub xyz: [f32; 3],
     #[name="tex_coord"]
-    pub uv: [f32, ..2],
+    pub uv: [f32; 2],
     #[name="color"]
-    pub rgb: [f32, ..3],
+    pub rgb: [f32; 3],
 }
 
 impl Clone for Vertex {
@@ -97,13 +99,14 @@ impl Clone for Vertex {
     }
 }
 
+#[derive(Copy)]
 pub struct Buffer {
     buf: gfx::BufferHandle<Vertex>,
-    batch: render::batch::RefBatch<_ShaderParamLink, ShaderParam>
+    batch: Program,
 }
 
-pub struct Renderer<D: Device<C>, C: CommandBuffer> {
-    graphics: gfx::Graphics<D, C>,
+pub struct Renderer<D: Device> {
+    graphics: gfx::Graphics<D>,
     params: ShaderParam,
     frame: gfx::Frame,
     cd: gfx::ClearData,
@@ -111,8 +114,8 @@ pub struct Renderer<D: Device<C>, C: CommandBuffer> {
     drawstate: gfx::DrawState
 }
 
-impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
-    pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D, C> {
+impl<D: Device> Renderer<D> {
+    pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D> {
         let sampler = device.create_sampler(
                 gfx::tex::SamplerInfo::new(
                     gfx::tex::FilterMethod::Scale,
@@ -122,11 +125,11 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
         let mut graphics = gfx::Graphics::new(device);
 
         let params = ShaderParam {
-            projection: [[0.0, ..4], ..4],
-            view: [[0.0, ..4], ..4],
+            projection: [[0.0; 4]; 4],
+            view: [[0.0; 4]; 4],
             s_texture: (tex, Some(sampler))
         };
-        let prog = graphics.device.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
+        let prog = graphics.device.link_program(VERTEX.clone(), FRAGMENT.clone()).ok().unwrap();
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::Comparison::LessEqual, true);
         drawstate.primitive.front_face = gfx::state::WindingOrder::Clockwise;
 
@@ -167,7 +170,7 @@ impl<D: Device<C>, C: CommandBuffer> Renderer<D, C> {
                     &mesh,
                     mesh.to_slice(gfx::PrimitiveType::TriangleList),
                     &self.drawstate
-                ).unwrap()
+                ).ok().unwrap()
         }
     }
 
