@@ -1,53 +1,54 @@
-#![feature(globs, macro_rules, phase)]
+#![feature(box_syntax)]
+#![feature(plugin)]
 
-extern crate current;
-extern crate gfx_voxel;
-extern crate shader_version;
-extern crate input;
-extern crate fps_counter;
+#[plugin]
+#[no_link]
+
+#[macro_use]
+extern crate gfx_macros;
+
 extern crate cam;
-extern crate vecmath;
-extern crate image;
+extern crate current;
+extern crate device;
 extern crate event;
+extern crate flate;
+extern crate fps_counter;
+extern crate gfx;
+extern crate gfx_macros;
+extern crate gfx_voxel;
+extern crate image;
+extern crate input;
+extern crate quack;
+extern crate render;
 extern crate sdl2;
 extern crate sdl2_window;
-extern crate gfx;
-extern crate device;
-extern crate render;
-#[phase(plugin)]
-extern crate gfx_macros;
-extern crate libc;
+extern crate shader_version;
 extern crate time;
+extern crate vecmath;
 
-extern crate flate;
-extern crate serialize;
+extern crate "rustc-serialize" as serialize;
 
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube, texture };
 
 use std::cell::RefCell;
-use current::{ Get, Set };
-use sdl2_window::Sdl2Window;
-use vecmath::{vec3_add, vec3_scale, vec3_normalized};
-use event::{
-    Events, Ups, MaxFps,
-    WindowSettings,
-    Event
-};
-use event::window::{ CaptureCursor, Size };
+use std::cmp::max;
+use std::f32::consts::PI;
+use std::f32::INFINITY;
+use std::io::fs::File;
+use std::num::Float;
 
 use array::*;
+use event::{ Event, Events, MaxFps, Ups, WindowSettings };
+use event::window::{ CaptureCursor, Size };
+use quack::{Get, Set};
+use sdl2_window::Sdl2Window;
+use shader::Renderer;
+use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
+
 use minecraft::biome::Biomes;
 use minecraft::block_state::BlockStates;
-use shader::Renderer;
-
-use std::cmp::max;
-use std::num::Float;
-use std::num::FloatMath;
-use std::f32::INFINITY;
-use std::f32::consts::PI;
-use std::io::fs::File;
 
 pub mod chunk;
 pub mod shader;
@@ -74,8 +75,8 @@ fn main() {
         .read_to_end().unwrap();
     let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
         .unwrap();
-    println!("{}", level);
-    let player_pos: [f32, ..3] = Array::from_iter(
+    println!("{:?}", level);
+    let player_pos: [f32; 3] = Array::from_iter(
             level["Data"]["Player"]["Pos"]
             .as_double_list().unwrap().iter().map(|&x| x as f32)
         );
@@ -183,10 +184,10 @@ fn main() {
     for e in Events::new(window)
         .set(Ups(120))
         .set(MaxFps(10_000)) {
-        use input::Motion::MouseRelative;
+        use input::Button::Keyboard;
         use input::Input::{ Move, Press };
         use input::keyboard::Key;
-        use input::Button::Keyboard;
+        use input::Motion::MouseRelative;
 
         match e {
             Event::Render(_) => {
@@ -204,9 +205,9 @@ fn main() {
                 let view_mat = camera.orthogonal();
                 renderer.set_view(view_mat);
                 renderer.clear();
-                let mut num_chunks = 0u;
-                let mut num_sorted_chunks = 0u;
-                let mut num_total_chunks = 0u;
+                let mut num_chunks = 0us;
+                let mut num_sorted_chunks = 0us;
+                let mut num_total_chunks = 0us;
                 let start_time = time::precise_time_ns();
                 chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
                     match buffer {
@@ -232,7 +233,7 @@ fn main() {
                                 }
                             }
 
-                            let cull_bits: [bool, ..3] = Array::from_fn(|i| {
+                            let cull_bits: [bool; 3] = Array::from_fn(|i| {
                                 let (min, max) = (bb_min[i], bb_max[i]);
                                 min.signum() == max.signum()
                                     && min.abs().min(max.abs()) >= 1.0
@@ -280,9 +281,13 @@ fn main() {
                     }
                 ).map(|(i, _)| i);
 
-                let pending = closest.and_then(|i|
-                        pending_chunks.swap_remove(i)
-                    );
+                let pending = closest.and_then(|i| {
+                    // Vec swap_remove doesn't return Option anymore
+                    match pending_chunks.len() {
+                        0 => None,
+                        _ => Some(pending_chunks.swap_remove(i))
+                    }
+                });
                 match pending {
                     Some((coords, buffer, chunks, column_biomes)) => {
                         match buffer.get() {

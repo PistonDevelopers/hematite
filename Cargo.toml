@@ -18,30 +18,54 @@ debug = false
 name = "hematite"
 path = "src/main.rs"
 
-[dependencies.pistoncore-sdl2_window]
+[dependencies]
+time = "*"
+rustc-serialize = "0.2.8"
 
+[dependencies.sdl2]
+git = "https://github.com/AngryLawyer/rust-sdl2"
+
+[dependencies.pistoncore-sdl2_window]
 git = "https://github.com/PistonDevelopers/sdl2_window"
 
 [dependencies.piston3d-gfx_voxel]
-
 git = "https://github.com/PistonDevelopers/gfx_voxel"
 
 [dependencies.piston3d-cam]
-
 git = "https://github.com/PistonDevelopers/cam"
 
 [dependencies.fps_counter]
-
 git = "https://github.com/PistonDevelopers/fps_counter"
 
 [dependencies.vecmath]
-
 git = "https://github.com/PistonDevelopers/vecmath"
 
-[dependencies.image]
+[dependencies.current]
+git = "https://github.com/PistonDevelopers/current"
 
+[dependencies.image]
 git = "https://github.com/PistonDevelopers/image"
 
-[dependencies.gfx]
+[dependencies.pistoncore-input]
+git = "https://github.com/PistonDevelopers/input"
 
+[dependencies.pistoncore-event]
+git = "https://github.com/PistonDevelopers/event"
+
+[dependencies.device]
 git = "https://github.com/gfx-rs/gfx-rs"
+
+[dependencies.gfx]
+git = "https://github.com/gfx-rs/gfx-rs"
+
+[dependencies.gfx_macros]
+git = "https://github.com/gfx-rs/gfx-rs"
+
+[dependencies.render]
+git = "https://github.com/gfx-rs/gfx-rs"
+
+[dependencies.shader_version]
+git = "https://github.com/PistonDevelopers/shader_version"
+
+[dependencies.quack]
+git = "https://github.com/PistonDevelopers/quack"

@@ -1,17 +1,20 @@
-use flate::{inflate_bytes, inflate_bytes_zlib};
+use std::collections::HashMap;
+use std::fmt;
+use std::io::{ BufReader, IoResult };
+use std::ops::Index;
+use std::string::ToString;
+
+use flate::{ inflate_bytes, inflate_bytes_zlib };
 use serialize;
 use serialize::Decodable;
 use serialize::hex::ToHex;
-use std::collections::HashMap;
-use std::fmt;
-use std::io::{BufReader, IoResult};
 
 use self::Nbt::*;
 use self::List::*;
 use self::DecoderError::*;
 
 /// Represents a NBT value
-#[deriving(Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Nbt {
     Byte(i8),
     Short(i16),
@@ -26,7 +29,7 @@ pub enum Nbt {
     NbtCompound(Compound)
 }
 
-impl fmt::Show for Nbt {
+impl fmt::Debug for Nbt {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Nbt::Byte(x) => write!(f, "{}b", x),
@@ -36,16 +39,34 @@ impl fmt::Show for Nbt {
             Nbt::Float(x) => write!(f, "{:.1}f", x),
             Nbt::Double(x) => write!(f, "{:.1}", x),
             Nbt::ByteArray(ref x) => write!(f, "b<{}>", x.as_slice().to_hex()),
-            Nbt::IntArray(ref x) => write!(f, "{}", *x),
+            Nbt::IntArray(ref x) => write!(f, "{:?}", *x),
             Nbt::NbtString(ref x) => write!(f, "\"{}\"", *x),
-            Nbt::NbtList(ref x) => write!(f, "{}", *x),
-            Nbt::NbtCompound(ref x) => write!(f, "{}", *x)
+            Nbt::NbtList(ref x) => write!(f, "{:?}", *x),
+            Nbt::NbtCompound(ref x) => write!(f, "{:?}", *x)
+        }
+    }
+}
+
+impl fmt::Display for Nbt {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Nbt::Byte(x) => write!(f, "{}", x),
+            Nbt::Short(x) => write!(f, "{}", x),
+            Nbt::Int(x) => write!(f, "{}", x),
+            Nbt::Long(x) => write!(f, "{}", x),
+            Nbt::Float(x) => write!(f, "{:.1}", x),
+            Nbt::Double(x) => write!(f, "{:.1}", x),
+            Nbt::ByteArray(ref x) => write!(f, "<{}>", x.as_slice().to_hex()),
+            Nbt::IntArray(ref x) => write!(f, "{:?}", *x),
+            Nbt::NbtString(ref x) => write!(f, "\"{}\"", *x),
+            Nbt::NbtList(ref x) => write!(f, "{:?}", *x),
+            Nbt::NbtCompound(ref x) => write!(f, "{:?}", *x)
         }
     }
 }
 
 /// An ordered list of NBT values.
-#[deriving(Clone, PartialEq, Show)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum List {
     ByteList(Vec<i8>),
     ShortList(Vec<i16>),
@@ -65,7 +86,7 @@ pub type Compound = HashMap<String, Nbt>;
 
 impl Nbt {
     pub fn from_reader<R: Reader>(r: &mut R) -> IoResult<Nbt> {
-        Ok(try!(NbtReader::new(r).tag()).unwrap().val0())
+        Ok(try!(NbtReader::new(r).tag()).unwrap().0)
     }
 
     pub fn from_gzip(data: &[u8]) -> IoResult<Nbt> {
@@ -108,11 +129,13 @@ impl Nbt {
     }
 }
 
-impl<'a> Index<&'a str, Nbt> for Nbt {
+impl<'a> Index<&'a str> for Nbt {
+    type Output = Nbt;
+
     fn index<'b>(&'b self, s: &&'a str) -> &'b Nbt {
         match *self {
             NbtCompound(ref c) => c.get(*s).unwrap(),
-            _ => panic!("cannot index non-compound Nbt ({}) with '{}'", self, s)
+            _ => panic!("cannot index non-compound Nbt ({:?}) with '{}'", self, s)
         }
     }
 }
@@ -149,17 +172,19 @@ impl<'a, R: Reader> NbtReader<'a, R> {
     fn f64(&mut self) -> IoResult<f64> { self.reader.read_be_f64() }
 
     fn string(&mut self) -> IoResult<String> {
-        let len = try!(self.reader.read_be_u16()) as uint;
+        let len = try!(self.reader.read_be_u16()) as usize;
         self.reader.read_exact(len).map(|s| String::from_utf8(s).unwrap())
     }
 
     fn array_u8(&mut self) -> IoResult<Vec<u8>> {
-        let len = try!(self.i32()) as uint;
+        let len = try!(self.i32()) as usize;
         self.reader.read_exact(len)
     }
 
-    fn array<T>(&mut self, read: |&mut NbtReader<R>| -> IoResult<T>) -> IoResult<Vec<T>> {
-        let len = try!(self.i32()) as uint;
+    fn array<T, F>(&mut self, mut read: F) -> IoResult<Vec<T>>
+        where F: FnMut(&mut NbtReader<R>) -> IoResult<T>
+    {
+        let len = try!(self.i32()) as usize;
         let mut v = Vec::with_capacity(len);
         for _ in range(0, len) {
             v.push(try!(read(self)))
@@ -230,7 +255,7 @@ pub struct Decoder {
     stack: Vec<DecodeResult<Nbt>>
 }
 
-#[deriving(Clone, PartialEq, Eq, Show)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum DecoderError {
     ExpectedError(String, String),
     MissingFieldError(String),
@@ -247,27 +272,26 @@ impl Decoder {
             stack: vec![Ok(nbt)]
         }
     }
-}
-
-impl Decoder {
     fn pop(&mut self) -> DecodeResult<Nbt> {
         self.stack.pop().unwrap()
     }
     fn push(&mut self, nbt: Nbt) {
         self.stack.push(Ok(nbt))
     }
-    fn push_all<T>(&mut self, list: Vec<T>, f: |T| -> Nbt) -> uint {
+    fn push_all<T, F>(&mut self, list: Vec<T>, f: F) -> usize
+        where F: FnMut(T) -> Nbt
+    {
         let len = list.len();
         self.stack.extend(list.into_iter().rev().map(f).map(Ok::<Nbt, DecoderError>));
         len
     }
 }
 
-impl Decodable<Decoder, DecoderError> for Nbt {
-    fn decode(d: &mut Decoder) -> DecodeResult<Nbt> {
-        d.pop()
-    }
-}
+// impl Decodable for Nbt {
+//     fn decode<D: serialize::Decoder>(d: &mut D) -> Result<Self, serialize::Decoder::Error> {
+//         d.pop()
+//     }
+// }
 
 macro_rules! expect(
     ($s:expr, $t:ident) => ({
@@ -282,7 +306,9 @@ macro_rules! expect(
     ($s:expr, $t:ident as $to:ty) => (expect!($s, $t).map(|x| x as $to))
 );
 
-impl serialize::Decoder<DecoderError> for Decoder {
+impl serialize::Decoder for Decoder {
+    type Error = DecoderError;
+
     fn read_nil(&mut self) -> DecodeResult<()> {
         Err(ExpectedError("()".to_string(), try!(self.pop()).to_string()))
     }
@@ -290,23 +316,25 @@ impl serialize::Decoder<DecoderError> for Decoder {
     fn read_u64(&mut self) -> DecodeResult<u64> { expect!(self, Long as u64) }
     fn read_u32(&mut self) -> DecodeResult<u32> { expect!(self, Int as u32) }
     fn read_u16(&mut self) -> DecodeResult<u16> { expect!(self, Short as u16) }
-    fn read_u8 (&mut self) -> DecodeResult<u8 > { expect!(self, Byte as u8) }
+    fn read_u8 (&mut self) -> DecodeResult<u8>  { expect!(self, Byte as u8) }
 
     fn read_i64(&mut self) -> DecodeResult<i64> { expect!(self, Long) }
     fn read_i32(&mut self) -> DecodeResult<i32> { expect!(self, Int) }
     fn read_i16(&mut self) -> DecodeResult<i16> { expect!(self, Short) }
-    fn read_i8 (&mut self) -> DecodeResult<i8 > { expect!(self, Byte) }
+    fn read_i8 (&mut self) -> DecodeResult<i8>  { expect!(self, Byte) }
 
-    fn read_int(&mut self) -> DecodeResult<int> {
+    fn read_isize(&mut self) -> DecodeResult<isize> {
         match try!(self.pop()) {
-            Byte(x) => Ok(x as int),
-            Short(x) => Ok(x as int),
-            Int(x) => Ok(x as int),
-            Long(x) => Ok(x as int),
-            other => Err(ExpectedError("int".to_string(), other.to_string()))
+            Byte(x) => Ok(x as isize),
+            Short(x) => Ok(x as isize),
+            Int(x) => Ok(x as isize),
+            Long(x) => Ok(x as isize),
+            other => Err(ExpectedError("isize".to_string(), other.to_string()))
         }
     }
-    fn read_uint(&mut self) -> DecodeResult<uint> { Ok(try!(self.read_int()) as uint) }
+    fn read_usize(&mut self) -> DecodeResult<usize> {
+        Ok(try!(self.read_isize()) as usize)
+    }
 
     fn read_bool(&mut self) -> DecodeResult<bool> {
         Ok(try!(self.read_u8()) != 0)
@@ -332,15 +360,15 @@ impl serialize::Decoder<DecoderError> for Decoder {
         expect!(self, NbtString)
     }
 
-    fn read_enum<T>(&mut self, _name: &str,
-                    f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
+    fn read_enum<T, F>(&mut self, _name: &str, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         f(self)
     }
 
-    fn read_enum_variant<T>(&mut self,
-                            names: &[&str],
-                            f: |&mut Decoder, uint| -> DecodeResult<T>)
-                            -> DecodeResult<T> {
+    fn read_enum_variant<T, F>(&mut self, names: &[&str], mut f: F) -> DecodeResult<T>
+        where F: FnMut(&mut Self, usize) -> DecodeResult<T>
+    {
         let name = match try!(self.pop()) {
             NbtString(s) => s,
             NbtCompound(mut o) => {
@@ -369,35 +397,36 @@ impl serialize::Decoder<DecoderError> for Decoder {
         f(self, idx)
     }
 
-    fn read_enum_variant_arg<T>(&mut self, _idx: uint, f: |&mut Decoder| -> DecodeResult<T>)
-                                -> DecodeResult<T> {
+    fn read_enum_variant_arg<T, F>(&mut self, _idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         f(self)
     }
 
-    fn read_enum_struct_variant<T>(&mut self, names: &[&str],
-                                   f: |&mut Decoder, uint| -> DecodeResult<T>)
-                                   -> DecodeResult<T> {
+    fn read_enum_struct_variant<T, F>(&mut self, names: &[&str], f: F) -> DecodeResult<T>
+        where F: FnMut(&mut Self, usize) -> DecodeResult<T>
+    {
         self.read_enum_variant(names, f)
     }
 
 
-    fn read_enum_struct_variant_field<T>(&mut self, _name: &str, idx: uint,
-                                         f: |&mut Decoder| -> DecodeResult<T>)
-                                         -> DecodeResult<T> {
+    fn read_enum_struct_variant_field<T, F>(&mut self, _name: &str, idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         self.read_enum_variant_arg(idx, f)
     }
 
-    fn read_struct<T>(&mut self, _name: &str, _len: uint,
-                      f: |&mut Decoder| -> DecodeResult<T>)
-                      -> DecodeResult<T> {
+    fn read_struct<T, F>(&mut self, _name: &str, _len: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         let value = try!(f(self));
         let _ = self.pop();
         Ok(value)
     }
 
-    fn read_struct_field<T>(&mut self, name: &str, _idx: uint,
-                            f: |&mut Decoder| -> DecodeResult<T>)
-                            -> DecodeResult<T> {
+    fn read_struct_field<T, F>(&mut self, name: &str, _idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         let mut obj = try!(expect!(self, NbtCompound));
 
         let value = match obj.remove(name) {
@@ -411,8 +440,10 @@ impl serialize::Decoder<DecoderError> for Decoder {
         Ok(value)
     }
 
-    fn read_tuple<T>(&mut self, tuple_len: uint, f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
-        self.read_seq(|d, len| {
+    fn read_tuple<T, F>(&mut self, tuple_len: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
+        self.read_seq(move |d, len| {
             if len == tuple_len {
                 f(d)
             } else {
@@ -421,25 +452,27 @@ impl serialize::Decoder<DecoderError> for Decoder {
         })
     }
 
-    fn read_tuple_arg<T>(&mut self, idx: uint,
-                         f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
+    fn read_tuple_arg<T, F>(&mut self, idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         self.read_seq_elt(idx, f)
     }
 
-    fn read_tuple_struct<T>(&mut self, _name: &str,
-                            len: uint,
-                            f: |&mut Decoder| -> DecodeResult<T>)
-                            -> DecodeResult<T> {
+    fn read_tuple_struct<T, F>(&mut self, _name: &str, len: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         self.read_tuple(len, f)
     }
 
-    fn read_tuple_struct_arg<T>(&mut self, idx: uint,
-                                f: |&mut Decoder| -> DecodeResult<T>)
-                                -> DecodeResult<T> {
+    fn read_tuple_struct_arg<T, F>(&mut self, idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         self.read_tuple_arg(idx, f)
     }
 
-    fn read_option<T>(&mut self, f: |&mut Decoder, bool| -> DecodeResult<T>) -> DecodeResult<T> {
+    fn read_option<T, F>(&mut self, mut f: F) -> DecodeResult<T>
+        where F: FnMut(&mut Self, bool) -> DecodeResult<T>
+    {
         match self.pop() {
             Ok(value) => { self.push(value); f(self, true) }
             Err(MissingFieldError(_)) => f(self, false),
@@ -447,7 +480,9 @@ impl serialize::Decoder<DecoderError> for Decoder {
         }
     }
 
-    fn read_seq<T>(&mut self, f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
+    fn read_seq<T, F>(&mut self, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self, usize) -> DecodeResult<T>
+    {
         let len = match try!(expect!(self, NbtList)) {
             ByteList(list) => self.push_all(list, Byte),
             ShortList(list) => self.push_all(list, Short),
@@ -464,12 +499,15 @@ impl serialize::Decoder<DecoderError> for Decoder {
         f(self, len)
     }
 
-    fn read_seq_elt<T>(&mut self, _idx: uint,
-                       f: |&mut Decoder| -> DecodeResult<T>) -> DecodeResult<T> {
+    fn read_seq_elt<T, F>(&mut self, _idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         f(self)
     }
 
-    fn read_map<T>(&mut self, f: |&mut Decoder, uint| -> DecodeResult<T>) -> DecodeResult<T> {
+    fn read_map<T, F>(&mut self, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self, usize) -> DecodeResult<T>
+    {
         let obj = try!(expect!(self, NbtCompound));
         let len = obj.len();
         for (key, value) in obj.into_iter() {
@@ -479,13 +517,15 @@ impl serialize::Decoder<DecoderError> for Decoder {
         f(self, len)
     }
 
-    fn read_map_elt_key<T>(&mut self, _idx: uint, f: |&mut Decoder| -> DecodeResult<T>)
-                           -> DecodeResult<T> {
+    fn read_map_elt_key<T, F>(&mut self, _idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         f(self)
     }
 
-    fn read_map_elt_val<T>(&mut self, _idx: uint, f: |&mut Decoder| -> DecodeResult<T>)
-                           -> DecodeResult<T> {
+    fn read_map_elt_val<T, F>(&mut self, _idx: usize, f: F) -> DecodeResult<T>
+        where F: FnOnce(&mut Self) -> DecodeResult<T>
+    {
         f(self)
     }
 
