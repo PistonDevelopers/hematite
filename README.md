@@ -5,14 +5,24 @@ A simple Minecraft written in Rust with the Piston game engine
 ![screenshot](./screenshot.png)
 
 ## Getting Started
-`cargo build --release`
+
+### OS X
+
+`$ brew install sdl2`
+
+`$ cargo build --release`
+
+### Other
+
+`$ cargo build --release`
 
 ## How To Open a World
+
 *This method is only for personal use. Never distribute copyrighted content from Minecraft.*
 
 `<version> = 1.8-pre2`
 
-### OSX
+### OS X
 
 Minecraft stores data in the folder `/Users/<username>/Library/Application Support/minecraft`
 
