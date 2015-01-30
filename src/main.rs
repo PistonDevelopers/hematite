@@ -25,6 +25,7 @@ extern crate sdl2_window;
 extern crate shader_version;
 extern crate time;
 extern crate vecmath;
+extern crate window;
 
 extern crate "rustc-serialize" as serialize;
 
@@ -36,16 +37,16 @@ use std::cell::RefCell;
 use std::cmp::max;
 use std::f32::consts::PI;
 use std::f32::INFINITY;
-use std::io::fs::File;
+use std::old_io::fs::File;
 use std::num::Float;
 
 use array::*;
-use event::{ Event, Events, MaxFps, Ups, WindowSettings };
-use event::window::{ CaptureCursor, Size };
+use event::{ Event, Events, MaxFps, Ups };
 use quack::{Get, Set};
 use sdl2_window::Sdl2Window;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
+use window::{ CaptureCursor, Size, WindowSettings };
 
 use minecraft::biome::Biomes;
 use minecraft::block_state::BlockStates;

@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::cmp::max;
 use std::collections::hash_map::Entry::{ Occupied, Vacant };
 use std::collections::HashMap;
-use std::io::fs::File;
+use std::old_io::fs::File;
 use std::num::Float;
 use std::num::UnsignedInt;
 

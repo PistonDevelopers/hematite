@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::Entry::{ Occupied, Vacant };
 use std::f32::consts::{PI, SQRT2};
 use std::f32::INFINITY;
-use std::io::fs::File;
+use std::old_io::fs::File;
 use std::num::Float;
 use std::str::FromStr;
 
