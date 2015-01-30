@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::io::{ BufReader, IoResult };
+use std::old_io::{ BufReader, IoResult };
 use std::ops::Index;
 use std::string::ToString;
 

@@ -52,6 +52,9 @@ git = "https://github.com/PistonDevelopers/input"
 [dependencies.pistoncore-event]
 git = "https://github.com/PistonDevelopers/event"
 
+[dependencies.pistoncore-window]
+git = "https://github.com/PistonDevelopers/window"
+
 [dependencies.device]
 git = "https://github.com/gfx-rs/gfx-rs"
 

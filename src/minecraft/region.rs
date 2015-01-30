@@ -1,5 +1,5 @@
 use std::cell::Cell;
-use std::io::{ self, File, FileStat, IoResult };
+use std::old_io::{ File, FileStat, IoResult };
 use std::os;
 
 use array::*;
@@ -31,13 +31,13 @@ fn array_16x16x16<T, F>(mut f: F) -> [[[T; SIZE]; SIZE]; SIZE]
 impl Region {
     pub fn open(filename: &Path) -> IoResult<Region> {
         #[cfg(not(windows))]
-        fn map_fd(file: &io::File) -> os::MapOption {
+        fn map_fd(file: &File) -> os::MapOption {
             use std::os::unix::AsRawFd;
             os::MapOption::MapFd(file.as_raw_fd())
         }
 
         #[cfg(windows)]
-        fn map_fd(file: &io::File) -> os::MapOption {
+        fn map_fd(file: &File) -> os::MapOption {
             use std::os::windows::AsRawHandle;
             os::MapOption::MapFd(file.as_raw_handle())
         }

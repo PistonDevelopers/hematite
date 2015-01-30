@@ -74,7 +74,7 @@ glsl_150: b"
 "
 };
 
-#[shader_param(Program)]
+#[shader_param]
 #[derive(Copy)]
 pub struct ShaderParam {
     pub projection: [[f32; 4]; 4],
@@ -99,10 +99,9 @@ impl Clone for Vertex {
     }
 }
 
-#[derive(Copy)]
 pub struct Buffer {
     buf: gfx::BufferHandle<Vertex>,
-    batch: Program,
+    batch: gfx::batch::RefBatch<ShaderParam>,
 }
 
 pub struct Renderer<D: Device> {
