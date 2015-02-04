@@ -9,17 +9,16 @@ extern crate gfx_macros;
 
 extern crate cam;
 extern crate current;
-extern crate device;
 extern crate event;
 extern crate flate;
 extern crate fps_counter;
 extern crate gfx;
+extern crate "gfx_device_gl" as device;
 extern crate gfx_macros;
 extern crate gfx_voxel;
 extern crate image;
 extern crate input;
 extern crate quack;
-extern crate render;
 extern crate sdl2;
 extern crate sdl2_window;
 extern crate shader_version;
