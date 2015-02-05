@@ -1,6 +1,8 @@
 #![feature(box_syntax)]
 #![feature(plugin)]
 
+#![feature(collections, core, io, os, path, rustc_private, std_misc)]
+
 #[plugin]
 #[no_link]
 

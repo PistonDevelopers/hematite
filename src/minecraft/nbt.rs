@@ -6,7 +6,6 @@ use std::string::ToString;
 
 use flate::{ inflate_bytes, inflate_bytes_zlib };
 use serialize;
-use serialize::Decodable;
 use serialize::hex::ToHex;
 
 use self::Nbt::*;

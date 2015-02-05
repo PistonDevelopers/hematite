@@ -2,7 +2,6 @@ use device;
 use device::draw::CommandBuffer;
 use gfx;
 use gfx::{ Device, DeviceHelper, ToSlice };
-use gfx::render;
 use vecmath::Matrix4;
 
 static VERTEX: gfx::ShaderSource<'static> = shaders! {
@@ -99,6 +98,7 @@ impl Clone for Vertex {
     }
 }
 
+#[derive(Copy)]
 pub struct Buffer {
     buf: gfx::BufferHandle<Vertex>,
     batch: gfx::batch::RefBatch<ShaderParam>,
