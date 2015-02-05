@@ -9,7 +9,6 @@ use std::num::UnsignedInt;
 use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
 use cube;
-use device::draw::CommandBuffer;
 use gfx::Device;
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
@@ -28,14 +27,14 @@ pub struct BlockStates {
     texture: Texture
 }
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum RandomOffset {
     None,
     XZ,
     XYZ
 }
 
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum Dir {
     Down,
     Up,
@@ -69,7 +68,7 @@ impl Dir {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum PolymorphDecision {
     // Stop and use this block state ID for the model.
     PickBlockState(u16),
