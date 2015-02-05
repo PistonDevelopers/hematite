@@ -99,6 +99,7 @@ impl Clone for Vertex {
     }
 }
 
+#[derive(Copy)]
 pub struct Buffer {
     buf: gfx::BufferHandle<Vertex>,
     batch: gfx::batch::RefBatch<ShaderParam>,
