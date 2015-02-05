@@ -6,25 +6,26 @@ A simple Minecraft written in Rust with the Piston game engine
 
 ## Getting Started
 
+### Windows
+
+* Download SDL2 binaries from <https://www.libsdl.org/download-2.0.php>
+* Copy SDL2.dll to `C:\Rust\bin\rustlib\x86_64-pc-windows-gnu\lib`, also in Hematite's root folder.
+
 ### OS X
 
 `$ brew install sdl2`
 
-`$ cargo build --release`
+### Ubuntu
 
-### Other
+`$ sudo apt-get install libsdl2-dev`
 
-`$ cargo build --release`
+Should get you going without problems, if you find any issues please file them.
 
 ## How To Open a World
 
 *This method is only for personal use. Never distribute copyrighted content from Minecraft.*
 
-`<version> = 1.8-pre2`
-
-### OS X
-
-Minecraft stores data in the folder `/Users/<username>/Library/Application Support/minecraft`
+`<version> = 1.8.1`
 
 * In the Minecraft Launcher, click the button "New Profile"
 * Type in a profile name, for example "experimental"
@@ -34,11 +35,24 @@ Minecraft stores data in the folder `/Users/<username>/Library/Application Suppo
 * Click "Save Profile"
 * Click "Play" (this will download the snapshot)
 * Quit Minecraft
-* Copy `versions/<version>/<version>.jar` to the assets folder in Hematite
-* Rename the file extension to `.zip`
-* Extract the jar
-* Copy the `minecraft` folder from the new extracted folder and put it in the Hematite assets folder
-* Run `./target/hematite "/Users/<username>/Library/Application Support/minecraft/saves/<world>"`
+* Check out where is your Minecraft folder located (section below)
+* Copy `<minecraft_folder>/versions/<version>/<version>.jar` to the assets folder in Hematite
+* Rename the file to `<version>.zip` and open it
+* Copy the `minecraft` folder from the new zip file put it in the Hematite `assets` folder
+* Optional: you can remove `<version>.zip` it's not required anymore
+* Run hematite with: `cargo run --release "<path_to_minecraft_world>"`
+
+### Windows
+
+Minecraft folder: `%appdata\minecraft`
+
+Worlds folder: `%appdata\minecraft\saves\<world>`
+
+### OS X
+
+Minecraft folder: `/Users/<username>/Library/Application Support/minecraft`
+
+Worlds folder: `/Users/<username>/Library/Application Support/minecraft/saves/<world>`
 
 ## Dependencies
 
