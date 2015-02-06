@@ -54,6 +54,12 @@ Minecraft folder: `/Users/<username>/Library/Application Support/minecraft`
 
 Worlds folder: `/Users/<username>/Library/Application Support/minecraft/saves/<world>`
 
+### Linux
+
+Minecraft `folder: ~/.minecraft`
+
+Worlds folder: `~/.minecraft/saves/<world>`
+
 ## Dependencies
 
 ![dependencies](./Cargo.png)
