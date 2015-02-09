@@ -239,7 +239,7 @@ impl PartialModel {
                         let origin = array3_num(r.find("origin").unwrap(), |x| x as f32 / 16.0);
 
                         let (s, c) = (angle.sin(), angle.cos());
-                        let mut rot = |&mut: ix: usize, iy: usize| {
+                        let mut rot = |ix: usize, iy: usize| {
                             for &mut (ref mut face, _) in model.faces.slice_from_mut(element_start).iter_mut() {
                                 face.ao_face = None;
 
