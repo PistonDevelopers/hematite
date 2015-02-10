@@ -56,7 +56,7 @@ Worlds folder: `/Users/<username>/Library/Application Support/minecraft/saves/<w
 
 ### Linux
 
-Minecraft `folder: ~/.minecraft`
+Minecraft folder: `~/.minecraft`
 
 Worlds folder: `~/.minecraft/saves/<world>`
 
