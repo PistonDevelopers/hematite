@@ -44,15 +44,15 @@ Should get you going without problems, if you find any issues please file them.
 
 ### Windows
 
-Minecraft folder: `%appdata\minecraft`
+Minecraft folder: `%appdata%\minecraft`
 
-Worlds folder: `%appdata\minecraft\saves\<world>`
+Worlds folder: `%appdata%\minecraft\saves\<world>`
 
 ### OS X
 
-Minecraft folder: `/Users/<username>/Library/Application Support/minecraft`
+Minecraft folder: `~/Library/Application Support/minecraft`
 
-Worlds folder: `/Users/<username>/Library/Application Support/minecraft/saves/<world>`
+Worlds folder: `~/Library/Application Support/minecraft/saves/<world>`
 
 ### Linux
 
