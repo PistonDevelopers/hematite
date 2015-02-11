@@ -3,7 +3,7 @@
 
 #![feature(collections, core, io, os, path, rustc_private, std_misc)]
 
-#[plugin]
+#![plugin(gfx_macros)]
 #[no_link]
 
 #[macro_use]
