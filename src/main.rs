@@ -8,7 +8,6 @@
 
 #[macro_use]
 extern crate gfx_macros;
-
 extern crate cam;
 extern crate current;
 extern crate event;
