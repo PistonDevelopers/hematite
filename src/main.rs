@@ -1,13 +1,8 @@
 #![feature(box_syntax)]
 #![feature(plugin)]
-
 #![feature(collections, core, io, os, path, rustc_private, std_misc)]
-
 #![plugin(gfx_macros)]
-#[no_link]
 
-#[macro_use]
-extern crate gfx_macros;
 extern crate cam;
 extern crate current;
 extern crate event;
@@ -15,7 +10,6 @@ extern crate flate;
 extern crate fps_counter;
 extern crate gfx;
 extern crate "gfx_device_gl" as device;
-extern crate gfx_macros;
 extern crate gfx_voxel;
 extern crate image;
 extern crate input;

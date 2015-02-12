@@ -4,24 +4,7 @@ use gfx;
 use gfx::{ Device, DeviceExt, ToSlice };
 use vecmath::Matrix4;
 
-static VERTEX: gfx::ShaderSource<'static> = shaders! {
-glsl_120: b"
-    #version 120
-    uniform mat4 projection, view;
-
-    attribute vec2 tex_coord;
-    attribute vec3 color, position;
-
-    varying vec2 v_tex_coord;
-    varying vec3 v_color;
-
-    void main() {
-        v_tex_coord = tex_coord;
-        v_color = color;
-        gl_Position = projection * view * vec4(position, 1.0);
-    }
-",
-glsl_150: b"
+static VERTEX: &'static [u8] = b"
     #version 150 core
     uniform mat4 projection, view;
 
@@ -36,26 +19,9 @@ glsl_150: b"
         v_color = color;
         gl_Position = projection * view * vec4(position, 1.0);
     }
-"
-};
+";
 
-static FRAGMENT: gfx::ShaderSource<'static> = shaders!{
-glsl_120: b"
-    #version 120
-
-    uniform sampler2D s_texture;
-
-    varying vec2 v_tex_coord;
-    varying vec3 v_color;
-
-    void main() {
-        vec4 tex_color = texture2D(s_texture, v_tex_coord);
-        if(tex_color.a == 0.0) // Discard transparent pixels.
-            discard;
-        gl_FragColor = tex_color * vec4(v_color, 1.0);
-    }
-",
-glsl_150: b"
+static FRAGMENT: &'static [u8] = b"
     #version 150 core
     out vec4 out_color;
 
@@ -70,8 +36,7 @@ glsl_150: b"
             discard;
         out_color = tex_color * vec4(v_color, 1.0);
     }
-"
-};
+";
 
 #[shader_param]
 #[derive(Copy)]
