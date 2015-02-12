@@ -1,7 +1,7 @@
 use device;
 use device::draw::CommandBuffer;
 use gfx;
-use gfx::{ Device, DeviceHelper, ToSlice };
+use gfx::{ Device, DeviceExt, ToSlice };
 use vecmath::Matrix4;
 
 static VERTEX: gfx::ShaderSource<'static> = shaders! {
