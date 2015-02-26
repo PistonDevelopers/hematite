@@ -11,7 +11,7 @@ use self::OrthoRotation::*;
 use array::*;
 use cube;
 use serialize::json;
-use texture::AtlasBuilder;
+use gfx_voxel::texture::AtlasBuilder;
 
 #[derive(Copy)]
 pub struct Vertex {
@@ -383,4 +383,3 @@ impl Model {
         self.faces.is_empty()
     }
 }
-

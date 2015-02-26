@@ -1,5 +1,3 @@
-use device;
-use device::draw::CommandBuffer;
 use gfx;
 use gfx::{ Device, DeviceExt, ToSlice };
 use vecmath::Matrix4;
@@ -43,7 +41,7 @@ static FRAGMENT: &'static [u8] = b"
 pub struct ShaderParam {
     pub projection: [[f32; 4]; 4],
     pub view: [[f32; 4]; 4],
-    pub s_texture: gfx::shade::TextureParam,
+    pub s_texture: gfx::shade::TextureParam<gfx::GlResources>,
 }
 
 #[vertex_format]
@@ -65,21 +63,23 @@ impl Clone for Vertex {
 
 #[derive(Copy)]
 pub struct Buffer {
-    buf: gfx::BufferHandle<Vertex>,
+    buf: gfx::BufferHandle<gfx::GlResources, Vertex>,
     batch: gfx::batch::RefBatch<ShaderParam>,
 }
 
 pub struct Renderer<D: Device> {
     graphics: gfx::Graphics<D>,
     params: ShaderParam,
-    frame: gfx::Frame,
+    frame: gfx::Frame<D::Resources>,
     cd: gfx::ClearData,
-    prog: device::Handle<u32, device::shade::ProgramInfo>,
+    prog: gfx::ProgramHandle<D::Resources>,
     drawstate: gfx::DrawState
 }
 
-impl<D: Device> Renderer<D> {
-    pub fn new(mut device: D, frame: gfx::Frame, tex: gfx::TextureHandle) -> Renderer<D> {
+//impl<D: gfx::Device> Renderer<D> {
+impl Renderer<gfx::GlDevice> {
+    pub fn new(mut device: gfx::GlDevice, frame: gfx::Frame<gfx::GlResources>,
+               tex: gfx::TextureHandle<gfx::GlResources>) -> Renderer<gfx::GlDevice> {
         let sampler = device.create_sampler(
                 gfx::tex::SamplerInfo::new(
                     gfx::tex::FilterMethod::Scale,

@@ -69,3 +69,6 @@ git = "https://github.com/PistonDevelopers/shader_version"
 
 [dependencies.quack]
 git = "https://github.com/PistonDevelopers/quack"
+
+[dependencies.piston-texture]
+git = "https://github.com/PistonDevelopers/texture"
