@@ -1,5 +1,4 @@
-use gfx;
-use gfx::{ Device, DeviceExt, ToSlice };
+use gfx::{self, Device, DeviceExt, ToSlice};
 use vecmath::Matrix4;
 
 static VERTEX: &'static [u8] = b"
@@ -37,7 +36,7 @@ static FRAGMENT: &'static [u8] = b"
 ";
 
 #[shader_param]
-#[derive(Copy)]
+#[derive(Clone, Copy)]
 pub struct ShaderParam {
     pub projection: [[f32; 4]; 4],
     pub view: [[f32; 4]; 4],
@@ -143,7 +142,7 @@ impl Renderer<gfx::GlDevice> {
     }
 
     pub fn render(&mut self, buffer: Buffer) {
-        self.graphics.draw(&buffer.batch, &self.params, &self.frame);
+        self.graphics.draw(&buffer.batch, &self.params, &self.frame).unwrap();
     }
 
     pub fn end_frame(&mut self) {

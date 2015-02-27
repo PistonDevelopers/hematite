@@ -110,7 +110,7 @@ impl ChunkManager {
             for (y, (c, b)) in c.chunks.iter()
                 .zip(c.buffers.iter()).enumerate() {
 
-                f(x, y as i32, z, c, b.get())
+                f(x, y as i32, z, c, b.clone().get())
             }
         }
     }
