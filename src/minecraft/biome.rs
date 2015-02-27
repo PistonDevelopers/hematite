@@ -2,7 +2,7 @@ use std::ops::Index;
 
 use chunk::BiomeId;
 use minecraft::data;
-use texture::ColorMap;
+use gfx_voxel::texture::ColorMap;
 
 #[derive(Copy)]
 pub struct Biome {

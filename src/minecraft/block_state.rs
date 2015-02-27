@@ -9,7 +9,7 @@ use std::num::UnsignedInt;
 use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
 use cube;
-use gfx::Device;
+use gfx::{Device, GlDevice};
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
 use minecraft::model;
@@ -17,14 +17,15 @@ use minecraft::model::OrthoRotation::*;
 use minecraft::model::{ Model, OrthoRotation };
 use serialize::json;
 use shader::Vertex;
-use texture::{ AtlasBuilder, Texture };
+use gfx_voxel::texture::{ AtlasBuilder, Texture };
+use texture::ImageSize;
 use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
 
 pub struct BlockStates {
     models: Vec<ModelAndBehavior>,
-    texture: Texture
+    texture: Texture<GlDevice>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -86,7 +87,7 @@ pub enum PolymorphDecision {
 struct Description {
     id: u16,
     name: &'static str,
-    variant: Cow<'static, String, str>,
+    variant: Cow<'static, str>,
     random_offset: RandomOffset,
     polymorph_oracle: Vec<PolymorphDecision>
 }
@@ -113,8 +114,8 @@ impl ModelAndBehavior {
 }
 
 impl BlockStates {
-    pub fn load<D: Device>(
-        assets: &Path, d: &mut D
+    pub fn load(
+        assets: &Path, d: &mut GlDevice
     ) -> BlockStates {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.0);
         let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
@@ -192,8 +193,8 @@ impl BlockStates {
         BlockStates::load_with_states(assets, d, states)
     }
 
-    fn load_with_states<D: Device>(
-        assets: &Path, d: &mut D,
+    fn load_with_states(
+        assets: &Path, d: &mut GlDevice,
         states: Vec<Description>
     ) -> BlockStates {
         struct Variant {
@@ -381,7 +382,7 @@ impl BlockStates {
         }
     }
 
-    pub fn texture<'a>(&'a self) -> &'a Texture {
+    pub fn texture<'a>(&'a self) -> &'a Texture<GlDevice> {
         &self.texture
     }
 

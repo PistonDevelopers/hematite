@@ -1,5 +1,6 @@
 #![feature(box_syntax)]
 #![feature(plugin)]
+#![feature(custom_attribute)]
 #![feature(collections, core, io, os, path, rustc_private, std_misc)]
 #![plugin(gfx_macros)]
 
@@ -9,8 +10,8 @@ extern crate event;
 extern crate flate;
 extern crate fps_counter;
 extern crate gfx;
-extern crate "gfx_device_gl" as device;
 extern crate gfx_voxel;
+extern crate texture;
 extern crate image;
 extern crate input;
 extern crate quack;
@@ -25,7 +26,7 @@ extern crate "rustc-serialize" as serialize;
 
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
-pub use gfx_voxel::{ array, cube, texture };
+pub use gfx_voxel::{ array, cube };
 
 use std::cell::RefCell;
 use std::cmp::max;
