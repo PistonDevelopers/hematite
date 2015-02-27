@@ -1,7 +1,14 @@
 #![feature(box_syntax)]
-#![feature(plugin)]
+#![feature(collections)]
+#![feature(core)]
 #![feature(custom_attribute)]
-#![feature(collections, core, io, os, path, rustc_private, std_misc)]
+#![feature(env)]
+#![feature(old_io)]
+#![feature(old_path)]
+#![feature(os)]
+#![feature(plugin)]
+#![feature(rustc_private)]
+#![feature(std_misc)]
 #![plugin(gfx_macros)]
 
 extern crate cam;
@@ -61,11 +68,9 @@ pub mod minecraft {
 }
 
 fn main() {
-    let args = std::os::args();
-    let world = args.as_slice().get(1).expect(
-            "Usage: ./hematite <path/to/world>"
-        ).as_slice();
-    let world = Path::new(world);
+    let mut args = std::env::args();
+    let world = args.nth(1).expect("Usage: ./hematite <path/to/world>");
+    let world = Path::new(&world);
 
     let level_gzip = File::open(&world.join("level.dat"))
         .read_to_end().unwrap();
@@ -201,9 +206,9 @@ fn main() {
                 let view_mat = camera.orthogonal();
                 renderer.set_view(view_mat);
                 renderer.clear();
-                let mut num_chunks = 0us;
-                let mut num_sorted_chunks = 0us;
-                let mut num_total_chunks = 0us;
+                let mut num_chunks: usize = 0;
+                let mut num_sorted_chunks: usize = 0;
+                let mut num_total_chunks: usize = 0;
                 let start_time = time::precise_time_ns();
                 chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
                     match buffer {
@@ -262,7 +267,7 @@ fn main() {
                         (frame_end_time - end_time) as f64 / 1e6,
                         fps, world.filename_display()
                     );
-                window.borrow_mut().window.set_title(title.as_slice());
+                window.borrow_mut().window.set_title(title.as_slice()).unwrap();
             }
             Event::Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.

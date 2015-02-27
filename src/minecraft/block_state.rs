@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::cmp::max;
-use std::collections::hash_map::Entry::{ Occupied, Vacant };
+use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::old_io::fs::File;
 use std::num::Float;
@@ -9,15 +9,14 @@ use std::num::UnsignedInt;
 use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
 use cube;
-use gfx::{Device, GlDevice};
+use gfx::GlDevice;
+use gfx_voxel::texture::{AtlasBuilder, Texture};
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
-use minecraft::model;
 use minecraft::model::OrthoRotation::*;
-use minecraft::model::{ Model, OrthoRotation };
+use minecraft::model::{self, Model, OrthoRotation};
 use serialize::json;
 use shader::Vertex;
-use gfx_voxel::texture::{ AtlasBuilder, Texture };
 use texture::ImageSize;
 use vecmath::vec3_add;
 
