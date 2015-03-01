@@ -132,7 +132,7 @@ impl<D: gfx::Device> BlockStates<D> {
                 }
                 let (_, lower_name, lower_variant) = BLOCK_STATES[i - 1];
                 assert!(lower_name == name && lower_variant == "half=lower");
-                let lower = BLOCK_STATES.slice_to(i - 1).iter().enumerate().rev();
+                let lower = BLOCK_STATES[.. i - 1].iter().enumerate().rev();
                 let lower = lower.take_while(|&(i, &(id, _, variant))| {
                     id + 1 == BLOCK_STATES[i + 1].0 && variant == "half=lower"
                 });

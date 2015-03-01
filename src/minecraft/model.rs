@@ -102,7 +102,7 @@ fn array3_num<T, F>(json: &json::Json, mut f: F) -> [T; 3] where F: FnMut(f64) -
     Array::from_iter(json.as_array().unwrap().iter().map(|x| f(x.as_f64().unwrap())))
 }
 
-fn clone_parent(m: &PartialModel, a: &mut AtlasBuilder) -> PartialModel {
+fn clone_parent(m: &PartialModel, _a: &mut AtlasBuilder) -> PartialModel {
     m.clone()
 }
 
@@ -140,7 +140,7 @@ impl PartialModel {
             Some(textures) => for (name, tex) in textures.iter() {
                 let tex = tex.as_string().unwrap();
                 let tex = if tex.starts_with("#") {
-                    PartialTexture::Variable(tex.slice_from(1).to_string())
+                    PartialTexture::Variable(tex[1..].to_string())
                 } else {
                     let (u, v) = atlas.load(tex);
                     PartialTexture::Coords(u as f32, v as f32)
@@ -174,7 +174,7 @@ impl PartialModel {
 
                     let tex = v.find("texture").unwrap().as_string().unwrap();
                     assert!(tex.starts_with("#"));
-                    let tex = tex.slice_from(1).to_string();
+                    let tex = tex[1..].to_string();
 
                     let cull_face = v.find("cullface").map(|s| {
                         FromStr::from_str(s.as_string().unwrap()).unwrap()
@@ -240,7 +240,7 @@ impl PartialModel {
 
                         let (s, c) = (angle.sin(), angle.cos());
                         let mut rot = |ix: usize, iy: usize| {
-                            for &mut (ref mut face, _) in model.faces.slice_from_mut(element_start).iter_mut() {
+                            for &mut (ref mut face, _) in model.faces[element_start..].iter_mut() {
                                 face.ao_face = None;
 
                                 let [ox, oy] = [origin[ix], origin[iy]];

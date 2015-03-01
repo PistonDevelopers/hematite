@@ -89,8 +89,8 @@ impl Nbt {
     }
 
     pub fn from_gzip(data: &[u8]) -> IoResult<Nbt> {
-        assert_eq!(data.slice_to(4), [0x1f, 0x8b, 0x08, 0x00].as_slice());
-        let data = inflate_bytes(data.slice_from(10)).expect("inflate failed");
+        assert_eq!(&data[..4], [0x1f, 0x8b, 0x08, 0x00].as_slice());
+        let data = inflate_bytes(&data[10..]).expect("inflate failed");
         Nbt::from_reader(&mut BufReader::new(data.as_slice()))
     }
 
