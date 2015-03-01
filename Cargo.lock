@@ -9,8 +9,8 @@ dependencies = [
  "gfx_macros 0.1.6 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.2.0-alpha.10 (git+https://github.com/PistonDevelopers/image)",
  "piston-texture 0.0.1 (git+https://github.com/PistonDevelopers/texture)",
- "piston3d-cam 0.0.3 (git+https://github.com/PistonDevelopers/cam)",
- "piston3d-gfx_voxel 0.0.2 (git+https://github.com/PistonDevelopers/gfx_voxel)",
+ "piston3d-cam 0.0.4 (git+https://github.com/PistonDevelopers/cam)",
+ "piston3d-gfx_voxel 0.0.3 (git+https://github.com/PistonDevelopers/gfx_voxel)",
  "pistoncore-event 0.0.10 (git+https://github.com/PistonDevelopers/event)",
  "pistoncore-input 0.0.5 (git+https://github.com/PistonDevelopers/input)",
  "pistoncore-sdl2_window 0.0.5 (git+https://github.com/PistonDevelopers/sdl2_window)",
@@ -59,7 +59,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "gfx"
 version = "0.2.0"
-source = "git+https://github.com/gfx-rs/gfx-rs#68062bc7673d500d30d86570e26addc277990766"
+source = "git+https://github.com/gfx-rs/gfx-rs#b70f44a9f4d87dfa195fe36dd17108539d13e3fe"
 dependencies = [
  "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -90,7 +90,7 @@ dependencies = [
 [[package]]
 name = "gfx_macros"
 version = "0.1.6"
-source = "git+https://github.com/gfx-rs/gfx-rs#68062bc7673d500d30d86570e26addc277990766"
+source = "git+https://github.com/gfx-rs/gfx-rs#b70f44a9f4d87dfa195fe36dd17108539d13e3fe"
 
 [[package]]
 name = "gl"
@@ -126,7 +126,7 @@ source = "git+https://github.com/bjz/gl-rs#5867745f94b2c9f1a37b079f0ddee887651f1
 dependencies = [
  "khronos_api 0.0.5 (git+https://github.com/bjz/gl-rs)",
  "log 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "xml-rs 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -136,13 +136,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "khronos_api 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "xml-rs 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "image"
 version = "0.2.0-alpha.10"
-source = "git+https://github.com/PistonDevelopers/image#70dc6114c3741d98eb7dd5a549e2420e232246fb"
+source = "git+https://github.com/PistonDevelopers/image#1402ab2f240d5e8d1b66f9a2d2b0ac21f1d360db"
 dependencies = [
  "num 0.1.14 (git+https://github.com/rust-lang/num)",
 ]
@@ -193,8 +193,8 @@ source = "git+https://github.com/PistonDevelopers/texture#3cc4cddc3f8c51c36ea11d
 
 [[package]]
 name = "piston3d-cam"
-version = "0.0.3"
-source = "git+https://github.com/PistonDevelopers/cam#2e9f23b854730d661506d1dcee497364140affff"
+version = "0.0.4"
+source = "git+https://github.com/PistonDevelopers/cam#51ec616f077806c65cfafc076a89d2aa41d447cf"
 dependencies = [
  "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-event 0.0.10 (git+https://github.com/PistonDevelopers/event)",
@@ -205,8 +205,8 @@ dependencies = [
 
 [[package]]
 name = "piston3d-gfx_voxel"
-version = "0.0.2"
-source = "git+https://github.com/PistonDevelopers/gfx_voxel#898ffbff80abb2ca77eaba3135cc71013de7d40f"
+version = "0.0.3"
+source = "git+https://github.com/PistonDevelopers/gfx_voxel#9683cee2823d62e8f14a292d5285f9563e6923db"
 dependencies = [
  "array 0.0.0 (git+https://github.com/PistonDevelopers/array)",
  "gfx 0.2.0 (git+https://github.com/gfx-rs/gfx-rs)",
@@ -338,7 +338,7 @@ source = "git+https://github.com/PistonDevelopers/vecmath#6284864573fe185f4d87aa
 
 [[package]]
 name = "xml-rs"
-version = "0.1.19"
+version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
