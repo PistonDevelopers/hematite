@@ -2,7 +2,6 @@
 name = "hematite"
 version = "0.0.0"
 dependencies = [
- "current 0.0.7 (git+https://github.com/PistonDevelopers/current)",
  "fps_counter 0.0.1 (git+https://github.com/PistonDevelopers/fps_counter)",
  "gfx 0.2.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "gfx_device_gl 0.2.0 (git+https://github.com/gfx-rs/gfx_device_gl)",
@@ -37,11 +36,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "clock_ticks"
 version = "0.0.2"
 source = "git+https://github.com/tomaka/clock_ticks#75347002bc4fee853b385da8d3b50fee1c146aae"
-
-[[package]]
-name = "current"
-version = "0.0.7"
-source = "git+https://github.com/PistonDevelopers/current#d5fecfb910962a67adf85d6c86483a32108ca74c"
 
 [[package]]
 name = "fps_counter"

@@ -3,7 +3,6 @@
 #![plugin(gfx_macros)]
 
 extern crate cam;
-extern crate current;
 extern crate event;
 extern crate flate;
 extern crate fps_counter;

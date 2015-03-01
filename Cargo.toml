@@ -40,9 +40,6 @@ git = "https://github.com/PistonDevelopers/fps_counter"
 [dependencies.vecmath]
 git = "https://github.com/PistonDevelopers/vecmath"
 
-[dependencies.current]
-git = "https://github.com/PistonDevelopers/current"
-
 [dependencies.image]
 git = "https://github.com/PistonDevelopers/image"
 
