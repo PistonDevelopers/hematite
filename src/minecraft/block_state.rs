@@ -9,7 +9,7 @@ use std::num::UnsignedInt;
 use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
 use cube;
-use gfx::GlDevice;
+use gfx;
 use gfx_voxel::texture::{AtlasBuilder, Texture};
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
@@ -22,9 +22,9 @@ use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
 
-pub struct BlockStates {
+pub struct BlockStates<D: gfx::Device> {
     models: Vec<ModelAndBehavior>,
-    texture: Texture<GlDevice>,
+    texture: Texture<D>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -112,10 +112,10 @@ impl ModelAndBehavior {
     }
 }
 
-impl BlockStates {
+impl<D: gfx::Device> BlockStates<D> {
     pub fn load(
-        assets: &Path, d: &mut GlDevice
-    ) -> BlockStates {
+        assets: &Path, d: &mut D
+    ) -> BlockStates<D> {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.0);
         let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
         let mut extras = vec![];
@@ -132,7 +132,7 @@ impl BlockStates {
                 }
                 let (_, lower_name, lower_variant) = BLOCK_STATES[i - 1];
                 assert!(lower_name == name && lower_variant == "half=lower");
-                let lower = BLOCK_STATES.slice_to(i - 1).iter().enumerate().rev();
+                let lower = BLOCK_STATES[.. i - 1].iter().enumerate().rev();
                 let lower = lower.take_while(|&(i, &(id, _, variant))| {
                     id + 1 == BLOCK_STATES[i + 1].0 && variant == "half=lower"
                 });
@@ -193,9 +193,9 @@ impl BlockStates {
     }
 
     fn load_with_states(
-        assets: &Path, d: &mut GlDevice,
+        assets: &Path, d: &mut D,
         states: Vec<Description>
-    ) -> BlockStates {
+    ) -> BlockStates<D> {
         struct Variant {
             model: String,
             rotate_x: OrthoRotation,
@@ -381,7 +381,7 @@ impl BlockStates {
         }
     }
 
-    pub fn texture<'a>(&'a self) -> &'a Texture<GlDevice> {
+    pub fn texture<'a>(&'a self) -> &'a Texture<D> {
         &self.texture
     }
 
@@ -395,7 +395,8 @@ impl BlockStates {
     }
 }
 
-pub fn fill_buffer(block_states: &BlockStates, biomes: &Biomes, buffer: &mut Vec<Vertex>,
+pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
+                   biomes: &Biomes, buffer: &mut Vec<Vertex>,
                    coords: [i32; 3], chunks: [[[&Chunk; 3]; 3]; 3],
                    column_biomes: [[Option<&[[BiomeId; 16]; 16]>; 3]; 3]) {
     let chunk_xyz = coords.map(|x| x as f32 * 16.0);

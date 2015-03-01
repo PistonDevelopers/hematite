@@ -55,14 +55,14 @@ git = "https://github.com/PistonDevelopers/event"
 [dependencies.pistoncore-window]
 git = "https://github.com/PistonDevelopers/window"
 
-[dependencies.gfx_device_gl]
-git = "https://github.com/gfx-rs/gfx-rs"
-
 [dependencies.gfx]
 git = "https://github.com/gfx-rs/gfx-rs"
 
 [dependencies.gfx_macros]
 git = "https://github.com/gfx-rs/gfx-rs"
+
+[dependencies.gfx_device_gl]
+git = "https://github.com/gfx-rs/gfx_device_gl"
 
 [dependencies.shader_version]
 git = "https://github.com/PistonDevelopers/shader_version"

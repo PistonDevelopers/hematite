@@ -2,6 +2,8 @@ use std::cell::Cell;
 use std::old_io::{ File, FileStat, IoResult };
 use std::os;
 
+use gfx;
+
 use array::*;
 use chunk::{
     BiomeId,
@@ -66,22 +68,23 @@ impl Region {
         unsafe { mem::transmute(slice) }
     }
 
-    pub fn get_chunk_column(&self, x: u8, z: u8) -> Option<ChunkColumn> {
-        let locations = self.as_slice().slice_to(4096);
+    pub fn get_chunk_column<R: gfx::Resources>(&self, x: u8, z: u8)
+                            -> Option<ChunkColumn<R>> {
+        let locations = &self.as_slice()[..4096];
         let i = 4 * ((x % 32) as usize + (z % 32) as usize * 32);
         let start = ((locations[i] as usize) << 16)
                   | ((locations[i + 1] as usize) << 8)
                   | (locations[i + 2] as usize);
         let num = locations[i + 3] as usize;
         if start == 0 || num == 0 { return None; }
-        let sectors = self.as_slice().slice(start * 4096, (start + num) * 4096);
+        let sectors = &self.as_slice()[start * 4096 .. (start + num) * 4096];
         let len = ((sectors[0] as usize) << 24)
                 | ((sectors[1] as usize) << 16)
                 | ((sectors[2] as usize) << 8)
                 | (sectors[3] as usize);
         let nbt = match sectors[4] {
-            1 => Nbt::from_gzip(sectors.slice(5, 4 + len)),
-            2 => Nbt::from_zlib(sectors.slice(5, 4 + len)),
+            1 => Nbt::from_gzip(&sectors[5 .. 4 + len]),
+            2 => Nbt::from_zlib(&sectors[5 .. 4 + len]),
             c => panic!("unknown region chunk compression method {}", c)
         };
 
