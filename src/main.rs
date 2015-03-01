@@ -1,14 +1,5 @@
-#![feature(box_syntax)]
-#![feature(collections)]
-#![feature(core)]
-#![feature(custom_attribute)]
-#![feature(env)]
-#![feature(old_io)]
-#![feature(old_path)]
-#![feature(os)]
-#![feature(plugin)]
-#![feature(rustc_private)]
-#![feature(std_misc)]
+#![feature(box_syntax, collections, core, custom_attribute, old_io,
+    old_path, os, plugin, rustc_private, std_misc)]
 #![plugin(gfx_macros)]
 
 extern crate cam;

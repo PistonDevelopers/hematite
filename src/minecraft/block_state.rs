@@ -272,7 +272,7 @@ impl<D: gfx::Device> BlockStates<D> {
             let mut model = Model::load(variant.model.as_slice(), assets,
                                         &mut atlas, &mut partial_model_cache);
 
-            let rotate_faces = |&: m: &mut Model, ix: usize, iy: usize, rot_mat: [i32; 4]| {
+            let rotate_faces = |m: &mut Model, ix: usize, iy: usize, rot_mat: [i32; 4]| {
                 let [a, b, c, d] = rot_mat.map(|x: i32| x as f32);
                 for face in m.faces.iter_mut() {
                     for vertex in face.vertices.iter_mut() {
@@ -281,7 +281,7 @@ impl<D: gfx::Device> BlockStates<D> {
                         xyz[ix] = a * x + b * y + 0.5;
                         xyz[iy] = c * x + d * y + 0.5;
                     }
-                    let fixup_cube_face = |&: f: cube::Face| {
+                    let fixup_cube_face = |f: cube::Face| {
                         let [a, b, c, d] = rot_mat;
                         let mut dir = f.direction();
                         let [x, y] = [dir[ix], dir[iy]];
@@ -322,7 +322,7 @@ impl<D: gfx::Device> BlockStates<D> {
                 }
             };
 
-            let rotate_faces = |&: m: &mut Model, ix: usize, iy: usize, r: OrthoRotation| {
+            let rotate_faces = |m: &mut Model, ix: usize, iy: usize, r: OrthoRotation| {
                 match r {
                     Rotate0 => {}
                     Rotate90 =>  rotate_faces(m, ix, iy, [ 0, -1,
@@ -403,7 +403,7 @@ pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
     for y in range(0, 16) {
         for z in range(0, 16) {
             for x in range(0, 16) {
-                let at = |&: dir: [i32; 3]| {
+                let at = |dir: [i32; 3]| {
                     let [dx, dy, dz] = dir.map(|x| x as usize);
                     let [x, y, z] = [x + dx, y + dy, z + dz].map(|x| x + 16);
                     let chunk = chunks[y / 16][z / 16][x / 16];
