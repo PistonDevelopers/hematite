@@ -17,6 +17,7 @@ extern crate event;
 extern crate flate;
 extern crate fps_counter;
 extern crate gfx;
+extern crate gfx_device_gl;
 extern crate gfx_voxel;
 extern crate texture;
 extern crate image;
@@ -108,7 +109,7 @@ fn main() {
             samples: 0,
         }
     );
-    let mut device = gfx::GlDevice::new(|s| unsafe {
+    let mut device = gfx_device_gl::GlDevice::new(|s| unsafe {
         std::mem::transmute(sdl2::video::gl_get_proc_address(s))
     });
     let Size([w, h]) = window.get();

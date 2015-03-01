@@ -37,10 +37,10 @@ static FRAGMENT: &'static [u8] = b"
 
 #[shader_param]
 #[derive(Clone, Copy)]
-pub struct ShaderParam {
+pub struct ShaderParam<R: gfx::Resources> {
     pub projection: [[f32; 4]; 4],
     pub view: [[f32; 4]; 4],
-    pub s_texture: gfx::shade::TextureParam<gfx::GlResources>,
+    pub s_texture: gfx::shade::TextureParam<R>,
 }
 
 #[vertex_format]
@@ -61,24 +61,23 @@ impl Clone for Vertex {
 }
 
 #[derive(Copy)]
-pub struct Buffer {
-    buf: gfx::BufferHandle<gfx::GlResources, Vertex>,
-    batch: gfx::batch::RefBatch<ShaderParam>,
+pub struct Buffer<R: gfx::Resources> {
+    buf: gfx::BufferHandle<R, Vertex>,
+    batch: gfx::batch::RefBatch<ShaderParam<R>>,
 }
 
 pub struct Renderer<D: Device> {
     graphics: gfx::Graphics<D>,
-    params: ShaderParam,
+    params: ShaderParam<D::Resources>,
     frame: gfx::Frame<D::Resources>,
     cd: gfx::ClearData,
     prog: gfx::ProgramHandle<D::Resources>,
     drawstate: gfx::DrawState
 }
 
-//impl<D: gfx::Device> Renderer<D> {
-impl Renderer<gfx::GlDevice> {
-    pub fn new(mut device: gfx::GlDevice, frame: gfx::Frame<gfx::GlResources>,
-               tex: gfx::TextureHandle<gfx::GlResources>) -> Renderer<gfx::GlDevice> {
+impl<D: gfx::Device> Renderer<D> {
+    pub fn new(mut device: D, frame: gfx::Frame<D::Resources>,
+               tex: gfx::TextureHandle<D::Resources>) -> Renderer<D> {
         let sampler = device.create_sampler(
                 gfx::tex::SamplerInfo::new(
                     gfx::tex::FilterMethod::Scale,
@@ -122,7 +121,7 @@ impl Renderer<gfx::GlDevice> {
         self.graphics.clear(self.cd, gfx::COLOR | gfx::DEPTH, &self.frame);
     }
 
-    pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer {
+    pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer<D::Resources> {
         let buf = self.graphics.device.create_buffer(data.len(), gfx::BufferUsage::Static);
         self.graphics.device.update_buffer(buf, data, 0);
         let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
@@ -133,15 +132,15 @@ impl Renderer<gfx::GlDevice> {
                     &mesh,
                     mesh.to_slice(gfx::PrimitiveType::TriangleList),
                     &self.drawstate
-                ).ok().unwrap()
+                ).unwrap()
         }
     }
 
-    pub fn delete_buffer(&mut self, buf: Buffer) {
+    pub fn delete_buffer(&mut self, buf: Buffer<D::Resources>) {
         self.graphics.device.delete_buffer(buf.buf);
     }
 
-    pub fn render(&mut self, buffer: Buffer) {
+    pub fn render(&mut self, buffer: Buffer<D::Resources>) {
         self.graphics.draw(&buffer.batch, &self.params, &self.frame).unwrap();
     }
 

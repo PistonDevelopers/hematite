@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 use array::*;
 use shader::Buffer;
+use gfx;
 
 #[derive(Copy)]
 pub struct BlockState {
@@ -51,30 +52,30 @@ pub const EMPTY_CHUNK: &'static Chunk = &Chunk {
     light_levels: [[[LightLevel {value: 0xf0}; SIZE]; SIZE]; SIZE]
 };
 
-pub struct ChunkColumn {
+pub struct ChunkColumn<R: gfx::Resources> {
     pub chunks: Vec<Chunk>,
-    pub buffers: [Cell<Option<Buffer>>; SIZE],
+    pub buffers: [Cell<Option<Buffer<R>>>; SIZE],
     pub biomes: [[BiomeId; SIZE]; SIZE]
 }
 
-pub struct ChunkManager {
-    chunk_columns: HashMap<(i32, i32), ChunkColumn>
+pub struct ChunkManager<R: gfx::Resources> {
+    chunk_columns: HashMap<(i32, i32), ChunkColumn<R>>
 }
 
-impl ChunkManager {
-    pub fn new() -> ChunkManager {
+impl<R: gfx::Resources> ChunkManager<R> {
+    pub fn new() -> ChunkManager<R> {
         ChunkManager {
             chunk_columns: HashMap::new()
         }
     }
 
-    pub fn add_chunk_column(&mut self, x: i32, z: i32, c: ChunkColumn) {
+    pub fn add_chunk_column(&mut self, x: i32, z: i32, c: ChunkColumn<R>) {
         self.chunk_columns.insert((x, z), c);
     }
 
     pub fn each_chunk_and_neighbors<'a, F>(&'a self, mut f: F)
         where F: FnMut(/*coords:*/ [i32; 3],
-                       /*buffer:*/ &'a Cell<Option<Buffer>>,
+                       /*buffer:*/ &'a Cell<Option<Buffer<R>>>,
                        /*chunks:*/ [[[&'a Chunk; 3]; 3]; 3],
                        /*biomes:*/ [[Option<&'a [[BiomeId; SIZE]; SIZE]>; 3]; 3])
 
@@ -104,7 +105,7 @@ impl ChunkManager {
     }
 
     pub fn each_chunk<F>(&self, mut f: F)
-        where F: FnMut(/*x:*/ i32, /*y:*/ i32, /*z:*/ i32, /*c:*/ &Chunk, /*b:*/ Option<Buffer>)
+        where F: FnMut(/*x:*/ i32, /*y:*/ i32, /*z:*/ i32, /*c:*/ &Chunk, /*b:*/ Option<Buffer<R>>)
     {
         for (&(x, z), c) in self.chunk_columns.iter() {
             for (y, (c, b)) in c.chunks.iter()

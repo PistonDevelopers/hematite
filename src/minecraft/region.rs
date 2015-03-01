@@ -2,6 +2,8 @@ use std::cell::Cell;
 use std::old_io::{ File, FileStat, IoResult };
 use std::os;
 
+use gfx;
+
 use array::*;
 use chunk::{
     BiomeId,
@@ -66,7 +68,8 @@ impl Region {
         unsafe { mem::transmute(slice) }
     }
 
-    pub fn get_chunk_column(&self, x: u8, z: u8) -> Option<ChunkColumn> {
+    pub fn get_chunk_column<R: gfx::Resources>(&self, x: u8, z: u8)
+                            -> Option<ChunkColumn<R>> {
         let locations = self.as_slice().slice_to(4096);
         let i = 4 * ((x % 32) as usize + (z % 32) as usize * 32);
         let start = ((locations[i] as usize) << 16)
