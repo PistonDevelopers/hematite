@@ -8,8 +8,7 @@ dependencies = [
  "gfx_device_gl 0.2.0 (git+https://github.com/gfx-rs/gfx_device_gl)",
  "gfx_macros 0.1.6 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.2.0-alpha.10 (git+https://github.com/PistonDevelopers/image)",
- "piston-texture 0.0.1 (git+https://github.com/PistonDevelopers/texture)",
- "piston3d-gfx_voxel 0.0.3 (git+https://github.com/PistonDevelopers/gfx_voxel)",
+ "piston3d-gfx_voxel 0.0.4 (git+https://github.com/PistonDevelopers/gfx_voxel)",
  "pistoncore-event 0.0.10 (git+https://github.com/PistonDevelopers/event)",
  "pistoncore-input 0.0.5 (git+https://github.com/PistonDevelopers/input)",
  "pistoncore-sdl2_window 0.0.5 (git+https://github.com/PistonDevelopers/sdl2_window)",
@@ -75,7 +74,7 @@ dependencies = [
 [[package]]
 name = "gfx_device_gl"
 version = "0.2.0"
-source = "git+https://github.com/gfx-rs/gfx_device_gl#cab2d5c83e43ed1cb288e0f056be1e8375eaaa16"
+source = "git+https://github.com/gfx-rs/gfx_device_gl#3abcbb77cdf12818546440cd552d22fc69abeaeb"
 dependencies = [
  "gfx 0.2.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "gfx_gl 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -149,7 +148,7 @@ dependencies = [
 [[package]]
 name = "image"
 version = "0.2.0-alpha.10"
-source = "git+https://github.com/PistonDevelopers/image#1402ab2f240d5e8d1b66f9a2d2b0ac21f1d360db"
+source = "git+https://github.com/PistonDevelopers/image#a5e32eb62d0c7c09362aed097ab32a43518e48a7"
 dependencies = [
  "num 0.1.14 (git+https://github.com/rust-lang/num)",
 ]
@@ -185,8 +184,8 @@ dependencies = [
 
 [[package]]
 name = "piston-gfx_texture"
-version = "0.0.3"
-source = "git+https://github.com/PistonDevelopers/gfx_texture#b091c129bb103f35211bb318350463cb6b33e8a1"
+version = "0.0.4"
+source = "git+https://github.com/PistonDevelopers/gfx_texture#77e53f7a72e547e1181810239f1cd6ab435c2fc5"
 dependencies = [
  "gfx 0.2.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.2.0-alpha.10 (git+https://github.com/PistonDevelopers/image)",
@@ -201,24 +200,21 @@ source = "git+https://github.com/PistonDevelopers/texture#3cc4cddc3f8c51c36ea11d
 [[package]]
 name = "piston3d-cam"
 version = "0.0.4"
-source = "git+https://github.com/PistonDevelopers/cam#51ec616f077806c65cfafc076a89d2aa41d447cf"
+source = "git+https://github.com/PistonDevelopers/cam#729d7d2c31307ea877b16e7dc678c5b7ad0fcbf1"
 dependencies = [
- "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-event 0.0.10 (git+https://github.com/PistonDevelopers/event)",
- "pistoncore-input 0.0.5 (git+https://github.com/PistonDevelopers/input)",
  "quaternion 0.0.4 (git+https://github.com/PistonDevelopers/quaternion.git)",
  "vecmath 0.0.5 (git+https://github.com/PistonDevelopers/vecmath)",
 ]
 
 [[package]]
 name = "piston3d-gfx_voxel"
-version = "0.0.3"
-source = "git+https://github.com/PistonDevelopers/gfx_voxel#9683cee2823d62e8f14a292d5285f9563e6923db"
+version = "0.0.4"
+source = "git+https://github.com/PistonDevelopers/gfx_voxel#94fa72e3134fe47c53f682dfc9225c9650aaecc7"
 dependencies = [
  "array 0.0.0 (git+https://github.com/PistonDevelopers/array)",
  "gfx 0.2.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.2.0-alpha.10 (git+https://github.com/PistonDevelopers/image)",
- "piston-gfx_texture 0.0.3 (git+https://github.com/PistonDevelopers/gfx_texture)",
+ "piston-gfx_texture 0.0.4 (git+https://github.com/PistonDevelopers/gfx_texture)",
  "vecmath 0.0.5 (git+https://github.com/PistonDevelopers/vecmath)",
 ]
 
@@ -254,7 +250,7 @@ dependencies = [
 [[package]]
 name = "pistoncore-sdl2_window"
 version = "0.0.5"
-source = "git+https://github.com/PistonDevelopers/sdl2_window#6cb8e89a05b3c78b469b41dcd4020164ca47004c"
+source = "git+https://github.com/PistonDevelopers/sdl2_window#b87d278e2eb6a05d09d4a6d9837c3eafd997e5b4"
 dependencies = [
  "gl 0.0.9 (git+https://github.com/bjz/gl-rs)",
  "pistoncore-input 0.0.5 (git+https://github.com/PistonDevelopers/input)",

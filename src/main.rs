@@ -9,7 +9,6 @@ extern crate fps_counter;
 extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
-extern crate texture;
 extern crate image;
 extern crate input;
 extern crate quack;
