@@ -2,13 +2,13 @@
 name = "hematite"
 version = "0.0.0"
 dependencies = [
+ "camera_controllers 0.0.1 (git+https://github.com/PistonDevelopers/camera_controllers)",
  "fps_counter 0.0.1 (git+https://github.com/PistonDevelopers/fps_counter)",
  "gfx 0.2.0 (git+https://github.com/gfx-rs/gfx-rs)",
  "gfx_device_gl 0.2.0 (git+https://github.com/gfx-rs/gfx_device_gl)",
  "gfx_macros 0.1.6 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.2.0-alpha.10 (git+https://github.com/PistonDevelopers/image)",
  "piston-texture 0.0.1 (git+https://github.com/PistonDevelopers/texture)",
- "piston3d-cam 0.0.4 (git+https://github.com/PistonDevelopers/cam)",
  "piston3d-gfx_voxel 0.0.3 (git+https://github.com/PistonDevelopers/gfx_voxel)",
  "pistoncore-event 0.0.10 (git+https://github.com/PistonDevelopers/event)",
  "pistoncore-input 0.0.5 (git+https://github.com/PistonDevelopers/input)",
@@ -31,6 +31,19 @@ source = "git+https://github.com/PistonDevelopers/array#60236e30680cceef98a91816
 name = "bitflags"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "camera_controllers"
+version = "0.0.1"
+source = "git+https://github.com/PistonDevelopers/camera_controllers#6d3660bb55f1ea2588ce52bb81366e974f6b0081"
+dependencies = [
+ "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston3d-cam 0.0.4 (git+https://github.com/PistonDevelopers/cam)",
+ "pistoncore-event 0.0.10 (git+https://github.com/PistonDevelopers/event)",
+ "pistoncore-input 0.0.5 (git+https://github.com/PistonDevelopers/input)",
+ "quaternion 0.0.4 (git+https://github.com/PistonDevelopers/quaternion.git)",
+ "vecmath 0.0.5 (git+https://github.com/PistonDevelopers/vecmath)",
+]
 
 [[package]]
 name = "clock_ticks"

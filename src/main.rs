@@ -2,7 +2,7 @@
     old_path, os, plugin, rustc_private, std_misc)]
 #![plugin(gfx_macros)]
 
-extern crate cam;
+extern crate camera_controllers;
 extern crate event;
 extern crate flate;
 extern crate fps_counter;
@@ -135,7 +135,7 @@ fn main() {
     }
     println!("Finished loading chunks.");
 
-    let projection_mat = cam::CameraPerspective {
+    let projection_mat = camera_controllers::CameraPerspective {
         fov: 70.0,
         near_clip: 0.1,
         far_clip: 1000.0,
@@ -146,10 +146,10 @@ fn main() {
     }.projection();
     renderer.set_projection(projection_mat);
 
-    let mut first_person_settings = cam::FirstPersonSettings::keyboard_wasd();
+    let mut first_person_settings = camera_controllers::FirstPersonSettings::keyboard_wasd();
     first_person_settings.speed_horizontal = 8.0;
     first_person_settings.speed_vertical = 4.0;
-    let mut first_person = cam::FirstPerson::new(
+    let mut first_person = camera_controllers::FirstPerson::new(
         player_pos,
         first_person_settings
     );
