@@ -10,14 +10,13 @@ use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
 use cube;
 use gfx;
-use gfx_voxel::texture::{AtlasBuilder, Texture};
+use gfx_voxel::texture::{AtlasBuilder, ImageSize, Texture};
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
 use minecraft::model::OrthoRotation::*;
 use minecraft::model::{self, Model, OrthoRotation};
 use serialize::json;
 use shader::Vertex;
-use texture::ImageSize;
 use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
