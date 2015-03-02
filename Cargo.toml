@@ -31,8 +31,8 @@ git = "https://github.com/PistonDevelopers/sdl2_window"
 [dependencies.piston3d-gfx_voxel]
 git = "https://github.com/PistonDevelopers/gfx_voxel"
 
-[dependencies.piston3d-cam]
-git = "https://github.com/PistonDevelopers/cam"
+[dependencies.camera_controllers]
+git = "https://github.com/PistonDevelopers/camera_controllers"
 
 [dependencies.fps_counter]
 git = "https://github.com/PistonDevelopers/fps_counter"
