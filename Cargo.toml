@@ -56,7 +56,7 @@ git = "https://github.com/PistonDevelopers/window"
 git = "https://github.com/gfx-rs/gfx-rs"
 
 [dependencies.gfx_macros]
-git = "https://github.com/gfx-rs/gfx-rs"
+git = "https://github.com/gfx-rs/gfx_macros"
 
 [dependencies.gfx_device_gl]
 git = "https://github.com/gfx-rs/gfx_device_gl"
