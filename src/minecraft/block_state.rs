@@ -23,7 +23,7 @@ use self::PolymorphDecision::*;
 
 pub struct BlockStates<D: gfx::Device> {
     models: Vec<ModelAndBehavior>,
-    texture: Texture<D>,
+    texture: Texture<D::Resources>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -111,7 +111,7 @@ impl ModelAndBehavior {
     }
 }
 
-impl<D: gfx::Device> BlockStates<D> {
+impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStates<D> {
     pub fn load(
         assets: &Path, d: &mut D
     ) -> BlockStates<D> {
@@ -380,7 +380,7 @@ impl<D: gfx::Device> BlockStates<D> {
         }
     }
 
-    pub fn texture<'a>(&'a self) -> &'a Texture<D> {
+    pub fn texture<'a>(&'a self) -> &'a Texture<D::Resources> {
         &self.texture
     }
 
@@ -394,7 +394,7 @@ impl<D: gfx::Device> BlockStates<D> {
     }
 }
 
-pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
+pub fn fill_buffer<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>>(block_states: &BlockStates<D>,
                    biomes: &Biomes, buffer: &mut Vec<Vertex>,
                    coords: [i32; 3], chunks: [[[&Chunk; 3]; 3]; 3],
                    column_biomes: [[Option<&[[BiomeId; 16]; 16]>; 3]; 3]) {

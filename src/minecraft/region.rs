@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::RefCell;
 use std::old_io::{ File, FileStat, IoResult };
 use std::os;
 
@@ -143,7 +143,7 @@ impl Region {
             .unwrap().as_bytearray().unwrap();
         Some(ChunkColumn {
             chunks: chunks,
-            buffers: Array::from_fn(|_| Cell::new(None)),
+            buffers: Array::from_fn(|_| RefCell::new(None)),
             biomes: Array::from_fn(|z| -> [BiomeId; SIZE] Array::from_fn(|x| {
                 BiomeId {
                     value: biomes[z * SIZE + x]
