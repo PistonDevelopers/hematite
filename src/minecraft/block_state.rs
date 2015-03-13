@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::old_io::fs::File;
 use std::num::Float;
 use std::num::UnsignedInt;
+use std::num::wrapping::{WrappingOps, Wrapping};
 
 use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
@@ -152,7 +153,7 @@ impl<D: gfx::Device> BlockStates<D> {
 
                     let next_index = polymorph_oracle.len() as u8;
                     polymorph_oracle.push_all(&[
-                        IfBlock(Dir::Down, (BLOCK_STATES[j].0 - id) as i8, next_index + 2),
+                        IfBlock(Dir::Down, (BLOCK_STATES[j].0.wrapping_sub(id)) as i8, next_index.wrapping_add(2)),
                         PickBlockState(last_id)
                     ]);
                 }
@@ -404,7 +405,7 @@ pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
             for x in range(0, 16) {
                 let at = |dir: [i32; 3]| {
                     let [dx, dy, dz] = dir.map(|x| x as usize);
-                    let [x, y, z] = [x + dx, y + dy, z + dz].map(|x| x + 16);
+                    let [x, y, z] = [x.wrapping_add(dx), y.wrapping_add(dy), z.wrapping_add(dz)].map(|x| x.wrapping_add(16));
                     let chunk = chunks[y / 16][z / 16][x / 16];
                     let [x, y, z] = [x, y, z].map(|x| x % 16);
                     (chunk.blocks[y][z][x], chunk.light_levels[y][z][x])
@@ -421,11 +422,11 @@ pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
                                     break;
                                 }
                                 IfBlock(dir, offset, idx) => {
-                                    let id = this_block.value + offset as u16;
+                                    let id = this_block.value.wrapping_add(offset as u16);
                                     (at(dir.xyz()).0.value == id, idx)
                                 }
                                 IfBlockOrSolid(dir, offset, idx) => {
-                                    let id = this_block.value + offset as u16;
+                                    let id = this_block.value.wrapping_add(offset as u16);
                                     let other = at(dir.xyz()).0;
                                     (other.value == id ||
                                      block_states.get_opacity(other).is_opaque(), idx)
@@ -456,12 +457,12 @@ pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
                     RandomOffset::None => block_xyz,
                     random_offset => {
                         let [x, _, z] = block_xyz;
-                        let seed = (x as i32 * 3129871) as i64 ^ (z as i64) * 116129781;
-                        let value = seed * seed * 42317861 + seed * 11;
-                        let ox = (((value >> 16) & 15) as f32 / 15.0 - 0.5) * 0.5;
-                        let oz = (((value >> 24) & 15) as f32 / 15.0 - 0.5) * 0.5;
+                        let seed = Wrapping((Wrapping(x as i32) * Wrapping(3129871)).0 as i64) ^ Wrapping(z as i64) * Wrapping(116129781);
+                        let value = seed * seed * Wrapping(42317861) + seed * Wrapping(11);
+                        let ox = (((value.0 >> 16) & 15) as f32 / 15.0 - 0.5) * 0.5;
+                        let oz = (((value.0 >> 24) & 15) as f32 / 15.0 - 0.5) * 0.5;
                         let oy = if random_offset == RandomOffset::XYZ {
-                            (((value >> 20) & 15) as f32 / 15.0 - 1.0) * 0.2
+                            (((value.0 >> 20) & 15) as f32 / 15.0 - 1.0) * 0.2
                         } else { 0.0 };
                         vec3_add(block_xyz, [ox, oy, oz])
                     }
@@ -541,7 +542,7 @@ pub fn fill_buffer<D: gfx::Device>(block_states: &BlockStates<D>,
                                     model::Tint::None | model::Tint::Redstone => continue,
                                     model::Tint::Grass | model::Tint::Foliage => {}
                                 }
-                                let [x, z] = [x + dx as usize, z + dz as usize].map(|x| x + 16);
+                                let [x, z] = [x.wrapping_add(dx as usize), z.wrapping_add(dz as usize)].map(|x| x.wrapping_add(16));
                                 let biome = match column_biomes[z / 16][x / 16] {
                                     Some(biome) => biomes[biome[z % 16][x % 16]],
                                     None => continue
