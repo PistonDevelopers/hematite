@@ -1,10 +1,11 @@
 use std::ops::Index;
+use std::path::Path;
 
 use chunk::BiomeId;
 use minecraft::data;
 use gfx_voxel::texture::ColorMap;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Biome {
     pub name: &'static str,
     pub temperature: f32,
@@ -43,7 +44,7 @@ impl Biomes {
 impl Index<BiomeId> for Biomes {
     type Output = Biome;
 
-    fn index<'a>(&'a self, id: &BiomeId) -> &'a Biome {
+    fn index<'a>(&'a self, id: BiomeId) -> &'a Biome {
         self.biomes[id.value as usize].as_ref().unwrap()
     }
 }

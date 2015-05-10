@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::{ Occupied, Vacant };
-use std::f32::consts::{PI, SQRT2};
+use std::f32::consts::{PI, SQRT_2};
 use std::f32::INFINITY;
-use std::old_io::fs::File;
-use std::num::Float;
+use std::fs::File;
+use std::path::Path;
 use std::str::FromStr;
 
 use self::OrthoRotation::*;
@@ -13,7 +13,7 @@ use cube;
 use serialize::json;
 use gfx_voxel::texture::AtlasBuilder;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Vertex {
     pub xyz: [f32; 3],
     pub uv: [f32; 2]
@@ -27,7 +27,7 @@ pub enum Tint {
     Redstone
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub enum OrthoRotation {
     Rotate0,
     Rotate90,
@@ -116,7 +116,7 @@ impl PartialModel {
             Some(model) => return f(model, atlas),
             None => {}
         }
-        let path = assets.join(Path::new(format!("minecraft/models/{}.json", name).as_slice()));
+        let path = assets.join(Path::new(format!("minecraft/models/{}.json", name).as_str()));
         let obj = json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap();
 
         let mut model = match obj.find("parent").and_then(|x| x.as_string()) {
@@ -160,7 +160,7 @@ impl PartialModel {
                 let element_start = model.faces.len();
 
                 for (k, v) in element.find("faces").unwrap().as_object().unwrap().iter() {
-                    let face: cube::Face = FromStr::from_str(k.as_slice()).unwrap();
+                    let face: cube::Face = FromStr::from_str(k.as_str()).unwrap();
                     let [u0, v0, u1, v1] = match v.find("uv") {
                         Some(uv) => {
                             Array::from_iter(uv.as_array().unwrap().iter().map(|x| x.as_f64().unwrap() as f32))
@@ -252,8 +252,8 @@ impl PartialModel {
 
                                 if rescale {
                                     for v in face.vertices.iter_mut() {
-                                        v.xyz[ix] *= SQRT2;
-                                        v.xyz[iy] *= SQRT2;
+                                        v.xyz[ix] *= SQRT_2;
+                                        v.xyz[iy] *= SQRT_2;
                                     }
                                 }
 
@@ -286,7 +286,7 @@ impl PartialModel {
 impl Model {
     pub fn load(name: &str, assets: &Path, atlas: &mut AtlasBuilder,
                 cache: &mut HashMap<String, PartialModel>) -> Model {
-        PartialModel::load(format!("block/{}", name).as_slice(), assets, atlas, cache, |partial, atlas| {
+        PartialModel::load(format!("block/{}", name).as_str(), assets, atlas, cache, |partial, atlas| {
             let mut faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
                 fn texture_coords(textures: &HashMap<String, PartialTexture>,
                                   tex: &String) -> Option<(f32, f32)> {

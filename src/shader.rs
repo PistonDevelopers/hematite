@@ -1,4 +1,5 @@
 use gfx::traits::{Device, DeviceExt, FactoryExt, ToSlice};
+use gfx::handle::{Texture, Program};
 use gfx;
 use vecmath::Matrix4;
 
@@ -65,33 +66,36 @@ pub struct Buffer<R: gfx::Resources> {
     batch: gfx::batch::RefBatch<ShaderParam<R>>,
 }
 
-pub struct Renderer<D: Device> {
-    graphics: gfx::Graphics<D>,
+pub struct Renderer<D: Device, F: gfx::device::Factory<D::Resources>> {
+    graphics: gfx::Graphics<D, F>,
     params: ShaderParam<D::Resources>,
     frame: gfx::Frame<D::Resources>,
     cd: gfx::ClearData,
-    prog: gfx::ProgramHandle<D::Resources>,
+    prog: gfx::handle::Program<D::Resources>,
     drawstate: gfx::DrawState
 }
 
-impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>, D: gfx::device::Factory<R> + gfx::Device<Resources=R, CommandBuffer=C>> Renderer<D> {
-    pub fn new(mut device: D, frame: gfx::Frame<D::Resources>,
-               tex: gfx::TextureHandle<D::Resources>) -> Renderer<D> {
-        let sampler = device.create_sampler(
+impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
+    F: gfx::device::Factory<R>, D: gfx::Device<Resources=R, CommandBuffer=C>>
+    Renderer<D, F> {
+
+    pub fn new(mut device: D, mut factory: F, frame: gfx::Frame<D::Resources>,
+               tex: gfx::handle::Texture<D::Resources>) -> Renderer<D, F> {
+        let sampler = factory.create_sampler(
                 gfx::tex::SamplerInfo::new(
                     gfx::tex::FilterMethod::Scale,
                     gfx::tex::WrapMode::Tile
                 )
             );
 
-        let mut graphics = device.into_graphics();
+        let mut graphics = (device, factory).into_graphics();
 
         let params = ShaderParam {
             projection: [[0.0; 4]; 4],
             view: [[0.0; 4]; 4],
             s_texture: (tex, Some(sampler))
         };
-        let prog = graphics.device.link_program(VERTEX.clone(), FRAGMENT.clone()).ok().unwrap();
+        let prog = graphics.factory.link_program(VERTEX.clone(), FRAGMENT.clone()).ok().unwrap();
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::Comparison::LessEqual, true);
         drawstate.primitive.front_face = gfx::state::FrontFace::Clockwise;
 
@@ -122,8 +126,8 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>, D: gfx::
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer<D::Resources> {
-        let buf = self.graphics.device.create_buffer(data.len(), gfx::BufferUsage::Static);
-        self.graphics.device.update_buffer(&buf, data, 0);
+        let buf = self.graphics.factory.create_buffer(data.len(), gfx::BufferUsage::Static);
+        self.graphics.factory.update_buffer(&buf, data, 0);
         let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
         Buffer {
             batch: self.graphics.make_batch(

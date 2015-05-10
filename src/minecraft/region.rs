@@ -1,8 +1,11 @@
 use std::cell::RefCell;
-use std::old_io::{ File, FileStat, IoResult };
+use std::fs::{File, Metadata};
+use std::io;
+use std::path::Path;
+use std::sys::ext::io::AsRawFd;
 use std::os;
-
 use gfx;
+use mmap;
 
 use array::*;
 use chunk::{
@@ -17,42 +20,41 @@ use chunk::{
 use minecraft::nbt::Nbt;
 
 pub struct Region {
-    mmap: os::MemoryMap,
+    mmap: mmap::MemoryMap,
 }
 
 fn array_16x16x16<T, F>(mut f: F) -> [[[T; SIZE]; SIZE]; SIZE]
     where F: FnMut(usize, usize, usize) -> T
 {
-    Array::from_fn(|y| -> [[T; SIZE]; SIZE]
-        Array::from_fn(|z| -> [T; 16]
+    Array::from_fn(|y| -> [[T; SIZE]; SIZE] {
+        Array::from_fn(|z| -> [T; 16] {
             Array::from_fn(|x| f(x, y, z))
-        )
-    )
+        })
+    })
 }
 
 impl Region {
-    pub fn open(filename: &Path) -> IoResult<Region> {
+    pub fn open(filename: &Path) -> io::Result<Region> {
         #[cfg(not(windows))]
-        fn map_fd(file: &File) -> os::MapOption {
-            use std::os::unix::AsRawFd;
-            os::MapOption::MapFd(file.as_raw_fd())
+        fn map_fd(file: &File) -> mmap::MapOption {
+            mmap::MapOption::MapFd(file.as_raw_fd())
         }
 
         #[cfg(windows)]
-        fn map_fd(file: &File) -> os::MapOption {
+        fn map_fd(file: &File) -> mmap::MapOption {
             use std::os::windows::AsRawHandle;
-            os::MapOption::MapFd(file.as_raw_handle())
+            mmap::MapOption::MapFd(file.as_raw_handle())
         }
 
         let file = try!(File::open(filename));
-        let stat: FileStat = try!(file.stat());
-        let min_len = stat.size as usize;
+        let stat: Metadata = try!(file.metadata());
+        let min_len = stat.len() as usize;
         let options = &[
             map_fd(&file),
-            os::MapOption::MapReadable
+            mmap::MapOption::MapReadable
         ];
         let res = Region {
-            mmap: os::MemoryMap::new(min_len, options).unwrap()
+            mmap: mmap::MemoryMap::new(min_len, options).unwrap()
         };
         Ok(res)
     }
@@ -144,11 +146,13 @@ impl Region {
         Some(ChunkColumn {
             chunks: chunks,
             buffers: Array::from_fn(|_| RefCell::new(None)),
-            biomes: Array::from_fn(|z| -> [BiomeId; SIZE] Array::from_fn(|x| {
-                BiomeId {
-                    value: biomes[z * SIZE + x]
-                }
-            }))
+            biomes: Array::from_fn(|z| -> [BiomeId; SIZE] { 
+                Array::from_fn(|x| {
+                    BiomeId {
+                        value: biomes[z * SIZE + x]
+                    }
+                })
+            })
         })
     }
 }

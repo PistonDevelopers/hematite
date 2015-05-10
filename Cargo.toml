@@ -15,8 +15,11 @@ name = "hematite"
 path = "src/main.rs"
 
 [dependencies]
+byteorder = "0.3"
+flate2 = "0.2"
+mmap = "*"
+rustc-serialize = "0.3"
 time = "*"
-rustc-serialize = "0.2.8"
 
 [dependencies.sdl2]
 git = "https://github.com/AngryLawyer/rust-sdl2"
@@ -60,5 +63,3 @@ git = "https://github.com/gfx-rs/gfx_device_gl"
 [dependencies.shader_version]
 git = "https://github.com/PistonDevelopers/shader_version"
 
-[dependencies.quack]
-git = "https://github.com/PistonDevelopers/quack"
