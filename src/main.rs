@@ -1,17 +1,19 @@
-#![feature(box_syntax, collections, core, custom_attribute, old_io,
-    old_path, os, plugin, rustc_private, std_misc)]
+#![feature(box_syntax, collections, convert, core,
+    custom_attribute, plugin, slice_patterns)]
 #![plugin(gfx_macros)]
 
+extern crate byteorder;
 extern crate camera_controllers;
 extern crate event;
-extern crate flate;
+extern crate flate2;
 extern crate fps_counter;
 extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
 extern crate image;
 extern crate input;
-extern crate quack;
+extern crate libc;
+extern crate mmap;
 extern crate sdl2;
 extern crate sdl2_window;
 extern crate shader_version;
@@ -19,7 +21,7 @@ extern crate time;
 extern crate vecmath;
 extern crate window;
 
-extern crate "rustc-serialize" as serialize;
+extern crate rustc_serialize as serialize;
 
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
@@ -29,16 +31,17 @@ use std::cell::RefCell;
 use std::cmp::max;
 use std::f32::consts::PI;
 use std::f32::INFINITY;
-use std::old_io::fs::File;
-use std::num::Float;
+use std::fs::File;
+use std::path::Path;
+use std::rc::Rc;
 
 use array::*;
-use event::{ Event, Events, MaxFps, Ups };
-use quack::{Get, Set};
+use event::{ Event, Events };
+use flate2::read::GzDecoder;
 use sdl2_window::Sdl2Window;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
-use window::{ CaptureCursor, Size, WindowSettings };
+use window::{ Size, Window, AdvancedWindow, WindowSettings };
 
 use minecraft::biome::Biomes;
 use minecraft::block_state::BlockStates;
@@ -49,7 +52,7 @@ pub mod shader;
 pub mod minecraft {
     pub use self::data_1_8_pre2 as data;
 
-    mod data_1_8_pre2;
+    pub mod data_1_8_pre2;
     pub mod biome;
     pub mod block_state;
     pub mod model;
@@ -62,10 +65,8 @@ fn main() {
     let world = args.nth(1).expect("Usage: ./hematite <path/to/world>");
     let world = Path::new(&world);
 
-    let level_gzip = File::open(&world.join("level.dat"))
-        .read_to_end().unwrap();
-    let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
-        .unwrap();
+    let level_reader = GzDecoder::new(File::open(world.join("level.dat")).unwrap()).unwrap();
+    let level = minecraft::nbt::Nbt::from_reader(level_reader).unwrap();
     println!("{:?}", level);
     let player_pos: [f32; 3] = Array::from_iter(
             level["Data"]["Player"]["Pos"]
@@ -86,23 +87,25 @@ fn main() {
 
     let loading_title = format!(
             "Hematite loading... - {}",
-            world.filename_display()
+            world.file_name().unwrap().to_str().unwrap()
         );
     let window = Sdl2Window::new(
         shader_version::OpenGL::_3_3,
-        WindowSettings {
-            title: loading_title,
-            size: [854, 480],
-            fullscreen: false,
-            exit_on_esc: true,
-            samples: 0,
-        }
+        WindowSettings::new(
+            loading_title,
+            Size { width: 854, height: 480 })
+            .fullscreen(false)
+            .exit_on_esc(true)
+            .samples(0)
+            .vsync(false)
     );
-    let mut device = gfx_device_gl::GlDevice::new(|s| unsafe {
+
+    let (device, mut factory) = gfx_device_gl::create(|s| unsafe {
         std::mem::transmute(sdl2::video::gl_get_proc_address(s))
     });
-    let Size([w, h]) = window.get();
-    let frame = gfx::Frame::new(w as u16, h as u16);
+
+    let Size { width: w, height: h } = window.size();
+    let frame = factory.make_fake_output(w as u16, h as u16);
 
     let assets = Path::new("./assets");
 
@@ -110,16 +113,16 @@ fn main() {
     let biomes = Biomes::load(&assets);
 
     // Load block state definitions and models.
-    let block_states = BlockStates::load(&assets, &mut device);
+    let block_states = BlockStates::load(&assets, &mut factory);
 
-    let mut renderer = Renderer::new(device, frame, block_states.texture().handle.clone());
+    let mut renderer = Renderer::new(device, factory, frame, block_states.texture.handle());
 
     let mut chunk_manager = chunk::ChunkManager::new();
 
     println!("Started loading chunks...");
     let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
-    for cz in range(cz_base, cz_base + 16) {
-        for cx in range(cx_base, cx_base + 16) {
+    for cz in cz_base..cz_base + 16 {
+        for cx in cx_base..cx_base + 16 {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
                     let [cx, cz] = [
@@ -139,7 +142,7 @@ fn main() {
         near_clip: 0.1,
         far_clip: 1000.0,
         aspect_ratio: {
-            let Size([w, h]) = window.get();
+            let Size { width: w, height: h } = window.size();
             (w as f32) / (h as f32)
         }
     }.projection();
@@ -171,10 +174,10 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let ref window = RefCell::new(window);
-    for e in Events::new(window)
-        .set(Ups(120))
-        .set(MaxFps(10_000)) {
+    let ref window = Rc::new(RefCell::new(window));
+    for e in window.clone().events()
+        .ups(120)
+        .max_fps(10_000) {
         use input::Button::Keyboard;
         use input::Input::{ Move, Press };
         use input::keyboard::Key;
@@ -255,9 +258,9 @@ fn main() {
                         num_total_chunks,
                         (end_time - start_time) as f64 / 1e6,
                         (frame_end_time - end_time) as f64 / 1e6,
-                        fps, world.filename_display()
+                        fps, world.file_name().unwrap().to_str().unwrap()
                     );
-                window.borrow_mut().window.set_title(title.as_slice()).unwrap();
+                window.borrow_mut().set_title(title);
             }
             Event::Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
@@ -302,7 +305,7 @@ fn main() {
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
-                window.set(CaptureCursor(capture_cursor));
+                window.borrow_mut().set_capture_cursor(capture_cursor);
             }
             Event::Input(Move(MouseRelative(_, _))) => {
                 if !capture_cursor {

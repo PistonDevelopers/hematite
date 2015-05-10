@@ -5,19 +5,19 @@ use array::*;
 use shader::Buffer;
 use gfx;
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct BlockState {
     pub value: u16
 }
 
 pub const EMPTY_BLOCK: BlockState = BlockState { value: 0 };
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct BiomeId {
     pub value: u8
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct LightLevel {
     pub value: u8
 }
@@ -87,7 +87,7 @@ impl<R: gfx::Resources> ChunkManager<R> {
                     )
                 );
             let central = columns[1][1].unwrap();
-            for y in range(0, central.chunks.len()) {
+            for y in 0..central.chunks.len() {
                 let chunks = [-1, 0, 1].map(|dy| {
                     let y = y as i32 + dy;
                     columns.map(

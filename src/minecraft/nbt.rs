@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::old_io::{ BufReader, IoResult };
+use std::io::Read;
+use std::io;
 use std::ops::Index;
-use std::string::ToString;
+use std::string::{ self, ToString };
 
-use flate::{ inflate_bytes, inflate_bytes_zlib };
+use byteorder::{ BigEndian, ReadBytesExt };
+use byteorder;
+use flate2::read::{ GzDecoder, ZlibDecoder };
 use serialize;
 use serialize::hex::ToHex;
 
@@ -84,19 +87,19 @@ pub enum List {
 pub type Compound = HashMap<String, Nbt>;
 
 impl Nbt {
-    pub fn from_reader<R: Reader>(r: &mut R) -> IoResult<Nbt> {
+    pub fn from_reader<R: Read>(r: R) -> NbtReaderResult<Nbt> {
         Ok(try!(NbtReader::new(r).tag()).unwrap().0)
     }
 
-    pub fn from_gzip(data: &[u8]) -> IoResult<Nbt> {
-        assert_eq!(&data[..4], [0x1f, 0x8b, 0x08, 0x00].as_slice());
-        let data = inflate_bytes(&data[10..]).expect("inflate failed");
-        Nbt::from_reader(&mut BufReader::new(data.as_slice()))
+    pub fn from_gzip(data: &[u8]) -> NbtReaderResult<Nbt> {
+        assert_eq!(&data[..4], &[0x1fu8, 0x8b, 0x08, 0x00]);
+        let reader = GzDecoder::new(&data[10..]).unwrap();
+        Nbt::from_reader(reader)
     }
 
-    pub fn from_zlib(data: &[u8]) -> IoResult<Nbt> {
-        let data = inflate_bytes_zlib(data).expect("inflate failed");
-        Nbt::from_reader(&mut BufReader::new(data.as_slice()))
+    pub fn from_zlib(data: &[u8]) -> NbtReaderResult<Nbt> {
+        let reader = ZlibDecoder::new(data);
+        Nbt::from_reader(reader)
     }
 
     pub fn as_byte(&self) -> Option<i8> {
@@ -131,9 +134,9 @@ impl Nbt {
 impl<'a> Index<&'a str> for Nbt {
     type Output = Nbt;
 
-    fn index<'b>(&'b self, s: &&'a str) -> &'b Nbt {
+    fn index<'b>(&'b self, s: &'a str) -> &'b Nbt {
         match *self {
-            NbtCompound(ref c) => c.get(*s).unwrap(),
+            NbtCompound(ref c) => c.get(s).unwrap(),
             _ => panic!("cannot index non-compound Nbt ({:?}) with '{}'", self, s)
         }
     }
@@ -152,46 +155,79 @@ const TAG_LIST: i8 = 9;
 const TAG_COMPOUND: i8 = 10;
 const TAG_INT_ARRAY: i8 = 11;
 
-pub struct NbtReader<'a, R: 'a> {
-    reader: &'a mut R
+pub type NbtReaderResult<T> = Result<T, NbtReaderError>;
+
+#[derive(Debug)]
+pub enum NbtReaderError {
+    Io(io::Error),
+    Byteorder(byteorder::Error),
+    Utf8(string::FromUtf8Error),
 }
 
-impl<'a, R: Reader> NbtReader<'a, R> {
-    pub fn new(reader: &'a mut R) -> NbtReader<'a, R> {
+impl From<io::Error> for NbtReaderError {
+    fn from(err: io::Error) -> NbtReaderError { NbtReaderError::Io(err) }
+}
+
+impl From<byteorder::Error> for NbtReaderError {
+    fn from(err: byteorder::Error) -> NbtReaderError { NbtReaderError::Byteorder(err) }
+}
+
+impl From<string::FromUtf8Error> for NbtReaderError {
+    fn from(err: string::FromUtf8Error) -> NbtReaderError { NbtReaderError::Utf8(err) }
+}
+
+pub struct NbtReader<R> {
+    reader: R
+}
+
+impl<R: Read> NbtReader<R> {
+    pub fn new(reader: R) -> NbtReader<R> {
         NbtReader {
             reader: reader
         }
     }
 
-    fn i8(&mut self) -> IoResult<i8> { self.reader.read_i8() }
-    fn i16(&mut self) -> IoResult<i16> { self.reader.read_be_i16() }
-    fn i32(&mut self) -> IoResult<i32> { self.reader.read_be_i32() }
-    fn i64(&mut self) -> IoResult<i64> { self.reader.read_be_i64() }
-    fn f32(&mut self) -> IoResult<f32> { self.reader.read_be_f32() }
-    fn f64(&mut self) -> IoResult<f64> { self.reader.read_be_f64() }
+    fn i8(&mut self) -> NbtReaderResult<i8> { self.reader.read_i8().map_err(NbtReaderError::from) }
+    fn i16(&mut self) -> NbtReaderResult<i16> { self.reader.read_i16::<BigEndian>().map_err(NbtReaderError::from) }
+    fn i32(&mut self) -> NbtReaderResult<i32> { self.reader.read_i32::<BigEndian>().map_err(NbtReaderError::from) }
+    fn i64(&mut self) -> NbtReaderResult<i64> { self.reader.read_i64::<BigEndian>().map_err(NbtReaderError::from) }
+    fn f32(&mut self) -> NbtReaderResult<f32> { self.reader.read_f32::<BigEndian>().map_err(NbtReaderError::from) }
+    fn f64(&mut self) -> NbtReaderResult<f64> { self.reader.read_f64::<BigEndian>().map_err(NbtReaderError::from) }
 
-    fn string(&mut self) -> IoResult<String> {
-        let len = try!(self.reader.read_be_u16()) as usize;
-        self.reader.read_exact(len).map(|s| String::from_utf8(s).unwrap())
+    fn string(&mut self) -> NbtReaderResult<String> {
+        let len = try!(self.reader.read_u16::<BigEndian>()) as usize;
+        let mut v = Vec::with_capacity(len);
+        for _ in 0..len {
+            let mut c = [0];
+            try!(self.reader.read(&mut c));
+            v.push(c[0])
+        }
+        String::from_utf8(v).map_err(NbtReaderError::from)
     }
 
-    fn array_u8(&mut self) -> IoResult<Vec<u8>> {
+    fn array_u8(&mut self) -> NbtReaderResult<Vec<u8>> {
         let len = try!(self.i32()) as usize;
-        self.reader.read_exact(len)
+        let mut v = Vec::with_capacity(len);
+        for _ in 0..len {
+            let mut c = [0];
+            try!(self.reader.read(&mut c));
+            v.push(c[0])
+        }
+        Ok(v)
     }
 
-    fn array<T, F>(&mut self, mut read: F) -> IoResult<Vec<T>>
-        where F: FnMut(&mut NbtReader<R>) -> IoResult<T>
+    fn array<T, F>(&mut self, mut read: F) -> NbtReaderResult<Vec<T>>
+        where F: FnMut(&mut NbtReader<R>) -> NbtReaderResult<T>
     {
         let len = try!(self.i32()) as usize;
         let mut v = Vec::with_capacity(len);
-        for _ in range(0, len) {
+        for _ in 0..len {
             v.push(try!(read(self)))
         }
         Ok(v)
     }
 
-    fn compound(&mut self) -> IoResult<Compound> {
+    fn compound(&mut self) -> NbtReaderResult<Compound> {
         let mut map = HashMap::new();
         loop {
             match try!(self.tag()) {
@@ -204,7 +240,7 @@ impl<'a, R: Reader> NbtReader<'a, R> {
         Ok(map)
     }
 
-    fn list(&mut self) -> IoResult<List> {
+    fn list(&mut self) -> NbtReaderResult<List> {
         match try!(self.i8()) {
             TAG_END => {
                 assert_eq!(try!(self.i32()), 0);
@@ -225,7 +261,7 @@ impl<'a, R: Reader> NbtReader<'a, R> {
         }
     }
 
-    pub fn tag(&mut self) -> IoResult<Option<(Nbt, String)>> {
+    pub fn tag(&mut self) -> NbtReaderResult<Option<(Nbt, String)>> {
         Ok(match try!(self.i8()) {
             TAG_END => None,
             tag_type => {
@@ -345,7 +381,7 @@ impl serialize::Decoder for Decoder {
     fn read_char(&mut self) -> DecodeResult<char> {
         let s = try!(self.read_str());
         {
-            let mut it = s.as_slice().chars();
+            let mut it = s.chars();
             match (it.next(), it.next()) {
                 // exactly one character
                 (Some(c), None) => return Ok(c),
@@ -389,7 +425,7 @@ impl serialize::Decoder for Decoder {
                 return Err(ExpectedError("String or Compound".to_string(), nbt.to_string()))
             }
         };
-        let idx = match names.iter().position(|n| *n == name.as_slice()) {
+        let idx = match names.iter().position(|n| *n == name.as_str()) {
             Some(idx) => idx,
             None => return Err(UnknownVariantError(name))
         };

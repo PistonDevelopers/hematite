@@ -2,10 +2,9 @@ use std::borrow::Cow;
 use std::cmp::max;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
-use std::old_io::fs::File;
-use std::num::Float;
-use std::num::UnsignedInt;
-use std::num::wrapping::{WrappingOps, Wrapping};
+use std::fs::File;
+use std::path::Path;
+use std::num::Wrapping;
 
 use array::*;
 use chunk::{BiomeId, BlockState, Chunk};
@@ -22,9 +21,9 @@ use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
 
-pub struct BlockStates<D: gfx::Device> {
-    models: Vec<ModelAndBehavior>,
-    texture: Texture<D::Resources>,
+pub struct BlockStates<R: gfx::Resources> {
+    pub models: Vec<ModelAndBehavior>,
+    pub texture: Texture<R>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -112,10 +111,11 @@ impl ModelAndBehavior {
     }
 }
 
-impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStates<D> {
-    pub fn load(
-        assets: &Path, d: &mut D
-    ) -> BlockStates<D> {
+impl<R: gfx::Resources> BlockStates<R> {
+
+    pub fn load<F: gfx::Factory<R>>(
+        assets: &Path, f: &mut F
+    ) -> BlockStates<R> {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.0);
         let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
         let mut extras = vec![];
@@ -139,7 +139,7 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
                 // Note: excluding paeonia itself, which works as-is.
                 let num_plants = lower.count();
 
-                for j in range(i - 1 - num_plants, i - 1) {
+                for j in i - 1 - num_plants..i - 1 {
                     last_id += 1;
                     let (_, lower_name, _) = BLOCK_STATES[j];
                     extras.push(Description {
@@ -174,7 +174,7 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
             }
 
             let variant = if variant.ends_with(",shape=outer_right") {
-                Cow::Owned(format!("{}=straight", variant.slice_to(variant.len() - 12)))
+                Cow::Owned(format!("{}=straight", &variant[..variant.len() - 12]))
             } else {
                 Cow::Borrowed(variant)
             };
@@ -189,13 +189,13 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
         }
         states.extend(extras.into_iter());
 
-        BlockStates::load_with_states(assets, d, states)
+        BlockStates::load_with_states(assets, f, states)
     }
 
-    fn load_with_states(
-        assets: &Path, d: &mut D,
+    fn load_with_states<F: gfx::Factory<R>>(
+        assets: &Path, f: &mut F,
         states: Vec<Description>
-    ) -> BlockStates<D> {
+    ) -> BlockStates<R> {
         struct Variant {
             model: String,
             rotate_x: OrthoRotation,
@@ -214,7 +214,7 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
                 Occupied(entry) => entry.into_mut(),
                 Vacant(entry) => entry.insert({
                     let name = state.name;
-                    let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_slice()));
+                    let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_str()));
                     match json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
                         json::Json::Object(mut json) => match json.remove("variants").unwrap() {
                             json::Json::Object(variants) => variants.into_iter().map(|(k, v)| {
@@ -269,7 +269,7 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
                 Cow::Owned(ref variant) => variants.get(variant),
                 Cow::Borrowed(variant) => variants.get(variant)
             }.unwrap();
-            let mut model = Model::load(variant.model.as_slice(), assets,
+            let mut model = Model::load(&variant.model, assets,
                                         &mut atlas, &mut partial_model_cache);
 
             let rotate_faces = |m: &mut Model, ix: usize, iy: usize, rot_mat: [i32; 4]| {
@@ -352,7 +352,7 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
         drop(partial_model_cache);
         drop(block_state_cache);
 
-        let texture = atlas.complete(d);
+        let texture = atlas.complete(f);
         let (width, height) = texture.get_size();
         let u_unit = 1.0 / (width as f32);
         let v_unit = 1.0 / (height as f32);
@@ -381,7 +381,7 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
         }
     }
 
-    pub fn texture<'a>(&'a self) -> &'a Texture<D::Resources> {
+    pub fn texture<'a>(&'a self) -> &'a Texture<R> {
         &self.texture
     }
 
@@ -395,14 +395,14 @@ impl<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>> BlockStat
     }
 }
 
-pub fn fill_buffer<R: gfx::Resources, D: gfx::Device<Resources=R> + gfx::Factory<R>>(block_states: &BlockStates<D>,
+pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                    biomes: &Biomes, buffer: &mut Vec<Vertex>,
                    coords: [i32; 3], chunks: [[[&Chunk; 3]; 3]; 3],
                    column_biomes: [[Option<&[[BiomeId; 16]; 16]>; 3]; 3]) {
     let chunk_xyz = coords.map(|x| x as f32 * 16.0);
-    for y in range(0, 16) {
-        for z in range(0, 16) {
-            for x in range(0, 16) {
+    for y in 0..16_usize {
+        for z in 0..16_usize {
+            for x in 0..16_usize {
                 let at = |dir: [i32; 3]| {
                     let [dx, dy, dz] = dir.map(|x| x as usize);
                     let [x, y, z] = [x.wrapping_add(dx), y.wrapping_add(dy), z.wrapping_add(dz)].map(|x| x.wrapping_add(16));
