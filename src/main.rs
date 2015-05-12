@@ -66,7 +66,7 @@ fn main() {
     let world = Path::new(&world);
 
     let level_gzip = Vec::<u8>::new();
-    let len = File::open(&world.join("level.dat")).unwrap()
+    let _ = File::open(&world.join("level.dat")).unwrap()
         .read_to_end(&mut level_gzip).unwrap();
     let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
         .unwrap();
@@ -109,7 +109,7 @@ fn main() {
     });
 
     let Size { width: w, height: h } = window.size();
-    let frame = gfx::Frame::new(w as u16, h as u16);
+    let frame = gfx::Frame::<gfx_device_gl::Resources>::empty(w as u16, h as u16);
 
     let assets = Path::new("./assets");
 

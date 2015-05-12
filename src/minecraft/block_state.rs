@@ -22,9 +22,9 @@ use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
 
-pub struct BlockStates {
+pub struct BlockStates<R: gfx::Resources> {
     models: Vec<ModelAndBehavior>,
-    texture: Texture,
+    texture: Texture<R>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -112,10 +112,11 @@ impl ModelAndBehavior {
     }
 }
 
-impl BlockStates {
-    pub fn load(
-        assets: &Path, d: &mut gfx::Device, f: &mut gfx::Factory
-    ) -> BlockStates<gfx::Resources> {
+impl<R: gfx::Resources> BlockStates<R> {
+
+    pub fn load<D: gfx::Device, F: gfx::Factory<R>>(
+        assets: &Path, d: &mut D, f: &mut F
+    ) -> BlockStates<R> {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.0);
         let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
         let mut extras = vec![];
@@ -192,10 +193,10 @@ impl BlockStates {
         BlockStates::load_with_states(assets, d, f, states)
     }
 
-    fn load_with_states(
-        assets: &Path, d: &mut gfx::Device, f: &mut gfx::Factory,
+    fn load_with_states<D: gfx::Device, F: gfx::Factory<R>>(
+        assets: &Path, d: &mut D, f: &mut F,
         states: Vec<Description>
-    ) -> BlockStates {
+    ) -> BlockStates<R> {
         struct Variant {
             model: String,
             rotate_x: OrthoRotation,
@@ -352,7 +353,7 @@ impl BlockStates {
         drop(partial_model_cache);
         drop(block_state_cache);
 
-        let texture = atlas.complete(f);
+        let texture = atlas.complete(&mut f);
         let (width, height) = texture.get_size();
         let u_unit = 1.0 / (width as f32);
         let v_unit = 1.0 / (height as f32);
@@ -381,7 +382,7 @@ impl BlockStates {
         }
     }
 
-    pub fn texture<'a>(&'a self) -> &'a Texture {
+    pub fn texture<'a>(&'a self) -> &'a Texture<R> {
         &self.texture
     }
 
@@ -395,7 +396,7 @@ impl BlockStates {
     }
 }
 
-pub fn fill_buffer(block_states: &BlockStates,
+pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                    biomes: &Biomes, buffer: &mut Vec<Vertex>,
                    coords: [i32; 3], chunks: [[[&Chunk; 3]; 3]; 3],
                    column_biomes: [[Option<&[[BiomeId; 16]; 16]>; 3]; 3]) {
