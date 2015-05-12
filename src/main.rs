@@ -34,6 +34,7 @@ use std::f32::INFINITY;
 use std::fs::File;
 use std::io::Result;
 use std::path::Path;
+use std::rc::Rc;
 
 use array::*;
 use event::{ Event, Events };
@@ -64,7 +65,7 @@ fn main() {
     let world = args.nth(1).expect("Usage: ./hematite <path/to/world>");
     let world = Path::new(&world);
 
-    let level_gzip = Vec::<u8>::new();
+    let mut level_gzip = Vec::<u8>::new();
     let _ = File::open(world.join("level.dat")).unwrap()
         .read_to_end(&mut level_gzip).unwrap();
     let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
@@ -117,7 +118,7 @@ fn main() {
     // Load block state definitions and models.
     let block_states = BlockStates::load(&assets, &mut device, &mut factory);
 
-    let mut renderer = Renderer::new(device, factory, frame, block_states.texture.handle.clone());
+    let mut renderer = Renderer::new(device, factory, frame, block_states.texture.handle());
 
     let mut chunk_manager = chunk::ChunkManager::new();
 
@@ -176,8 +177,8 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let ref window = RefCell::new(window);
-    for e in window.borrow_mut().events()
+    let ref window = Rc::new(RefCell::new(window));
+    for e in window.clone().events()
         .ups(120)
         .max_fps(10_000) {
         use input::Button::Keyboard;
@@ -307,7 +308,7 @@ fn main() {
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
-                window.borrow_mut().capture_cursor(capture_cursor);
+                window.borrow_mut().set_capture_cursor(capture_cursor);
             }
             Event::Input(Move(MouseRelative(_, _))) => {
                 if !capture_cursor {

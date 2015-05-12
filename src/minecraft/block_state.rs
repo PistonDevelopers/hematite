@@ -23,8 +23,8 @@ use vecmath::vec3_add;
 use self::PolymorphDecision::*;
 
 pub struct BlockStates<R: gfx::Resources> {
-    models: Vec<ModelAndBehavior>,
-    texture: Texture<R>,
+    pub models: Vec<ModelAndBehavior>,
+    pub texture: Texture<R>,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
