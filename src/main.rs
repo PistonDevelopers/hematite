@@ -26,7 +26,6 @@ extern crate rustc_serialize as serialize;
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube };
 
-use std::io::prelude::*;
 use std::cell::RefCell;
 use std::cmp::max;
 use std::f32::consts::PI;
@@ -37,6 +36,7 @@ use std::rc::Rc;
 
 use array::*;
 use event::{ Event, Events };
+use flate2::read::GzDecoder;
 use sdl2_window::Sdl2Window;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
@@ -64,11 +64,8 @@ fn main() {
     let world = args.nth(1).expect("Usage: ./hematite <path/to/world>");
     let world = Path::new(&world);
 
-    let mut level_gzip = Vec::<u8>::new();
-    let _ = File::open(world.join("level.dat")).unwrap()
-        .read_to_end(&mut level_gzip).unwrap();
-    let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
-        .unwrap();
+    let level_reader = GzDecoder::new(File::open(world.join("level.dat")).unwrap()).unwrap();
+    let level = minecraft::nbt::Nbt::from_reader(level_reader).unwrap();
     println!("{:?}", level);
     let player_pos: [f32; 3] = Array::from_iter(
             level["Data"]["Player"]["Pos"]
@@ -89,7 +86,7 @@ fn main() {
 
     let loading_title = format!(
             "Hematite loading... - {}",
-            world.display()
+            world.file_name().unwrap().to_str().unwrap()
         );
     let window = Sdl2Window::new(
         shader_version::OpenGL::_3_3,
@@ -102,7 +99,7 @@ fn main() {
             .vsync(false)
     );
 
-    let (mut device, mut factory) = gfx_device_gl::create(|s| unsafe {
+    let (device, mut factory) = gfx_device_gl::create(|s| unsafe {
         std::mem::transmute(sdl2::video::gl_get_proc_address(s))
     });
 
@@ -115,7 +112,7 @@ fn main() {
     let biomes = Biomes::load(&assets);
 
     // Load block state definitions and models.
-    let block_states = BlockStates::load(&assets, &mut device, &mut factory);
+    let block_states = BlockStates::load(&assets, &mut factory);
 
     let mut renderer = Renderer::new(device, factory, frame, block_states.texture.handle());
 
@@ -260,7 +257,7 @@ fn main() {
                         num_total_chunks,
                         (end_time - start_time) as f64 / 1e6,
                         (frame_end_time - end_time) as f64 / 1e6,
-                        fps, world.display()
+                        fps, world.file_name().unwrap().to_str().unwrap()
                     );
                 window.borrow_mut().set_title(title);
             }

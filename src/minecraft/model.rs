@@ -160,7 +160,7 @@ impl PartialModel {
                 let element_start = model.faces.len();
 
                 for (k, v) in element.find("faces").unwrap().as_object().unwrap().iter() {
-                    let face: cube::Face = FromStr::from_str(k.as_str()).unwrap();
+                    let face: cube::Face = k.parse().unwrap();
                     let [u0, v0, u1, v1] = match v.find("uv") {
                         Some(uv) => {
                             Array::from_iter(uv.as_array().unwrap().iter().map(|x| x.as_f64().unwrap() as f32))
@@ -286,7 +286,7 @@ impl PartialModel {
 impl Model {
     pub fn load(name: &str, assets: &Path, atlas: &mut AtlasBuilder,
                 cache: &mut HashMap<String, PartialModel>) -> Model {
-        PartialModel::load(format!("block/{}", name).as_str(), assets, atlas, cache, |partial, atlas| {
+        PartialModel::load(&format!("block/{}", name), assets, atlas, cache, |partial, atlas| {
             let mut faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
                 fn texture_coords(textures: &HashMap<String, PartialTexture>,
                                   tex: &String) -> Option<(f32, f32)> {

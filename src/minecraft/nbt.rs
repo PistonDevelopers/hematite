@@ -87,19 +87,19 @@ pub enum List {
 pub type Compound = HashMap<String, Nbt>;
 
 impl Nbt {
-    pub fn from_reader<R: Read>(r: &mut R) -> io::Result<Nbt> {
+    pub fn from_reader<R: Read>(r: R) -> NbtReaderResult<Nbt> {
         Ok(try!(NbtReader::new(r).tag()).unwrap().0)
     }
 
-    pub fn from_gzip(data: &[u8]) -> io::Result<Nbt> {
+    pub fn from_gzip(data: &[u8]) -> NbtReaderResult<Nbt> {
         assert_eq!(&data[..4], &[0x1fu8, 0x8b, 0x08, 0x00]);
-        let mut reader = GzDecoder::new(&data[10..]).unwrap();
-        Nbt::from_reader(&mut reader)
+        let reader = GzDecoder::new(&data[10..]).unwrap();
+        Nbt::from_reader(reader)
     }
 
-    pub fn from_zlib(data: &[u8]) -> io::Result<Nbt> {
-        let mut reader = ZlibDecoder::new(data);
-        Nbt::from_reader(&mut reader)
+    pub fn from_zlib(data: &[u8]) -> NbtReaderResult<Nbt> {
+        let reader = ZlibDecoder::new(data);
+        Nbt::from_reader(reader)
     }
 
     pub fn as_byte(&self) -> Option<i8> {
@@ -157,6 +157,7 @@ const TAG_INT_ARRAY: i8 = 11;
 
 pub type NbtReaderResult<T> = Result<T, NbtReaderError>;
 
+#[derive(Debug)]
 pub enum NbtReaderError {
     Io(io::Error),
     Byteorder(byteorder::Error),
@@ -173,16 +174,6 @@ impl From<byteorder::Error> for NbtReaderError {
 
 impl From<string::FromUtf8Error> for NbtReaderError {
     fn from(err: string::FromUtf8Error) -> NbtReaderError { NbtReaderError::Utf8(err) }
-}
-
-impl From<NbtReaderError> for io::Error {
-    fn from(err: NbtReaderError) -> io::Error {
-        match err {
-            NbtReaderError::Io(err) => err,
-            NbtReaderError::Byteorder(err) => io::Error::new(io::ErrorKind::Other, err),
-            NbtReaderError::Utf8(err) => io::Error::new(io::ErrorKind::Other, err),
-        }
-    }
 }
 
 pub struct NbtReader<R> {

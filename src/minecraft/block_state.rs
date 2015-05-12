@@ -139,7 +139,7 @@ impl<R: gfx::Resources> BlockStates<R> {
                 // Note: excluding paeonia itself, which works as-is.
                 let num_plants = lower.count();
 
-                for j in (i - 1 - num_plants..i - 1) {
+                for j in i - 1 - num_plants..i - 1 {
                     last_id += 1;
                     let (_, lower_name, _) = BLOCK_STATES[j];
                     extras.push(Description {
@@ -400,12 +400,11 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                    coords: [i32; 3], chunks: [[[&Chunk; 3]; 3]; 3],
                    column_biomes: [[Option<&[[BiomeId; 16]; 16]>; 3]; 3]) {
     let chunk_xyz = coords.map(|x| x as f32 * 16.0);
-    for y in 0..16 {
-        for z in 0..16 {
-            for x in 0..16 {
+    for y in 0..16_usize {
+        for z in 0..16_usize {
+            for x in 0..16_usize {
                 let at = |dir: [i32; 3]| {
                     let [dx, dy, dz] = dir.map(|x| x as usize);
-                    let [x, y, z] = [x, y, z].map(|x| x as usize);
                     let [x, y, z] = [x.wrapping_add(dx), y.wrapping_add(dy), z.wrapping_add(dz)].map(|x| x.wrapping_add(16));
                     let chunk = chunks[y / 16][z / 16][x / 16];
                     let [x, y, z] = [x, y, z].map(|x| x % 16);
