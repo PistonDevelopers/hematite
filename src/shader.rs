@@ -66,21 +66,22 @@ pub struct Buffer<R: gfx::Resources> {
     batch: gfx::batch::RefBatch<ShaderParam<R>>,
 }
 
-pub struct Renderer<D: Device, F: gfx::device::Factory<D::Resources>> {
+pub struct Renderer<D: Device, F: gfx::device::Factory<D::Resources>, O: gfx::Output<D::Resources>> {
     graphics: gfx::Graphics<D, F>,
     params: ShaderParam<D::Resources>,
-    frame: gfx::Frame<D::Resources>,
+    frame: O,
     cd: gfx::ClearData,
     prog: gfx::handle::Program<D::Resources>,
     drawstate: gfx::DrawState
 }
 
 impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
-    F: gfx::device::Factory<R>, D: gfx::Device<Resources=R, CommandBuffer=C>>
-    Renderer<D, F> {
+    F: gfx::device::Factory<R>, D: gfx::Device<Resources=R, CommandBuffer=C>,
+    O: gfx::Output<R>>
+    Renderer<D, F, O> {
 
-    pub fn new(device: D, mut factory: F, frame: gfx::Frame<D::Resources>,
-               tex: gfx::handle::Texture<D::Resources>) -> Renderer<D, F> {
+    pub fn new(device: D, mut factory: F, frame: O,
+               tex: gfx::handle::Texture<D::Resources>) -> Renderer<D, F, O> {
         let sampler = factory.create_sampler(
                 gfx::tex::SamplerInfo::new(
                     gfx::tex::FilterMethod::Scale,

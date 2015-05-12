@@ -105,7 +105,7 @@ fn main() {
     });
 
     let Size { width: w, height: h } = window.size();
-    let frame = gfx::Frame::<gfx_device_gl::Resources>::empty(w as u16, h as u16);
+    let frame = factory.make_fake_output(w as u16, h as u16);
 
     let assets = Path::new("./assets");
 
