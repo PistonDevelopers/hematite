@@ -353,7 +353,7 @@ impl<R: gfx::Resources> BlockStates<R> {
         drop(partial_model_cache);
         drop(block_state_cache);
 
-        let texture = atlas.complete(&mut f);
+        let texture = atlas.complete(f);
         let (width, height) = texture.get_size();
         let u_unit = 1.0 / (width as f32);
         let v_unit = 1.0 / (height as f32);

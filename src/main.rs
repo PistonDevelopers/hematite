@@ -37,7 +37,6 @@ use std::path::Path;
 
 use array::*;
 use event::{ Event, Events };
-use event::render::RenderEvent;
 use sdl2_window::Sdl2Window;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
@@ -94,14 +93,13 @@ fn main() {
         );
     let window = Sdl2Window::new(
         shader_version::OpenGL::_3_3,
-        WindowSettings {
-            title: loading_title,
-            size: Size { width: 854, height: 480 },
-            fullscreen: false,
-            exit_on_esc: true,
-            samples: 0,
-            vsync: false,
-        }
+        WindowSettings::new(
+            loading_title,
+            Size { width: 854, height: 480 })
+            .fullscreen(false)
+            .exit_on_esc(true)
+            .samples(0)
+            .vsync(false)
     );
 
     let (mut device, mut factory) = gfx_device_gl::create(|s| unsafe {

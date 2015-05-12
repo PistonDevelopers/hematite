@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::fs::{File, Metadata};
 use std::io;
 use std::path::Path;
-use std::sys::ext::io::AsRawFd;
+use std::os::unix::io::AsRawFd;
 use std::os;
 use gfx;
 use mmap;
@@ -146,7 +146,7 @@ impl Region {
         Some(ChunkColumn {
             chunks: chunks,
             buffers: Array::from_fn(|_| RefCell::new(None)),
-            biomes: Array::from_fn(|z| -> [BiomeId; SIZE] { 
+            biomes: Array::from_fn(|z| -> [BiomeId; SIZE] {
                 Array::from_fn(|x| {
                     BiomeId {
                         value: biomes[z * SIZE + x]

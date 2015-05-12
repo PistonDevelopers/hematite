@@ -1,4 +1,3 @@
-use std::array::*;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::{ Read, BufReader};
