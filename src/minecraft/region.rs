@@ -3,7 +3,6 @@ use std::fs::{File, Metadata};
 use std::io;
 use std::path::Path;
 use std::os::unix::io::AsRawFd;
-use std::os;
 use gfx;
 use mmap;
 

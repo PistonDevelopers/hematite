@@ -1,5 +1,5 @@
-#![feature(box_syntax, collections, core, custom_attribute,
-    os, plugin, rustc_private, std_misc, slice_patterns)]
+#![feature(box_syntax, collections, convert, core,
+    custom_attribute, plugin, slice_patterns)]
 #![plugin(gfx_macros)]
 
 extern crate byteorder;
@@ -32,7 +32,6 @@ use std::cmp::max;
 use std::f32::consts::PI;
 use std::f32::INFINITY;
 use std::fs::File;
-use std::io::Result;
 use std::path::Path;
 use std::rc::Rc;
 

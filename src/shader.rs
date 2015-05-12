@@ -79,7 +79,7 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
     F: gfx::device::Factory<R>, D: gfx::Device<Resources=R, CommandBuffer=C>>
     Renderer<D, F> {
 
-    pub fn new(mut device: D, mut factory: F, frame: gfx::Frame<D::Resources>,
+    pub fn new(device: D, mut factory: F, frame: gfx::Frame<D::Resources>,
                tex: gfx::handle::Texture<D::Resources>) -> Renderer<D, F> {
         let sampler = factory.create_sampler(
                 gfx::tex::SamplerInfo::new(

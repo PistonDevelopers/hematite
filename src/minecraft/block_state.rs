@@ -11,7 +11,6 @@ use chunk::{BiomeId, BlockState, Chunk};
 use cube;
 use gfx;
 use gfx_voxel::texture::{AtlasBuilder, ImageSize, Texture};
-use gfx_device_gl;
 use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
 use minecraft::model::OrthoRotation::*;
@@ -114,8 +113,8 @@ impl ModelAndBehavior {
 
 impl<R: gfx::Resources> BlockStates<R> {
 
-    pub fn load<D: gfx::Device, F: gfx::Factory<R>>(
-        assets: &Path, d: &mut D, f: &mut F
+    pub fn load<F: gfx::Factory<R>>(
+        assets: &Path, f: &mut F
     ) -> BlockStates<R> {
         let mut last_id = BLOCK_STATES.last().map_or(0, |state| state.0);
         let mut states = Vec::<Description>::with_capacity(BLOCK_STATES.len().next_power_of_two());
@@ -190,11 +189,11 @@ impl<R: gfx::Resources> BlockStates<R> {
         }
         states.extend(extras.into_iter());
 
-        BlockStates::load_with_states(assets, d, f, states)
+        BlockStates::load_with_states(assets, f, states)
     }
 
-    fn load_with_states<D: gfx::Device, F: gfx::Factory<R>>(
-        assets: &Path, d: &mut D, f: &mut F,
+    fn load_with_states<F: gfx::Factory<R>>(
+        assets: &Path, f: &mut F,
         states: Vec<Description>
     ) -> BlockStates<R> {
         struct Variant {
