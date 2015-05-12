@@ -17,9 +17,12 @@ path = "src/main.rs"
 [dependencies]
 byteorder = "0.3"
 flate2 = "0.2"
-mmap = "*"
+libc = "*"
 rustc-serialize = "0.3"
 time = "*"
+
+[dependencies.mmap]
+git = "https://github.com/retep998/rust-mmap"
 
 [dependencies.sdl2]
 git = "https://github.com/AngryLawyer/rust-sdl2"

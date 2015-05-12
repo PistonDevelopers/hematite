@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::fs::{File, Metadata};
 use std::io;
 use std::path::Path;
-use std::os::unix::io::AsRawFd;
 use gfx;
+use libc;
 use mmap;
 
 use array::*;
@@ -36,13 +36,15 @@ impl Region {
     pub fn open(filename: &Path) -> io::Result<Region> {
         #[cfg(not(windows))]
         fn map_fd(file: &File) -> mmap::MapOption {
+            use std::os::unix::io::AsRawFd;
             mmap::MapOption::MapFd(file.as_raw_fd())
         }
 
         #[cfg(windows)]
         fn map_fd(file: &File) -> mmap::MapOption {
-            use std::os::windows::AsRawHandle;
-            mmap::MapOption::MapFd(file.as_raw_handle())
+            use std::os::windows::io::AsRawHandle;
+            let handle: libc::HANDLE = file.as_raw_handle() as libc::HANDLE;
+            mmap::MapOption::MapFd(handle)
         }
 
         let file = try!(File::open(filename));

@@ -12,6 +12,7 @@ extern crate gfx_device_gl;
 extern crate gfx_voxel;
 extern crate image;
 extern crate input;
+extern crate libc;
 extern crate mmap;
 extern crate sdl2;
 extern crate sdl2_window;
