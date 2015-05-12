@@ -270,7 +270,7 @@ impl<R: gfx::Resources> BlockStates<R> {
                 Cow::Owned(ref variant) => variants.get(variant),
                 Cow::Borrowed(variant) => variants.get(variant)
             }.unwrap();
-            let mut model = Model::load(variant.model.as_str(), assets,
+            let mut model = Model::load(&variant.model, assets,
                                         &mut atlas, &mut partial_model_cache);
 
             let rotate_faces = |m: &mut Model, ix: usize, iy: usize, rot_mat: [i32; 4]| {

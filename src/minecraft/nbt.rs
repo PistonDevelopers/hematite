@@ -94,13 +94,13 @@ impl Nbt {
 
     pub fn from_gzip(data: &[u8]) -> io::Result<Nbt> {
         assert_eq!(&data[..4], &[0x1fu8, 0x8b, 0x08, 0x00]);
-        let data = GzDecoder::new(&data[10..]).ok().expect("inflate failed");
-        Nbt::from_reader(&mut BufReader::new(data))
+        let reader = GzDecoder::new(&data[10..]).unwrap();
+        Nbt::from_reader(&mut reader)
     }
 
     pub fn from_zlib(data: &[u8]) -> io::Result<Nbt> {
-        let data = ZlibDecoder::new(data);
-        Nbt::from_reader(&mut BufReader::new(data))
+        let reader = ZlibDecoder::new(data);
+        Nbt::from_reader(&mut reader)
     }
 
     pub fn as_byte(&self) -> Option<i8> {
@@ -156,8 +156,8 @@ const TAG_LIST: i8 = 9;
 const TAG_COMPOUND: i8 = 10;
 const TAG_INT_ARRAY: i8 = 11;
 
-pub struct NbtReader<'a, R: 'a> {
-    reader: &'a mut R
+pub struct NbtReader<R> {
+    reader: R
 }
 
 fn byteorder_to_io_result<T>(res: byteorder::Result<T>) -> io::Result<T> {
@@ -168,8 +168,8 @@ fn byteorder_to_io_result<T>(res: byteorder::Result<T>) -> io::Result<T> {
     }
 }
 
-impl<'a, R: Read> NbtReader<'a, R> {
-    pub fn new(reader: &'a mut R) -> NbtReader<'a, R> {
+impl<R: Read> NbtReader<R> {
+    pub fn new(reader: R) -> NbtReader<R> {
         NbtReader {
             reader: reader
         }

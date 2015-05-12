@@ -66,7 +66,7 @@ fn main() {
     let world = Path::new(&world);
 
     let level_gzip = Vec::<u8>::new();
-    let _ = File::open(&world.join("level.dat")).unwrap()
+    let _ = File::open(world.join("level.dat")).unwrap()
         .read_to_end(&mut level_gzip).unwrap();
     let level = minecraft::nbt::Nbt::from_gzip(level_gzip.as_slice())
         .unwrap();
@@ -125,8 +125,8 @@ fn main() {
 
     println!("Started loading chunks...");
     let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
-    for cz in (cz_base..cz_base + 16) {
-        for cx in (cx_base..cx_base + 16) {
+    for cz in cz_base..cz_base + 16 {
+        for cx in cx_base..cx_base + 16 {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
                     let [cx, cz] = [
@@ -179,7 +179,7 @@ fn main() {
 
     let mut staging_buffer = vec![];
     let ref window = RefCell::new(window);
-    for e in Events::new(window)
+    for e in window.borrow_mut().events()
         .ups(120)
         .max_fps(10_000) {
         use input::Button::Keyboard;
@@ -264,7 +264,7 @@ fn main() {
                         (frame_end_time - end_time) as f64 / 1e6,
                         fps, world.display()
                     );
-                window.borrow_mut().window.set_title(title);
+                window.borrow_mut().set_title(title);
             }
             Event::Update(_) => {
                 // HACK(eddyb) find the closest chunk to the player.
