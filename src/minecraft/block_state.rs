@@ -542,7 +542,6 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                                     model::Tint::None | model::Tint::Redstone => continue,
                                     model::Tint::Grass | model::Tint::Foliage => {}
                                 }
-                                let [x, z] = [x, z].map(|x| x as usize);
                                 let [x, z] = [x.wrapping_add(dx as usize), z.wrapping_add(dz as usize)].map(|x| x.wrapping_add(16));
                                 let biome = match column_biomes[z / 16][x / 16] {
                                     Some(biome) => biomes[biome[z % 16][x % 16]],
