@@ -20,7 +20,7 @@ pub struct Biomes {
 
 impl Biomes {
     pub fn load(assets: &Path) -> Biomes {
-        let mut biomes = box [None; 256];
+        let mut biomes = Box::new([None; 256]);
 
         let grass_colors = Path::new("minecraft/textures/colormap/grass.png");
         let grass_colors = ColorMap::from_path(&assets.join(&grass_colors)).unwrap();

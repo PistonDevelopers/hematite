@@ -6,9 +6,8 @@ dependencies = [
  "camera_controllers 0.0.3 (git+https://github.com/PistonDevelopers/camera_controllers)",
  "flate2 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "fps_counter 0.0.2 (git+https://github.com/PistonDevelopers/fps_counter)",
- "gfx 0.4.0 (git+https://github.com/gfx-rs/gfx-rs)",
- "gfx_device_gl 0.2.5 (git+https://github.com/gfx-rs/gfx_device_gl)",
- "gfx_macros 0.1.11 (git+https://github.com/gfx-rs/gfx_macros)",
+ "gfx 0.4.1 (git+https://github.com/gfx-rs/gfx-rs)",
+ "gfx_device_gl 0.2.6 (git+https://github.com/gfx-rs/gfx_device_gl)",
  "image 0.3.9 (git+https://github.com/PistonDevelopers/image)",
  "libc 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "mmap 0.1.1 (git+https://github.com/retep998/rust-mmap)",
@@ -99,8 +98,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "gfx"
-version = "0.4.0"
-source = "git+https://github.com/gfx-rs/gfx-rs#6957ff88e1a52be56a8b161afbff81e592d24c3d"
+version = "0.4.1"
+source = "git+https://github.com/gfx-rs/gfx-rs#c6fa6fdb88b9255c60217512bcbda290372db484"
 dependencies = [
  "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "draw_state 0.0.7 (git+https://github.com/gfx-rs/draw_state)",
@@ -110,10 +109,10 @@ dependencies = [
 
 [[package]]
 name = "gfx_device_gl"
-version = "0.2.5"
-source = "git+https://github.com/gfx-rs/gfx_device_gl#9cc4e61afa1b322780c45d85f96163fc8df1c8f0"
+version = "0.2.6"
+source = "git+https://github.com/gfx-rs/gfx_device_gl#68486d276539426408ae56b5df14dba80f5dd4f4"
 dependencies = [
- "gfx 0.4.0 (git+https://github.com/gfx-rs/gfx-rs)",
+ "gfx 0.4.1 (git+https://github.com/gfx-rs/gfx-rs)",
  "gfx_gl 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -129,11 +128,6 @@ dependencies = [
  "khronos_api 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "gfx_macros"
-version = "0.1.11"
-source = "git+https://github.com/gfx-rs/gfx_macros#6e44e10a94a52065baa47c88d678a41a67622326"
 
 [[package]]
 name = "gl"
@@ -185,7 +179,7 @@ dependencies = [
 [[package]]
 name = "image"
 version = "0.3.9"
-source = "git+https://github.com/PistonDevelopers/image#04d84943a8cd5950707310e631f9e3b890dc84ed"
+source = "git+https://github.com/PistonDevelopers/image#85d0524e01d0b1432b02ec4796d8e55559286588"
 dependencies = [
  "byteorder 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_primitive 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -259,9 +253,9 @@ source = "git+https://github.com/pistondevelopers/float#2c73a3e34c384c79e95b35c0
 [[package]]
 name = "piston-gfx_texture"
 version = "0.0.6"
-source = "git+https://github.com/PistonDevelopers/gfx_texture#dc28daf29058f2e2869b044f41e575c1423a3c04"
+source = "git+https://github.com/PistonDevelopers/gfx_texture#910fc5fedd52291c01c29196ba67f02e92b317ce"
 dependencies = [
- "gfx 0.4.0 (git+https://github.com/gfx-rs/gfx-rs)",
+ "gfx 0.4.1 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.3.9 (git+https://github.com/PistonDevelopers/image)",
  "piston-texture 0.0.1 (git+https://github.com/PistonDevelopers/texture)",
 ]
@@ -294,7 +288,7 @@ version = "0.0.5"
 source = "git+https://github.com/PistonDevelopers/gfx_voxel#153fb6a85f0b88360021ecd5b14c9359c2786b83"
 dependencies = [
  "array 0.0.1 (git+https://github.com/PistonDevelopers/array)",
- "gfx 0.4.0 (git+https://github.com/gfx-rs/gfx-rs)",
+ "gfx 0.4.1 (git+https://github.com/gfx-rs/gfx-rs)",
  "image 0.3.9 (git+https://github.com/PistonDevelopers/image)",
  "piston-gfx_texture 0.0.6 (git+https://github.com/PistonDevelopers/gfx_texture)",
 ]

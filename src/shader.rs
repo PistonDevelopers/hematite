@@ -5,18 +5,18 @@ use vecmath::Matrix4;
 
 static VERTEX: &'static [u8] = b"
     #version 150 core
-    uniform mat4 projection, view;
+    uniform mat4 u_projection, u_view;
 
-    in vec2 tex_coord;
-    in vec3 color, position;
+    in vec2 at_tex_coord;
+    in vec3 at_color, at_position;
 
     out vec2 v_tex_coord;
     out vec3 v_color;
 
     void main() {
-        v_tex_coord = tex_coord;
-        v_color = color;
-        gl_Position = projection * view * vec4(position, 1.0);
+        v_tex_coord = at_tex_coord;
+        v_color = at_color;
+        gl_Position = u_projection * u_view * vec4(at_position, 1.0);
     }
 ";
 
@@ -37,30 +37,18 @@ static FRAGMENT: &'static [u8] = b"
     }
 ";
 
-#[shader_param]
-#[derive(Clone)]
-struct ShaderParam<R: gfx::Resources> {
-    pub projection: [[f32; 4]; 4],
-    pub view: [[f32; 4]; 4],
-    pub s_texture: gfx::shade::TextureParam<R>,
-}
+gfx_parameters!( ShaderParam/Link {
+    u_projection@ projection: [[f32; 4]; 4],
+    u_view@ view: [[f32; 4]; 4],
+    s_texture@ texture: gfx::shade::TextureParam<R>,
+});
 
-#[vertex_format]
-#[derive(Copy)]
-pub struct Vertex {
-    #[name="position"]
-    pub xyz: [f32; 3],
-    #[name="tex_coord"]
-    pub uv: [f32; 2],
-    #[name="color"]
-    pub rgb: [f32; 3],
-}
+gfx_vertex!( Vertex {
+    at_position@ xyz: [f32; 3],
+    at_tex_coord@ uv: [f32; 2],
+    at_color@ rgb: [f32; 3],
+});
 
-impl Clone for Vertex {
-    fn clone(&self) -> Vertex {
-        *self
-    }
-}
 
 pub struct Buffer<R: gfx::Resources> {
     batch: gfx::batch::RefBatch<ShaderParam<R>>,
@@ -82,6 +70,7 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
 
     pub fn new(device: D, mut factory: F, frame: O,
                tex: gfx::handle::Texture<D::Resources>) -> Renderer<D, F, O> {
+        use std::marker::PhantomData;
         let sampler = factory.create_sampler(
                 gfx::tex::SamplerInfo::new(
                     gfx::tex::FilterMethod::Scale,
@@ -94,7 +83,8 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
         let params = ShaderParam {
             projection: [[0.0; 4]; 4],
             view: [[0.0; 4]; 4],
-            s_texture: (tex, Some(sampler))
+            texture: (tex, Some(sampler)),
+            _r: PhantomData,
         };
         let prog = graphics.factory.link_program(VERTEX.clone(), FRAGMENT.clone()).ok().unwrap();
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::Comparison::LessEqual, true);
