@@ -260,18 +260,23 @@ fn main() {
                 window.borrow_mut().set_title(title);
             }
             Event::Update(_) => {
+                use std::i32;
                 // HACK(eddyb) find the closest chunk to the player.
                 // The pending vector should be sorted instead.
-                let closest = pending_chunks.iter().enumerate().min_by(
-                    |&(_, &(cc, _, _, _))| {
-                        let pp = first_person.position.map(|x|
-                            (x / 16.0).floor() as i32);
+                let pp = first_person.position.map(|x| (x / 16.0).floor() as i32);
+                let closest = pending_chunks.iter().enumerate().fold(
+                    (None, i32::max_value()),
+                    |(best_i, best_dist), (i, &(cc, _, _, _))| {
                         let xyz = [cc[0] - pp[0], cc[1] - pp[1], cc[2] - pp[2]]
                             .map(|x| x * x);
-                        xyz[0] + xyz[1] + xyz[2]
+                        let dist = xyz[0] + xyz[1] + xyz[2];
+                        if dist < best_dist {
+                            (Some(i), dist)
+                        } else {
+                            (best_i, best_dist)
+                        }
                     }
-                ).map(|(i, _)| i);
-
+                ).0;
                 let pending = closest.and_then(|i| {
                     // Vec swap_remove doesn't return Option anymore
                     match pending_chunks.len() {
@@ -286,7 +291,7 @@ fn main() {
                             coords, chunks, column_biomes
                         );
                         *buffer.borrow_mut() = Some(
-                            renderer.create_buffer(staging_buffer.as_slice())
+                            renderer.create_buffer(&staging_buffer[..])
                         );
                         staging_buffer.clear();
 

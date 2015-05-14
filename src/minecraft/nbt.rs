@@ -40,7 +40,7 @@ impl fmt::Debug for Nbt {
             Nbt::Long(x) => write!(f, "{}L", x),
             Nbt::Float(x) => write!(f, "{:.1}f", x),
             Nbt::Double(x) => write!(f, "{:.1}", x),
-            Nbt::ByteArray(ref x) => write!(f, "b<{}>", x.as_slice().to_hex()),
+            Nbt::ByteArray(ref x) => write!(f, "b<{}>", x[..].to_hex()),
             Nbt::IntArray(ref x) => write!(f, "{:?}", *x),
             Nbt::NbtString(ref x) => write!(f, "\"{}\"", *x),
             Nbt::NbtList(ref x) => write!(f, "{:?}", *x),
@@ -58,7 +58,7 @@ impl fmt::Display for Nbt {
             Nbt::Long(x) => write!(f, "{}", x),
             Nbt::Float(x) => write!(f, "{:.1}", x),
             Nbt::Double(x) => write!(f, "{:.1}", x),
-            Nbt::ByteArray(ref x) => write!(f, "<{}>", x.as_slice().to_hex()),
+            Nbt::ByteArray(ref x) => write!(f, "<{}>", x[..].to_hex()),
             Nbt::IntArray(ref x) => write!(f, "{:?}", *x),
             Nbt::NbtString(ref x) => write!(f, "\"{}\"", *x),
             Nbt::NbtList(ref x) => write!(f, "{:?}", *x),
@@ -115,7 +115,7 @@ impl Nbt {
     }
 
     pub fn as_bytearray<'a>(&'a self) -> Option<&'a [u8]> {
-        match *self { ByteArray(ref b) => Some(b.as_slice()), _ => None }
+        match *self { ByteArray(ref b) => Some(&b[..]), _ => None }
     }
 
     pub fn into_bytearray(self) -> Result<Vec<u8>, Nbt> {
@@ -123,11 +123,11 @@ impl Nbt {
     }
 
     pub fn as_float_list<'a>(&'a self) -> Option<&'a [f32]> {
-        match *self { NbtList(FloatList(ref f)) => Some(f.as_slice()), _ => None }
+        match *self { NbtList(FloatList(ref f)) => Some(&f[..]), _ => None }
     }
 
     pub fn as_double_list<'a>(&'a self) -> Option<&'a [f64]> {
-        match *self { NbtList(DoubleList(ref d)) => Some(d.as_slice()), _ => None }
+        match *self { NbtList(DoubleList(ref d)) => Some(&d[..]), _ => None }
     }
 }
 
@@ -425,7 +425,7 @@ impl serialize::Decoder for Decoder {
                 return Err(ExpectedError("String or Compound".to_string(), nbt.to_string()))
             }
         };
-        let idx = match names.iter().position(|n| *n == name.as_str()) {
+        let idx = match names.iter().position(|n| n == &name) {
             Some(idx) => idx,
             None => return Err(UnknownVariantError(name))
         };

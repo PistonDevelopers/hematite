@@ -116,7 +116,7 @@ impl PartialModel {
             Some(model) => return f(model, atlas),
             None => {}
         }
-        let path = assets.join(Path::new(format!("minecraft/models/{}.json", name).as_str()));
+        let path = assets.join(Path::new(&format!("minecraft/models/{}.json", name)));
         let obj = json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap();
 
         let mut model = match obj.find("parent").and_then(|x| x.as_string()) {

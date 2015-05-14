@@ -152,10 +152,12 @@ impl<R: gfx::Resources> BlockStates<R> {
                     states[j].random_offset = RandomOffset::XZ;
 
                     let next_index = polymorph_oracle.len() as u8;
-                    polymorph_oracle.push_all(&[
-                        IfBlock(Dir::Down, (BLOCK_STATES[j].0.wrapping_sub(id)) as i8, next_index.wrapping_add(2)),
-                        PickBlockState(last_id)
-                    ]);
+                    polymorph_oracle.push(IfBlock(
+                        Dir::Down,
+                        (BLOCK_STATES[j].0.wrapping_sub(id)) as i8,
+                        next_index.wrapping_add(2)
+                    ));
+                    polymorph_oracle.push(PickBlockState(last_id));
                 }
                 random_offset = RandomOffset::XZ;
                 polymorph_oracle.push(PickBlockState(id));
@@ -214,7 +216,7 @@ impl<R: gfx::Resources> BlockStates<R> {
                 Occupied(entry) => entry.into_mut(),
                 Vacant(entry) => entry.insert({
                     let name = state.name;
-                    let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_str()));
+                    let path = assets.join(Path::new(&format!("minecraft/blockstates/{}.json", name)));
                     match json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
                         json::Json::Object(mut json) => match json.remove("variants").unwrap() {
                             json::Json::Object(variants) => variants.into_iter().map(|(k, v)| {
@@ -339,9 +341,8 @@ impl<R: gfx::Resources> BlockStates<R> {
             rotate_faces(&mut model, 2, 1, variant.rotate_x);
             rotate_faces(&mut model, 0, 2, variant.rotate_y);
 
-            let len = models.len();
-            if state.id as usize >= len {
-                models.resize(state.id as usize + 1, ModelAndBehavior::empty());
+            while models.len() <= state.id as usize {
+                models.push(ModelAndBehavior::empty());
             }
 
             models[state.id as usize] = ModelAndBehavior {
@@ -589,8 +590,7 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                     });
 
                     // Split the clockwise quad into two clockwise triangles.
-                    buffer.push_all(&[v[0].clone(), v[1].clone(), v[2].clone()]);
-                    buffer.push_all(&[v[2].clone(), v[3].clone(), v[0].clone()]);
+                    buffer.extend([0,1,2,2,3,0].iter().map(|&i| v[i].clone()));
                 }
             }
         }

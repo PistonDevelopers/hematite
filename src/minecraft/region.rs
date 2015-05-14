@@ -3,7 +3,6 @@ use std::fs::{File, Metadata};
 use std::io;
 use std::path::Path;
 use gfx;
-use libc;
 use mmap;
 
 use array::*;
@@ -61,14 +60,10 @@ impl Region {
     }
 
     fn as_slice<'a>(&'a self) -> &'a [u8] {
-        use std::mem;
-        use std::raw::Slice;
-        let slice = Slice {
-                data: self.mmap.data() as *const u8,
-                len: self.mmap.len()
-            };
-
-        unsafe { mem::transmute(slice) }
+        use std::slice;
+        unsafe {
+            slice::from_raw_parts(self.mmap.data() as *const u8, self.mmap.len())
+        }
     }
 
     pub fn get_chunk_column<R: gfx::Resources>(&self, x: u8, z: u8)
@@ -135,10 +130,8 @@ impl Region {
                     }
                 }),
             };
-            let len = chunks.len();
-            if y as usize >= len {
-                //chunks.reserve(y as usize - len + 1);
-                chunks.resize(y as usize + 1, *EMPTY_CHUNK);
+            while chunks.len() <= y as usize {
+                chunks.push(*EMPTY_CHUNK);
             }
             chunks[y as usize] = chunk;
         }
