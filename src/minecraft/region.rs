@@ -41,8 +41,9 @@ impl Region {
 
         #[cfg(windows)]
         fn map_fd(file: &File) -> mmap::MapOption {
+            use libc;
             use std::os::windows::io::AsRawHandle;
-            let handle: libc::HANDLE = file.as_raw_handle() as libc::HANDLE;
+            let handle = file.as_raw_handle() as libc::HANDLE;
             mmap::MapOption::MapFd(handle)
         }
 
