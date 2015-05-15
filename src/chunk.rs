@@ -93,7 +93,7 @@ impl<R: gfx::Resources> ChunkManager<R> {
                     columns.map(
                         |cz| cz.map(
                             |cx| cx.and_then(
-                                |c| c.chunks.as_slice().get(y as usize)
+                                |c| c.chunks[..].get(y as usize)
                             ).unwrap_or(EMPTY_CHUNK)
                         )
                     )

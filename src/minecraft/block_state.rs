@@ -152,10 +152,12 @@ impl<R: gfx::Resources> BlockStates<R> {
                     states[j].random_offset = RandomOffset::XZ;
 
                     let next_index = polymorph_oracle.len() as u8;
-                    polymorph_oracle.push_all(&[
-                        IfBlock(Dir::Down, (BLOCK_STATES[j].0.wrapping_sub(id)) as i8, next_index.wrapping_add(2)),
-                        PickBlockState(last_id)
-                    ]);
+                    polymorph_oracle.push(IfBlock(
+                        Dir::Down,
+                        (BLOCK_STATES[j].0.wrapping_sub(id)) as i8,
+                        next_index.wrapping_add(2)
+                    ));
+                    polymorph_oracle.push(PickBlockState(last_id));
                 }
                 random_offset = RandomOffset::XZ;
                 polymorph_oracle.push(PickBlockState(id));
@@ -214,7 +216,7 @@ impl<R: gfx::Resources> BlockStates<R> {
                 Occupied(entry) => entry.into_mut(),
                 Vacant(entry) => entry.insert({
                     let name = state.name;
-                    let path = assets.join(Path::new(format!("minecraft/blockstates/{}.json", name).as_str()));
+                    let path = assets.join(Path::new(&format!("minecraft/blockstates/{}.json", name)));
                     match json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap() {
                         json::Json::Object(mut json) => match json.remove("variants").unwrap() {
                             json::Json::Object(variants) => variants.into_iter().map(|(k, v)| {
@@ -273,18 +275,19 @@ impl<R: gfx::Resources> BlockStates<R> {
                                         &mut atlas, &mut partial_model_cache);
 
             let rotate_faces = |m: &mut Model, ix: usize, iy: usize, rot_mat: [i32; 4]| {
-                let [a, b, c, d] = rot_mat.map(|x: i32| x as f32);
+                let (a, b, c, d) = (rot_mat[0] as f32, rot_mat[1] as f32,
+                                    rot_mat[2] as f32, rot_mat[3] as f32);
                 for face in m.faces.iter_mut() {
                     for vertex in face.vertices.iter_mut() {
                         let xyz = &mut vertex.xyz;
-                        let [x, y] = [ix, iy].map(|i| xyz[i] - 0.5);
+                        let (x, y) = (xyz[ix] - 0.5, xyz[iy] - 0.5);
                         xyz[ix] = a * x + b * y + 0.5;
                         xyz[iy] = c * x + d * y + 0.5;
                     }
                     let fixup_cube_face = |f: cube::Face| {
-                        let [a, b, c, d] = rot_mat;
+                        let (a, b, c, d) = (rot_mat[0], rot_mat[1], rot_mat[2], rot_mat[3]);
                         let mut dir = f.direction();
-                        let [x, y] = [dir[ix], dir[iy]];
+                        let (x, y) = (dir[ix], dir[iy]);
                         dir[ix] = a * x + b * y;
                         dir[iy] = c * x + d * y;
                         cube::Face::from_direction(dir).unwrap()
@@ -311,10 +314,11 @@ impl<R: gfx::Resources> BlockStates<R> {
                         let uvs = face.vertices.map(|x| x.uv);
                         let uv_min = [0, 1].map(|i| (uvs[0][i]).min(uvs[1][i])
                                                 .min(uvs[2][i]).min(uvs[3][i]));
-                        let [u_base, v_base] = uv_min.map(|x| (x / 16.0).floor() * 16.0);
+                        let temp = uv_min.map(|x| (x / 16.0).floor() * 16.0);
+                        let (u_base, v_base) = (temp[0], temp[1]);
                         for vertex in face.vertices.iter_mut() {
                             let uv = &mut vertex.uv;
-                            let [u, v] = [uv[0] - u_base, uv[1] - v_base].map(|x| x - 8.0);
+                            let (u, v) = (uv[0] - u_base - 8.0, uv[1] - v_base - 8.0);
                             uv[0] = a * u - b * v + 8.0 + u_base;
                             uv[1] =-c * u + d * v + 8.0 + v_base;
                         }
@@ -337,9 +341,8 @@ impl<R: gfx::Resources> BlockStates<R> {
             rotate_faces(&mut model, 2, 1, variant.rotate_x);
             rotate_faces(&mut model, 0, 2, variant.rotate_y);
 
-            let len = models.len();
-            if state.id as usize >= len {
-                models.resize(state.id as usize + 1, ModelAndBehavior::empty());
+            while models.len() <= state.id as usize {
+                models.push(ModelAndBehavior::empty());
             }
 
             models[state.id as usize] = ModelAndBehavior {
@@ -404,10 +407,14 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
         for z in 0..16_usize {
             for x in 0..16_usize {
                 let at = |dir: [i32; 3]| {
-                    let [dx, dy, dz] = dir.map(|x| x as usize);
-                    let [x, y, z] = [x.wrapping_add(dx), y.wrapping_add(dy), z.wrapping_add(dz)].map(|x| x.wrapping_add(16));
+                    let (dx, dy, dz) = (dir[0] as usize, dir[1] as usize, dir[2] as usize);
+                    let (x, y, z) = (
+                        x.wrapping_add(dx).wrapping_add(16),
+                        y.wrapping_add(dy).wrapping_add(16),
+                        z.wrapping_add(dz).wrapping_add(16)
+                    );
                     let chunk = chunks[y / 16][z / 16][x / 16];
-                    let [x, y, z] = [x, y, z].map(|x| x % 16);
+                    let (x, y, z) = (x % 16, y % 16, z % 16);
                     (chunk.blocks[y][z][x], chunk.light_levels[y][z][x])
                 };
                 let this_block = at([0, 0, 0]).0;
@@ -456,7 +463,7 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                 let block_xyz = match model.random_offset.clone() {
                     RandomOffset::None => block_xyz,
                     random_offset => {
-                        let [x, _, z] = block_xyz;
+                        let (x, z) = (block_xyz[0], block_xyz[2]);
                         let seed = Wrapping((Wrapping(x as i32) * Wrapping(3129871)).0 as i64) ^ Wrapping(z as i64) * Wrapping(116129781);
                         let value = seed * seed * Wrapping(42317861) + seed * Wrapping(11);
                         let ox = (((value.0 >> 16) & 15) as f32 / 15.0 - 0.5) * 0.5;
@@ -495,8 +502,8 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                         let mut rgb = rgb.map(|x: u8| x as f32 / 255.0);
                         let (mut sum_light_level, mut num_light_level) = (0.0, 0.0);
 
-                        let rounded_vertex_xyz = vertex.xyz.map(|x| x.round() as i32);
-                        let [dx, dy, dz] = rounded_vertex_xyz;
+                        let rounded_xyz = vertex.xyz.map(|x| x.round() as i32);
+                        let (dx, dy, dz) = (rounded_xyz[0], rounded_xyz[1], rounded_xyz[2]);
                         for &dx in [dx - 1, dx].iter() {
                             for &dz in [dz - 1, dz].iter() {
                                 for &dy in [dy - 1, dy].iter() {
@@ -510,7 +517,7 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                                             let mut above = true;
                                             for (i, &a) in ao_face.direction().iter().enumerate() {
                                                 let da = [dx, dy, dz][i];
-                                                let va = rounded_vertex_xyz[i];
+                                                let va = rounded_xyz[i];
                                                 let above_da = match a {
                                                     -1 => va - 1,
                                                     1 => va,
@@ -542,7 +549,10 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                                     model::Tint::None | model::Tint::Redstone => continue,
                                     model::Tint::Grass | model::Tint::Foliage => {}
                                 }
-                                let [x, z] = [x.wrapping_add(dx as usize), z.wrapping_add(dz as usize)].map(|x| x.wrapping_add(16));
+                                let (x, z) = (
+                                    x.wrapping_add(dx as usize).wrapping_add(16),
+                                    z.wrapping_add(dz as usize).wrapping_add(16),
+                                );
                                 let biome = match column_biomes[z / 16][x / 16] {
                                     Some(biome) => biomes[biome[z % 16][x % 16]],
                                     None => continue
@@ -580,8 +590,7 @@ pub fn fill_buffer<R: gfx::Resources>(block_states: &BlockStates<R>,
                     });
 
                     // Split the clockwise quad into two clockwise triangles.
-                    buffer.push_all(&[v[0], v[1], v[2]]);
-                    buffer.push_all(&[v[2], v[3], v[0]]);
+                    buffer.extend([0,1,2,2,3,0].iter().map(|&i| v[i].clone()));
                 }
             }
         }

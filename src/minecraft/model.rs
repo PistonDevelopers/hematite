@@ -116,7 +116,7 @@ impl PartialModel {
             Some(model) => return f(model, atlas),
             None => {}
         }
-        let path = assets.join(Path::new(format!("minecraft/models/{}.json", name).as_str()));
+        let path = assets.join(Path::new(&format!("minecraft/models/{}.json", name)));
         let obj = json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap();
 
         let mut model = match obj.find("parent").and_then(|x| x.as_string()) {
@@ -161,16 +161,17 @@ impl PartialModel {
 
                 for (k, v) in element.find("faces").unwrap().as_object().unwrap().iter() {
                     let face: cube::Face = k.parse().unwrap();
-                    let [u0, v0, u1, v1] = match v.find("uv") {
+                    let temp = match v.find("uv") {
                         Some(uv) => {
                             Array::from_iter(uv.as_array().unwrap().iter().map(|x| x.as_f64().unwrap() as f32))
                         }
                         None => match face {
-                            cube::West  | cube::East  => [from[2], from[1], to[2], to[1]],
-                            cube::Down  | cube::Up    => [from[0], from[2], to[0], to[2]],
-                            cube::North | cube::South => [from[0], from[1], to[0], to[1]]
+                                cube::West  | cube::East  => [from[2], from[1], to[2], to[1]],
+                                cube::Down  | cube::Up    => [from[0], from[2], to[0], to[2]],
+                                cube::North | cube::South => [from[0], from[1], to[0], to[1]]
                         }.map(|x| x * 16.0)
                     };
+                    let (u0, v0, u1, v1) = (temp[0], temp[1], temp[2], temp[3]);
 
                     let tex = v.find("texture").unwrap().as_string().unwrap();
                     assert!(tex.starts_with("#"));
@@ -204,19 +205,21 @@ impl PartialModel {
 
                     let xyz = face.vertices(from, scale);
                     // Swap vertical texture coordinates.
-                    let [v0, v1] = [v1, v0];
+                    let (v0, v1) = (v1, v0);
                     // Bring texture coordinates closer to avoid seams.
                     let u_center = (u0 + u1) / 2.0;
-                    let [u0, u1] = [u0, u1].map(|u| u - (u - u_center).signum() / 128.0);
+                    let us = [u0, u1].map(|u| u - (u - u_center).signum() / 128.0);
+                    let (u0, u1) = (us[0], us[1]);
                     let v_center = (v0 + v1) / 2.0;
-                    let [v0, v1] = [v0, v1].map(|v| v - (v - v_center).signum() / 128.0);
+                    let vs = [v0, v1].map(|v| v - (v - v_center).signum() / 128.0);
+                    let (v0, v1) = (vs[0], vs[1]);
                     // Clockwise quad (from bottom-right to top-right).
                     let uvs = [
-                        [u1, v0],
-                        [u0, v0],
-                        [u0, v1],
-                        [u1, v1]
-                    ].map(|[u, v]| match rotation {
+                        (u1, v0),
+                        (u0, v0),
+                        (u0, v1),
+                        (u1, v1)
+                    ].map(|(u, v)| match rotation {
                         Rotate0 => [u, v],
                         Rotate90 => [v, 16.0 - u],
                         Rotate180 => [16.0 - u, 16.0 - v],
@@ -243,9 +246,9 @@ impl PartialModel {
                             for &mut (ref mut face, _) in model.faces[element_start..].iter_mut() {
                                 face.ao_face = None;
 
-                                let [ox, oy] = [origin[ix], origin[iy]];
+                                let (ox, oy) = (origin[ix], origin[iy]);
                                 for v in face.vertices.iter_mut() {
-                                    let [x, y] = [v.xyz[ix] - ox, v.xyz[iy] - oy];
+                                    let (x, y) = (v.xyz[ix] - ox, v.xyz[iy] - oy);
                                     v.xyz[ix] = x * c + y * s;
                                     v.xyz[iy] =-x * s + y * c;
                                 }
@@ -314,7 +317,7 @@ impl Model {
                     let (mut min_u, mut min_v) = (INFINITY, INFINITY);
                     let (mut max_u, mut max_v) = (0.0, 0.0);
                     for vertex in faces[i].vertices.iter() {
-                        let [u, v] = vertex.uv;
+                        let (u, v) = (vertex.uv[0], vertex.uv[1]);
                         min_u = u.min(min_u);
                         min_v = v.min(min_v);
                         max_u = u.max(max_u);

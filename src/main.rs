@@ -1,12 +1,9 @@
-#![feature(box_syntax, collections, convert, core,
-    custom_attribute, plugin, slice_patterns)]
-#![plugin(gfx_macros)]
-
 extern crate byteorder;
 extern crate camera_controllers;
 extern crate event;
 extern crate flate2;
 extern crate fps_counter;
+#[macro_use]
 extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
@@ -79,9 +76,9 @@ fn main() {
     let player_yaw = player_rot[0];
     let player_pitch = player_rot[1];
 
-    let [region_x, region_z] = player_chunk.map(|x| x >> 5);
+    let regions = player_chunk.map(|x| x >> 5);
     let region_file = world.join(
-            format!("region/r.{}.{}.mca", region_x, region_z)
+            format!("region/r.{}.{}.mca", regions[0], regions[1])
         );
     let region = minecraft::region::Region::open(&region_file).unwrap();
 
@@ -120,15 +117,15 @@ fn main() {
     let mut chunk_manager = chunk::ChunkManager::new();
 
     println!("Started loading chunks...");
-    let [cx_base, cz_base] = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
-    for cz in cz_base..cz_base + 16 {
-        for cx in cx_base..cx_base + 16 {
+    let c_bases = player_chunk.map(|x| max(0, (x & 0x1f) - 8) as u8);
+    for cz in c_bases[1]..c_bases[1] + 16 {
+        for cx in c_bases[0]..c_bases[0] + 16 {
             match region.get_chunk_column(cx, cz) {
                 Some(column) => {
-                    let [cx, cz] = [
-                        cx as i32 + region_x * 32,
-                        cz as i32 + region_z * 32
-                    ];
+                    let (cx, cz) = (
+                        cx as i32 + regions[0] * 32,
+                        cz as i32 + regions[1] * 32
+                    );
                     chunk_manager.add_chunk_column(cx, cz, column)
                 }
                 None => {}
@@ -217,10 +214,10 @@ fn main() {
                                     for &dz in [0.0, 16.0].iter() {
                                         use vecmath::col_mat4_transform;
 
-                                        let [x, y, z] = vec3_add(xyz, [dx, dy, dz]);
-                                        let xyzw = col_mat4_transform(view_mat, [x, y, z, 1.0]);
-                                        let [x, y, z, w] = col_mat4_transform(projection_mat, xyzw);
-                                        let xyz = vec3_scale([x, y, z], 1.0 / w);
+                                        let v = vec3_add(xyz, [dx, dy, dz]);
+                                        let xyzw = col_mat4_transform(view_mat, [v[0], v[1], v[2], 1.0]);
+                                        let v = col_mat4_transform(projection_mat, xyzw);
+                                        let xyz = vec3_scale([v[0], v[1], v[2]], 1.0 / v[3]);
                                         bb_min = Array::from_fn(|i| bb_min[i].min(xyz[i]));
                                         bb_max = Array::from_fn(|i| bb_max[i].max(xyz[i]));
                                     }
@@ -263,18 +260,23 @@ fn main() {
                 window.borrow_mut().set_title(title);
             }
             Event::Update(_) => {
+                use std::i32;
                 // HACK(eddyb) find the closest chunk to the player.
                 // The pending vector should be sorted instead.
-                let closest = pending_chunks.iter().enumerate().min_by(
-                    |&(_, &([cx, cy, cz], _, _, _))| {
-                        let [px, py, pz] = first_person.position.map(|x|
-                            (x / 16.0).floor() as i32);
-                        let [x2, y2, z2] = [cx - px, cy - py, cz - pz]
+                let pp = first_person.position.map(|x| (x / 16.0).floor() as i32);
+                let closest = pending_chunks.iter().enumerate().fold(
+                    (None, i32::max_value()),
+                    |(best_i, best_dist), (i, &(cc, _, _, _))| {
+                        let xyz = [cc[0] - pp[0], cc[1] - pp[1], cc[2] - pp[2]]
                             .map(|x| x * x);
-                        x2 + y2 + z2
+                        let dist = xyz[0] + xyz[1] + xyz[2];
+                        if dist < best_dist {
+                            (Some(i), dist)
+                        } else {
+                            (best_i, best_dist)
+                        }
                     }
-                ).map(|(i, _)| i);
-
+                ).0;
                 let pending = closest.and_then(|i| {
                     // Vec swap_remove doesn't return Option anymore
                     match pending_chunks.len() {
@@ -289,7 +291,7 @@ fn main() {
                             coords, chunks, column_biomes
                         );
                         *buffer.borrow_mut() = Some(
-                            renderer.create_buffer(staging_buffer.as_slice())
+                            renderer.create_buffer(&staging_buffer[..])
                         );
                         staging_buffer.clear();
 
