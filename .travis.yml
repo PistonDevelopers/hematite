@@ -1,6 +1,6 @@
 language: rust
 rust:
-    - 1.0.0-beta.4
+    - 1.0.0
 notifications:
     irc: "irc.mozilla.org#piston-internals"
 os:
