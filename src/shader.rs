@@ -1,4 +1,4 @@
-use gfx::traits::{Device, DeviceExt, FactoryExt, ToSlice};
+use gfx::traits::{FactoryExt, ToSlice};
 use gfx::handle::{Texture, Program};
 use gfx;
 use vecmath::Matrix4;
@@ -37,7 +37,7 @@ static FRAGMENT: &'static [u8] = b"
     }
 ";
 
-gfx_parameters!( ShaderParam/Link {
+gfx_parameters!( ShaderParam {
     u_projection@ projection: [[f32; 4]; 4],
     u_view@ view: [[f32; 4]; 4],
     s_texture@ texture: gfx::shade::TextureParam<R>,
@@ -54,22 +54,19 @@ pub struct Buffer<R: gfx::Resources> {
     batch: gfx::batch::RefBatch<ShaderParam<R>>,
 }
 
-pub struct Renderer<D: Device, F: gfx::device::Factory<D::Resources>, O: gfx::Output<D::Resources>> {
-    graphics: gfx::Graphics<D, F>,
-    params: ShaderParam<D::Resources>,
-    frame: O,
+pub struct Renderer<R: gfx::Resources, F, S> {
+    context: gfx::batch::Context<R>,
+    factory: F,
+    pub stream: S,
+    params: ShaderParam<R>,
     cd: gfx::ClearData,
-    prog: gfx::handle::Program<D::Resources>,
-    drawstate: gfx::DrawState
+    prog: gfx::handle::Program<R>,
+    drawstate: gfx::DrawState,
 }
 
-impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
-    F: gfx::device::Factory<R>, D: gfx::Device<Resources=R, CommandBuffer=C>,
-    O: gfx::Output<R>>
-    Renderer<D, F, O> {
+impl<R: gfx::Resources, F: gfx::Factory<R>, S: gfx::Stream<R>> Renderer<R, F, S> {
 
-    pub fn new(device: D, mut factory: F, frame: O,
-               tex: gfx::handle::Texture<D::Resources>) -> Renderer<D, F, O> {
+    pub fn new(mut factory: F, stream: S, tex: gfx::handle::Texture<R>) -> Renderer<R, F, S> {
         use std::marker::PhantomData;
         let sampler = factory.create_sampler(
                 gfx::tex::SamplerInfo::new(
@@ -78,22 +75,21 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
                 )
             );
 
-        let mut graphics = (device, factory).into_graphics();
-
         let params = ShaderParam {
             projection: [[0.0; 4]; 4],
             view: [[0.0; 4]; 4],
             texture: (tex, Some(sampler)),
             _r: PhantomData,
         };
-        let prog = graphics.factory.link_program(VERTEX.clone(), FRAGMENT.clone()).ok().unwrap();
+        let prog = factory.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
         let mut drawstate = gfx::DrawState::new().depth(gfx::state::Comparison::LessEqual, true);
         drawstate.primitive.front_face = gfx::state::FrontFace::Clockwise;
 
         Renderer {
-            graphics: graphics,
+            context: gfx::batch::Context::new(),
+            factory: factory,
+            stream: stream,
             params: params,
-            frame: frame,
             cd: gfx::ClearData {
                 color: [0.81, 0.8, 1.0, 1.0],
                 depth: 1.0,
@@ -113,15 +109,13 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
     }
 
     pub fn clear(&mut self) {
-        self.graphics.clear(self.cd, gfx::COLOR | gfx::DEPTH, &self.frame);
+        self.stream.clear(self.cd);
     }
 
-    pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer<D::Resources> {
-        let buf = self.graphics.factory.create_buffer(data.len(), gfx::BufferUsage::Static);
-        self.graphics.factory.update_buffer(&buf, data, 0);
-        let mesh = gfx::Mesh::from_format(buf, data.len() as u32);
+    pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer<R> {
+        let mesh = self.factory.create_mesh(data);
         Buffer {
-            batch: self.graphics.make_batch(
+            batch: self.context.make_batch(
                     &self.prog,
                     self.params.clone(),
                     &mesh,
@@ -131,12 +125,8 @@ impl<R: gfx::device::Resources, C: gfx::device::draw::CommandBuffer<R>,
         }
     }
 
-    pub fn render(&mut self, buffer: &mut Buffer<D::Resources>) {
+    pub fn render(&mut self, buffer: &mut Buffer<R>) {
         buffer.batch.params = self.params.clone();
-        self.graphics.draw(&buffer.batch, &self.frame).unwrap();
-    }
-
-    pub fn end_frame(&mut self) {
-        self.graphics.end_frame();
+        self.stream.draw(&(&buffer.batch, &self.context)).unwrap();
     }
 }
