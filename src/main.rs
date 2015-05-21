@@ -20,6 +20,7 @@ extern crate window;
 
 extern crate rustc_serialize as serialize;
 
+use gfx::traits::{Device, Stream, StreamFactory};
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube };
@@ -97,12 +98,14 @@ fn main() {
             .vsync(false)
     );
 
-    let (device, mut factory) = gfx_device_gl::create(|s| unsafe {
+    let mut device = gfx_device_gl::Device::new(|s| unsafe {
         std::mem::transmute(sdl2::video::gl_get_proc_address(s))
     });
 
     let Size { width: w, height: h } = window.size();
+    let mut factory = device.spawn_factory();
     let frame = factory.make_fake_output(w as u16, h as u16);
+    let stream = factory.create_stream(frame);
 
     let assets = Path::new("./assets");
 
@@ -112,7 +115,7 @@ fn main() {
     // Load block state definitions and models.
     let block_states = BlockStates::load(&assets, &mut factory);
 
-    let mut renderer = Renderer::new(device, factory, frame, block_states.texture.handle());
+    let mut renderer = Renderer::new(factory, stream, block_states.texture.handle());
 
     let mut chunk_manager = chunk::ChunkManager::new();
 
@@ -244,7 +247,7 @@ fn main() {
                     }
                 });
                 let end_time = time::precise_time_ns();
-                renderer.end_frame();
+                renderer.stream.flush(&mut device);
                 let frame_end_time = time::precise_time_ns();
 
                 let fps = fps_counter.tick();
@@ -258,6 +261,9 @@ fn main() {
                         fps, world.file_name().unwrap().to_str().unwrap()
                     );
                 window.borrow_mut().set_title(title);
+            }
+            Event::AfterRender(_) => {
+                device.cleanup();
             }
             Event::Update(_) => {
                 use std::i32;
