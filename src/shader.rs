@@ -1,4 +1,4 @@
-use gfx::traits::{FactoryExt, ToSlice};
+use gfx::traits::FactoryExt;
 use gfx::handle::{Texture, Program};
 use gfx;
 use vecmath::Matrix4;
@@ -51,11 +51,10 @@ gfx_vertex!( Vertex {
 
 
 pub struct Buffer<R: gfx::Resources> {
-    batch: gfx::batch::RefBatch<ShaderParam<R>>,
+    batch: gfx::batch::Full<ShaderParam<R>>,
 }
 
 pub struct Renderer<R: gfx::Resources, F, S> {
-    context: gfx::batch::Context<R>,
     factory: F,
     pub stream: S,
     params: ShaderParam<R>,
@@ -86,7 +85,6 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, S: gfx::Stream<R>> Renderer<R, F, S>
         drawstate.primitive.front_face = gfx::state::FrontFace::Clockwise;
 
         Renderer {
-            context: gfx::batch::Context::new(),
             factory: factory,
             stream: stream,
             params: params,
@@ -114,19 +112,14 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, S: gfx::Stream<R>> Renderer<R, F, S>
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> Buffer<R> {
         let mesh = self.factory.create_mesh(data);
-        Buffer {
-            batch: self.context.make_batch(
-                    &self.prog,
-                    self.params.clone(),
-                    &mesh,
-                    mesh.to_slice(gfx::PrimitiveType::TriangleList),
-                    &self.drawstate
-                ).unwrap()
-        }
+        let mut b = gfx::batch::Full::new(mesh, self.prog.clone(), self.params.clone())
+                                     .unwrap();
+        b.state = self.drawstate;
+        Buffer { batch: b }
     }
 
     pub fn render(&mut self, buffer: &mut Buffer<R>) {
         buffer.batch.params = self.params.clone();
-        self.stream.draw(&(&buffer.batch, &self.context)).unwrap();
+        self.stream.draw(&buffer.batch).unwrap();
     }
 }

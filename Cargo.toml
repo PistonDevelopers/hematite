@@ -16,50 +16,21 @@ path = "src/main.rs"
 
 [dependencies]
 byteorder = "0.3"
+mmap = "0.1"
 flate2 = "0.2"
 libc = "*"
 rustc-serialize = "0.3"
 time = "*"
-
-[dependencies.mmap]
-git = "https://github.com/retep998/rust-mmap"
-
-[dependencies.sdl2]
-git = "https://github.com/AngryLawyer/rust-sdl2"
-
-[dependencies.pistoncore-sdl2_window]
-git = "https://github.com/PistonDevelopers/sdl2_window"
-
-[dependencies.piston3d-gfx_voxel]
-git = "https://github.com/PistonDevelopers/gfx_voxel"
-
-[dependencies.camera_controllers]
-git = "https://github.com/PistonDevelopers/camera_controllers"
-
-[dependencies.fps_counter]
-git = "https://github.com/PistonDevelopers/fps_counter"
-
-[dependencies.vecmath]
-git = "https://github.com/PistonDevelopers/vecmath"
-
-[dependencies.image]
-git = "https://github.com/PistonDevelopers/image"
-
-[dependencies.pistoncore-input]
-git = "https://github.com/PistonDevelopers/input"
-
-[dependencies.pistoncore-event]
-git = "https://github.com/PistonDevelopers/event"
-
-[dependencies.pistoncore-window]
-git = "https://github.com/PistonDevelopers/window"
-
-[dependencies.gfx]
-git = "https://github.com/gfx-rs/gfx-rs"
-
-[dependencies.gfx_device_gl]
-git = "https://github.com/gfx-rs/gfx_device_gl"
-
-[dependencies.shader_version]
-git = "https://github.com/PistonDevelopers/shader_version"
-
+fps_counter = "0.0.2"
+camera_controllers = "0.1"
+vecmath = "0.1"
+image = "0.3"
+sdl2 = "0.4"
+shader_version = "0.1"
+pistoncore-input = "0.1"
+pistoncore-event = "0.1"
+pistoncore-window = "0.1"
+pistoncore-sdl2_window = "0.2"
+gfx = "0.6"
+gfx_device_gl = "0.4"
+piston3d-gfx_voxel = "0.0.5"
