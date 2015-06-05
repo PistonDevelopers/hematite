@@ -88,7 +88,6 @@ fn main() {
             world.file_name().unwrap().to_str().unwrap()
         );
     let window = Sdl2Window::new(
-        shader_version::OpenGL::_3_3,
         WindowSettings::new(
             loading_title,
             Size { width: 854, height: 480 })
@@ -98,14 +97,13 @@ fn main() {
             .vsync(false)
     );
 
-    let mut device = gfx_device_gl::Device::new(|s| unsafe {
+    let (mut device, mut factory) = gfx_device_gl::create(|s| unsafe {
         std::mem::transmute(sdl2::video::gl_get_proc_address(s))
     });
 
     let Size { width: w, height: h } = window.size();
-    let mut factory = device.spawn_factory();
     let frame = factory.make_fake_output(w as u16, h as u16);
-    let stream = factory.create_stream(frame);
+    let stream: gfx::OwnedStream<gfx_device_gl::Device, _> = factory.create_stream(frame);
 
     let assets = Path::new("./assets");
 
