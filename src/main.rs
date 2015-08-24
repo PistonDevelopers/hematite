@@ -1,6 +1,6 @@
 extern crate byteorder;
 extern crate camera_controllers;
-extern crate event;
+extern crate piston;
 extern crate flate2;
 extern crate fps_counter;
 #[macro_use]
@@ -8,7 +8,6 @@ extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
 extern crate image;
-extern crate input;
 extern crate libc;
 extern crate mmap;
 extern crate sdl2;
@@ -16,7 +15,6 @@ extern crate sdl2_window;
 extern crate shader_version;
 extern crate time;
 extern crate vecmath;
-extern crate window;
 
 extern crate rustc_serialize as serialize;
 
@@ -34,12 +32,13 @@ use std::path::Path;
 use std::rc::Rc;
 
 use array::*;
-use event::{ Event, Events };
+use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
 use sdl2_window::Sdl2Window;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
-use window::{ Size, Window, AdvancedWindow, WindowSettings };
+use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
+    WindowSettings };
 
 use minecraft::biome::Biomes;
 use minecraft::block_state::BlockStates;
@@ -87,19 +86,19 @@ fn main() {
             "Hematite loading... - {}",
             world.file_name().unwrap().to_str().unwrap()
         );
-    let window = Sdl2Window::new(
-        WindowSettings::new(
+    let mut window: Sdl2Window = WindowSettings::new(
             loading_title,
             Size { width: 854, height: 480 })
             .fullscreen(false)
             .exit_on_esc(true)
             .samples(0)
             .vsync(false)
-    );
+            .build()
+            .unwrap();
 
-    let (mut device, mut factory) = gfx_device_gl::create(|s| unsafe {
-        std::mem::transmute(sdl2::video::gl_get_proc_address(s))
-    });
+    let (mut device, mut factory) = gfx_device_gl::create(|s|
+        window.get_proc_address(s)
+    );
 
     let Size { width: w, height: h } = window.size();
     let frame = factory.make_fake_output(w as u16, h as u16);
@@ -156,9 +155,6 @@ fn main() {
     first_person.yaw = PI - player_yaw / 180.0 * PI;
     first_person.pitch = player_pitch / 180.0 * PI;
 
-    // Disable V-Sync.
-    sdl2::video::gl_set_swap_interval(0);
-
     let mut fps_counter = fps_counter::FPSCounter::new();
 
     let mut pending_chunks = vec![];
@@ -175,11 +171,13 @@ fn main() {
     let ref window = Rc::new(RefCell::new(window));
     for e in window.clone().events()
         .ups(120)
-        .max_fps(10_000) {
-        use input::Button::Keyboard;
-        use input::Input::{ Move, Press };
-        use input::keyboard::Key;
-        use input::Motion::MouseRelative;
+        .max_fps(10_000)
+    {
+        use piston::input::Button::Keyboard;
+        use piston::input::Input::{ Move, Press };
+        use piston::input::keyboard::Key;
+        use piston::input::Motion::MouseRelative;
+        use piston::input::Event;
 
         match e {
             Event::Render(_) => {
