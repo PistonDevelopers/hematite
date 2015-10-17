@@ -3,7 +3,7 @@ name = "hematite"
 version = "0.0.0"
 dependencies = [
  "byteorder 0.3.13 (registry+https://github.com/rust-lang/crates.io-index)",
- "camera_controllers 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "camera_controllers 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 0.2.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "fps_counter 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -11,9 +11,9 @@ dependencies = [
  "image 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "mmap 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston3d-gfx_voxel 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-sdl2_window 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-sdl2_window 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -47,12 +47,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "camera_controllers"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston3d-cam 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-input 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quaternion 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "vecmath 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -156,20 +156,12 @@ dependencies = [
 
 [[package]]
 name = "gl"
-version = "0.0.12"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "gl_common 0.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gl_common 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gl_generator 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "khronos_api 0.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "gl_common"
-version = "0.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
+ "khronos_api 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -217,11 +209,6 @@ dependencies = [
  "winapi 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "khronos_api"
-version = "0.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "khronos_api"
@@ -275,12 +262,12 @@ dependencies = [
 
 [[package]]
 name = "piston"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "pistoncore-event_loop 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-input 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-window 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-event_loop 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -333,18 +320,18 @@ dependencies = [
 
 [[package]]
 name = "pistoncore-event_loop"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "clock_ticks 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston-viewport 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-input 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-window 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "pistoncore-input"
-version = "0.6.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -354,23 +341,23 @@ dependencies = [
 
 [[package]]
 name = "pistoncore-sdl2_window"
-version = "0.14.0"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "gl 0.0.12 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-input 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-window 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gl 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "pistoncore-window"
-version = "0.10.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-input 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
