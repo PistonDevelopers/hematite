@@ -123,7 +123,7 @@ fn main() {
             .unwrap();
 
     let (mut device, mut factory) = gfx_device_gl::create(|s|
-        window.get_proc_address(s)
+        window.get_proc_address(s) as *const _
     );
 
     let Size { width: w, height: h } = window.size();
