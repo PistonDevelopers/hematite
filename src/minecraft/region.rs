@@ -1,9 +1,8 @@
 use std::cell::RefCell;
-use std::fs::{File, Metadata};
 use std::io;
 use std::path::Path;
 use gfx;
-use mmap;
+use memmap::{Mmap, Protection};
 
 use array::*;
 use chunk::{
@@ -18,7 +17,7 @@ use chunk::{
 use minecraft::nbt::Nbt;
 
 pub struct Region {
-    mmap: mmap::MemoryMap,
+    mmap: Mmap,
 }
 
 fn array_16x16x16<T, F>(mut f: F) -> [[[T; SIZE]; SIZE]; SIZE]
@@ -33,37 +32,13 @@ fn array_16x16x16<T, F>(mut f: F) -> [[[T; SIZE]; SIZE]; SIZE]
 
 impl Region {
     pub fn open(filename: &Path) -> io::Result<Region> {
-        #[cfg(not(windows))]
-        fn map_fd(file: &File) -> mmap::MapOption {
-            use std::os::unix::io::AsRawFd;
-            mmap::MapOption::MapFd(file.as_raw_fd())
-        }
-
-        #[cfg(windows)]
-        fn map_fd(file: &File) -> mmap::MapOption {
-            use libc;
-            use std::os::windows::io::AsRawHandle;
-            let handle = file.as_raw_handle() as libc::HANDLE;
-            mmap::MapOption::MapFd(handle)
-        }
-
-        let file = try!(File::open(filename));
-        let stat: Metadata = try!(file.metadata());
-        let min_len = stat.len() as usize;
-        let options = &[
-            map_fd(&file),
-            mmap::MapOption::MapReadable
-        ];
-        let res = Region {
-            mmap: mmap::MemoryMap::new(min_len, options).unwrap()
-        };
-        Ok(res)
+        let mmap = try!(Mmap::open_path(filename, Protection::Read));
+        Ok(Region{mmap: mmap})
     }
 
     fn as_slice<'a>(&'a self) -> &'a [u8] {
-        use std::slice;
         unsafe {
-            slice::from_raw_parts(self.mmap.data() as *const u8, self.mmap.len())
+            self.mmap.as_slice()
         }
     }
 

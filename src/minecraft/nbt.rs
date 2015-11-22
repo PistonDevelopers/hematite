@@ -8,8 +8,8 @@ use std::string::{ self, ToString };
 use byteorder::{ BigEndian, ReadBytesExt };
 use byteorder;
 use flate2::read::{ GzDecoder, ZlibDecoder };
-use serialize;
-use serialize::hex::ToHex;
+use rustc_serialize;
+use rustc_serialize::hex::ToHex;
 
 use self::DecoderError::*;
 
@@ -339,7 +339,7 @@ macro_rules! expect(
     ($s:expr, $t:ident as $to:ty) => (expect!($s, $t).map(|x| x as $to))
 );
 
-impl serialize::Decoder for Decoder {
+impl rustc_serialize::Decoder for Decoder {
     type Error = DecoderError;
 
     fn read_nil(&mut self) -> DecodeResult<()> {

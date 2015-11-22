@@ -1,5 +1,6 @@
 extern crate byteorder;
 extern crate camera_controllers;
+extern crate docopt;
 extern crate piston;
 extern crate flate2;
 extern crate fps_counter;
@@ -9,14 +10,14 @@ extern crate gfx_device_gl;
 extern crate gfx_voxel;
 extern crate image;
 extern crate libc;
-extern crate mmap;
+extern crate memmap;
+extern crate rustc_serialize;
 extern crate sdl2;
 extern crate sdl2_window;
 extern crate shader_version;
 extern crate time;
 extern crate vecmath;
-
-extern crate rustc_serialize as serialize;
+extern crate zip;
 
 use gfx::traits::{Device, Stream, StreamFactory};
 // Reexport modules from gfx_voxel while stuff is moving
@@ -28,10 +29,11 @@ use std::cmp::max;
 use std::f32::consts::PI;
 use std::f32::INFINITY;
 use std::fs::File;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
 use array::*;
+use docopt::Docopt;
 use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
 use sdl2_window::Sdl2Window;
@@ -40,29 +42,53 @@ use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
 use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
     WindowSettings };
 
-use minecraft::biome::Biomes;
-use minecraft::block_state::BlockStates;
-
+pub mod minecraft;
 pub mod chunk;
 pub mod shader;
 
-pub mod minecraft {
-    pub use self::data_1_8_pre2 as data;
+use minecraft::*;
+use minecraft::biome::Biomes;
+use minecraft::block_state::BlockStates;
 
-    pub mod data_1_8_pre2;
-    pub mod biome;
-    pub mod block_state;
-    pub mod model;
-    pub mod nbt;
-    pub mod region;
+static USAGE: &'static str = "
+hematite, Minecraft made in Rust!
+
+Usage:
+    hematite [options] <world>
+
+Options:
+    -p, --path               Fully qualified path for world folder.
+    --mcversion=<version>    Minecraft version [default: 1.8.3].
+";
+
+#[derive(RustcDecodable)]
+struct Args {
+    arg_world: String,
+    flag_path: bool,
+    flag_mcversion: String,
 }
 
 fn main() {
-    let mut args = std::env::args();
-    let world = args.nth(1).expect("Usage: ./hematite <path/to/world>");
-    let world = Path::new(&world);
+    let args: Args = Docopt::new(USAGE)
+                            .and_then(|dopt| dopt.decode())
+                            .unwrap_or_else(|e| e.exit());
 
-    let level_reader = GzDecoder::new(File::open(world.join("level.dat")).unwrap()).unwrap();
+    // Automagically pull MC assets
+    minecraft::fetch_assets(&args.flag_mcversion);
+
+    // Automagically expand path if world is located at
+    // $MINECRAFT_ROOT/saves/<world_name>
+    let world = if args.flag_path {
+        PathBuf::from(&args.arg_world)
+    } else {
+        let mut mc_path = minecraft::vanilla_root_path();
+        mc_path.push("saves");
+        mc_path.push(args.arg_world);
+        mc_path
+    };
+
+    let file_name = PathBuf::from(world.join("level.dat"));
+    let level_reader = GzDecoder::new(File::open(file_name).unwrap()).unwrap();
     let level = minecraft::nbt::Nbt::from_reader(level_reader).unwrap();
     println!("{:?}", level);
     let player_pos: [f32; 3] = Array::from_iter(

@@ -10,7 +10,7 @@ use self::OrthoRotation::*;
 
 use array::*;
 use cube;
-use serialize::json;
+use rustc_serialize::json;
 use gfx_voxel::texture::AtlasBuilder;
 
 #[derive(Copy, Clone)]
