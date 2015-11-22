@@ -57,8 +57,8 @@ Usage:
     hematite [options] <world>
 
 Options:
-    -p, --path     Fully qualified path for world folder.
-    --mcv          Minecraft version. [default: 1.8.3]
+    -p, --path               Fully qualified path for world folder.
+    --mcversion=<version>    Minecraft version [default: 1.8.3].
 ";
 
 #[derive(RustcDecodable)]
@@ -69,11 +69,9 @@ struct Args {
 }
 
 fn main() {
-    let opt = Docopt::new(USAGE).unwrap_or_else(|e| e.exit());
-    let args = match opt.decode::<Args>() {
-        Ok(args) => { args }
-        Err(err) => { panic!("{:?}", err); }
-    };
+    let args: Args = Docopt::new(USAGE)
+                            .and_then(|dopt| dopt.decode())
+                            .unwrap_or_else(|e| e.exit());
 
     // Automagically pull MC assets
     minecraft::fetch_assets(&args.flag_mcversion);
