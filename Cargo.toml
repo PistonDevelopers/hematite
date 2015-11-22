@@ -2,8 +2,12 @@
 
 name = "hematite-client"
 version = "0.0.1"
+license = "MIT"
 authors = ["bvssvni <bvssvni@gmail.com>"]
-tags = []
+tags = ["minecraft", "piston", "client"]
+description = "A simple Minecraft client"
+repository = "https://github.com/PistonDevelopers/hematite.git"
+homepage = "http://hematite.piston.rs"
 
 [profile.release]
 opt-level = 2
