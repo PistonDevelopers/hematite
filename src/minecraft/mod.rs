@@ -29,14 +29,14 @@ pub fn vanilla_root_path() -> PathBuf {
 #[cfg(target_os = "linux")]
 pub fn vanilla_root_path() -> PathBuf {
     let home = var("HOME");
-    PathBuf::from(home);
+    let mut buf = PathBuf::from(home);
     buf.push(".minecraft");
     buf
 }
 #[cfg(target_os = "macos")]
 pub fn vanilla_root_path() -> PathBuf {
     let home = var("HOME");
-    PathBuf::from(home);
+    let mut buf = PathBuf::from(home);
     buf.push("Library");
     buf.push("Application Support");
     buf.push("minecraft");
