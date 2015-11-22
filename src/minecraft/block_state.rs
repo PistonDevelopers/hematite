@@ -15,7 +15,7 @@ use minecraft::biome::Biomes;
 use minecraft::data::BLOCK_STATES;
 use minecraft::model::OrthoRotation::*;
 use minecraft::model::{self, Model, OrthoRotation};
-use serialize::json;
+use rustc_serialize::json;
 use shader::Vertex;
 use vecmath::vec3_add;
 
