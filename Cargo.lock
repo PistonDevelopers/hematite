@@ -1,5 +1,5 @@
 [root]
-name = "hematite-client"
+name = "hematite"
 version = "0.0.1"
 dependencies = [
  "byteorder 0.3.13 (registry+https://github.com/rust-lang/crates.io-index)",

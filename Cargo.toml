@@ -1,6 +1,6 @@
 [package]
 
-name = "hematite-client"
+name = "hematite"
 version = "0.0.1"
 license = "MIT"
 authors = ["bvssvni <bvssvni@gmail.com>"]
