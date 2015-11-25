@@ -1,10 +1,10 @@
 [package]
 
 name = "hematite"
-version = "0.0.1"
+version = "0.0.2"
 license = "MIT"
 authors = ["bvssvni <bvssvni@gmail.com>"]
-tags = ["minecraft", "piston", "client"]
+keywords = ["minecraft", "piston", "client"]
 description = "A simple Minecraft client"
 repository = "https://github.com/PistonDevelopers/hematite.git"
 homepage = "http://hematite.piston.rs"

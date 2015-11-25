@@ -1,6 +1,5 @@
 language: rust
 rust:
-    - stable
     - nightly
 notifications:
     irc: "irc.mozilla.org#piston-internals"
