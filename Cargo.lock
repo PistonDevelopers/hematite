@@ -1,8 +1,8 @@
 [root]
 name = "hematite"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
- "byteorder 0.3.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "camera_controllers 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "docopt 0.6.76 (registry+https://github.com/rust-lang/crates.io-index)",
  "flate2 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -14,7 +14,7 @@ dependencies = [
  "memmap 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston3d-gfx_voxel 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-sdl2_window 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-sdl2_window 0.21.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -53,6 +53,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "byteorder"
 version = "0.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "byteorder"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -196,12 +201,11 @@ dependencies = [
 
 [[package]]
 name = "gl"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "gl_generator 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gl_generator 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "khronos_api 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -215,6 +219,16 @@ dependencies = [
 [[package]]
 name = "gl_generator"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "khronos_api 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xml-rs 0.1.26 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "gl_generator"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "khronos_api 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -410,10 +424,10 @@ dependencies = [
 
 [[package]]
 name = "pistoncore-sdl2_window"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "gl 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gl 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-window 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
