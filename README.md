@@ -5,7 +5,6 @@ A simple Minecraft written in Rust with the Piston game engine
 ![screenshot](./screenshot.png)
 
 ## Getting Started
-
 ### Windows
 
 * Download SDL2 binaries from <https://www.libsdl.org/download-2.0.php>
@@ -13,11 +12,13 @@ A simple Minecraft written in Rust with the Piston game engine
 
 ### OS X
 
-`$ brew install sdl2`
+* If you have brew installed you can `$ brew install sdl2`
 
-### Ubuntu
+### Linux
 
-`$ sudo apt-get install libsdl2-dev`
+* Ubuntu users can use `$ sudo apt-get install libsdl2-dev`
+
+* Otherwise install sdl2 with your distro's package manager
 
 Should get you going without problems, if you find any issues please file them.
 
@@ -25,40 +26,18 @@ Should get you going without problems, if you find any issues please file them.
 
 *This method is only for personal use. Never distribute copyrighted content from Minecraft.*
 
-`<version> = 1.8.1`
-
 * In the Minecraft Launcher, click the button "New Profile"
-* Type in a profile name, for example "experimental"
-* Check "Enable experimental development versions"
-* A message warns you about keeping backups of your worlds. Click "Yes" (remember to do backups)
-* In the drop down "use version", select `<version>`
+* In the drop down "use version", select `1.8.3`
 * Click "Save Profile"
 * Click "Play" (this will download the snapshot)
 * Quit Minecraft
-* Check out where is your Minecraft folder located (section below)
-* Copy `<minecraft_folder>/versions/<version>/<version>.jar` to the assets folder in Hematite
-* Rename the file to `<version>.zip` and open it
-* Copy the `minecraft` folder from the new zip file put it in the Hematite `assets` folder
-* Optional: you can remove `<version>.zip` it's not required anymore
-* Run hematite with: `cargo run --release "<path_to_minecraft_world>"`
 
-### Windows
-
-Minecraft folder: `%appdata%\minecraft`
-
-Worlds folder: `%appdata%\minecraft\saves\<world>`
-
-### OS X
-
-Minecraft folder: `~/Library/Application Support/minecraft`
-
-Worlds folder: `~/Library/Application Support/minecraft/saves/<world>`
-
-### Linux
-
-Minecraft folder: `~/.minecraft`
-
-Worlds folder: `~/.minecraft/saves/<world>`
+* **Copy** your world save to to the hematite directory (It may corrupt your world)
+* Save Locations:
+  * **Windows:** `%appdata%\minecraft\saves\`
+  * **OSX:** `~/Library/Application Support/minecraft/saves/`
+  * **Linux/Other:** `~/.minecraft/saves/`
+* Run hematite with: `cargo run --release "./<WORLD_NAME>"`
 
 ## Dependencies
 
