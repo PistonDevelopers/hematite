@@ -215,7 +215,7 @@ fn main() {
                 xz_forward = vec3_normalized(xz_forward);
                 camera.position = vec3_add(
                     camera.position,
-                    vec3_scale(xz_forward, 0.1)
+                    vec3_scale(xz_forward, 0.0)
                 );
 
                 let view_mat = camera.orthogonal();
