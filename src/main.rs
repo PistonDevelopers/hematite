@@ -58,7 +58,7 @@ Usage:
 
 Options:
     -p, --path               Fully qualified path for world folder.
-    --mcversion=<version>    Minecraft version [default: 1.8.3].
+    --mcversion=<version>    Minecraft version [default: 1.8.8].
 ";
 
 #[derive(RustcDecodable)]
