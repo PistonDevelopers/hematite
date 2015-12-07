@@ -38,7 +38,7 @@ use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
 use sdl2_window::Sdl2Window;
 use shader::Renderer;
-use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
+use vecmath::{ vec3_add, vec3_scale};
 use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
     WindowSettings };
 
@@ -210,14 +210,6 @@ fn main() {
                 // Apply the same y/z camera offset vanilla minecraft has.
                 let mut camera = first_person.camera(0.0);
                 camera.position[1] += 1.62;
-                let mut xz_forward = camera.forward;
-                xz_forward[1] = 0.0;
-                xz_forward = vec3_normalized(xz_forward);
-                camera.position = vec3_add(
-                    camera.position,
-                    vec3_scale(xz_forward, 0.0)
-                );
-
                 let view_mat = camera.orthogonal();
                 renderer.set_view(view_mat);
                 renderer.clear();
