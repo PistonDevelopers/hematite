@@ -5,6 +5,9 @@ A simple Minecraft written in Rust with the Piston game engine
 ![screenshot](./screenshot.png)
 
 ## Getting Started
+
+First, you need to install SDL2:
+
 ### Windows
 
 * Download SDL2 binaries from <https://www.libsdl.org/download-2.0.php>
@@ -12,13 +15,12 @@ A simple Minecraft written in Rust with the Piston game engine
 
 ### OS X
 
-* If you have brew installed you can `$ brew install sdl2`
+* If you have [Homebrew](http://brew.sh/) installed, you can `$ brew install sdl2`.
 
 ### Linux
 
-* Ubuntu users can use `$ sudo apt-get install libsdl2-dev`
-
-* Otherwise install sdl2 with your distro's package manager
+* Ubuntu users can use `$ sudo apt-get install libsdl2-dev`.
+* Otherwise install sdl2 with your distro's package manager.
 
 Should get you going without problems, if you find any issues please file them.
 
@@ -26,10 +28,10 @@ Should get you going without problems, if you find any issues please file them.
 
 *This method is only for personal use. Never distribute copyrighted content from Minecraft.*
 
-* In the Minecraft Launcher, click the button "New Profile"
-* In the drop down "use version", select `1.8.3`
-* Click "Save Profile"
-* Click "Play" (this will download the snapshot)
+* In the Minecraft Launcher, click the button “New Profile”
+* In the drop down "use version", select `1.8.8`
+* Click “Save Profile”
+* Click “Play” (this will download the snapshot)
 * Quit Minecraft
 
 * **Copy** your world save to to the hematite directory (It may corrupt your world)
