@@ -1,6 +1,6 @@
 [root]
 name = "hematite"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "camera_controllers 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -9,11 +9,11 @@ dependencies = [
  "fps_counter 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_device_gl 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "image 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston3d-gfx_voxel 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston3d-gfx_voxel 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-sdl2_window 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -187,7 +187,7 @@ dependencies = [
 
 [[package]]
 name = "gif"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "color_quant 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -238,12 +238,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "image"
-version = "0.5.4"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_primitive 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gif 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gif 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glob 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "png 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -360,17 +360,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "piston-gfx_texture"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gfx 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "image 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston-texture 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston-texture 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "piston-texture"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -392,13 +392,13 @@ dependencies = [
 
 [[package]]
 name = "piston3d-gfx_voxel"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "array 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "image 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston-gfx_texture 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "image 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston-gfx_texture 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
