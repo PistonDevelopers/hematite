@@ -1,7 +1,7 @@
 [package]
 
 name = "hematite"
-version = "0.0.4"
+version = "0.0.5"
 license = "MIT"
 authors = ["bvssvni <bvssvni@gmail.com>"]
 keywords = ["minecraft", "piston", "client"]
@@ -26,11 +26,11 @@ flate2 = "0.2"
 fps_counter = "0.2.0"
 gfx = "0.8.0"
 gfx_device_gl = "0.7.0"
-image = "0.5.0"
+image = "0.6.0"
 libc = "0.2.2"
 memmap = "0.2.2"
 piston = "0.16.0"
-piston3d-gfx_voxel = "0.5.0"
+piston3d-gfx_voxel = "0.6.0"
 pistoncore-sdl2_window = "0.22.0"
 rustc-serialize = "0.3"
 sdl2 = "0.12.0"
