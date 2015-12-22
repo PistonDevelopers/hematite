@@ -90,8 +90,7 @@ impl Nbt {
     }
 
     pub fn from_gzip(data: &[u8]) -> NbtReaderResult<Nbt> {
-        assert_eq!(&data[..4], &[0x1fu8, 0x8b, 0x08, 0x00]);
-        let reader = GzDecoder::new(&data[10..]).unwrap();
+        let reader = GzDecoder::new(data).unwrap();
         Nbt::from_reader(reader)
     }
 
