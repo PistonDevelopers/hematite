@@ -46,7 +46,6 @@ pub mod minecraft;
 pub mod chunk;
 pub mod shader;
 
-use minecraft::*;
 use minecraft::biome::Biomes;
 use minecraft::block_state::BlockStates;
 
