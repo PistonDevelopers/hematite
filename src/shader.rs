@@ -1,5 +1,4 @@
 use gfx::traits::FactoryExt;
-use gfx::handle::{Texture, Program};
 use gfx;
 use vecmath::Matrix4;
 
