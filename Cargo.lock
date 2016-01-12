@@ -1,6 +1,6 @@
 [root]
 name = "hematite"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "byteorder 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "camera_controllers 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -12,7 +12,7 @@ dependencies = [
  "image 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston3d-gfx_voxel 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-sdl2_window 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -345,10 +345,10 @@ dependencies = [
 
 [[package]]
 name = "piston"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "pistoncore-event_loop 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-event_loop 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-input 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-window 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "pistoncore-event_loop"
-version = "0.16.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "piston-viewport 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",

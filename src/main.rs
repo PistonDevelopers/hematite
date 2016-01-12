@@ -24,13 +24,11 @@ use gfx::traits::{Device, Stream, StreamFactory};
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube };
 
-use std::cell::RefCell;
 use std::cmp::max;
 use std::f32::consts::PI;
 use std::f32::INFINITY;
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 
 use array::*;
 use docopt::Docopt;
@@ -193,11 +191,8 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let ref window = Rc::new(RefCell::new(window));
-    for e in window.clone().events()
-        .ups(120)
-        .max_fps(10_000)
-    {
+    let mut events = window.events().ups(120).max_fps(10_000);
+    while let Some(e) = events.next(&mut window) {
         use piston::input::Button::Keyboard;
         use piston::input::Input::{ Move, Press };
         use piston::input::keyboard::Key;
@@ -281,7 +276,7 @@ fn main() {
                         (frame_end_time - end_time) as f64 / 1e6,
                         fps, world.file_name().unwrap().to_str().unwrap()
                     );
-                window.borrow_mut().set_title(title);
+                window.set_title(title);
             }
             Event::AfterRender(_) => {
                 device.cleanup();
@@ -334,7 +329,7 @@ fn main() {
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
-                window.borrow_mut().set_capture_cursor(capture_cursor);
+                window.set_capture_cursor(capture_cursor);
             }
             Event::Input(Move(MouseRelative(_, _))) => {
                 if !capture_cursor {
