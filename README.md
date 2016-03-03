@@ -36,7 +36,7 @@ Should get you going without problems, if you find any issues please file them.
 
 * **Copy** your world save to to the hematite directory (It may corrupt your world)
 * Save Locations:
-  * **Windows:** `%appdata%\minecraft\saves\`
+  * **Windows:** `%appdata%\.minecraft\saves\`
   * **OSX:** `~/Library/Application Support/minecraft/saves/`
   * **Linux/Other:** `~/.minecraft/saves/`
 * Run hematite with: `cargo run --release "./<WORLD_NAME>"`
