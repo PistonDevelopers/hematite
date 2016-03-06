@@ -1,25 +1,22 @@
 extern crate byteorder;
 extern crate camera_controllers;
 extern crate docopt;
-extern crate piston;
 extern crate flate2;
 extern crate fps_counter;
-#[macro_use]
-extern crate gfx;
+#[macro_use] extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
+extern crate sdl2_window;
 extern crate image;
 extern crate libc;
 extern crate memmap;
+extern crate piston;
 extern crate rustc_serialize;
-extern crate sdl2;
-extern crate sdl2_window;
 extern crate shader_version;
 extern crate time;
 extern crate vecmath;
 extern crate zip;
 
-use gfx::traits::{Device, Stream, StreamFactory};
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
 pub use gfx_voxel::{ array, cube };
@@ -28,13 +25,14 @@ use std::cmp::max;
 use std::f32::consts::PI;
 use std::f32::INFINITY;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::{ Path, PathBuf };
 
 use array::*;
 use docopt::Docopt;
 use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
 use sdl2_window::Sdl2Window;
+use gfx::traits::Device;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
 use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
@@ -109,6 +107,7 @@ fn main() {
             "Hematite loading... - {}",
             world.file_name().unwrap().to_str().unwrap()
         );
+
     let mut window: Sdl2Window = WindowSettings::new(
             loading_title,
             Size { width: 854, height: 480 })
@@ -124,8 +123,9 @@ fn main() {
     );
 
     let Size { width: w, height: h } = window.size();
-    let frame = factory.make_fake_output(w as u16, h as u16);
-    let stream: gfx::OwnedStream<gfx_device_gl::Device, _> = factory.create_stream(frame);
+
+    let (target_view, depth_view) = gfx_device_gl::create_main_targets(
+        (w as u16, h as u16, 1, (0 as gfx::tex::NumSamples).into()));
 
     let assets = Path::new("./assets");
 
@@ -135,7 +135,7 @@ fn main() {
     // Load block state definitions and models.
     let block_states = BlockStates::load(&assets, &mut factory);
 
-    let mut renderer = Renderer::new(factory, stream, block_states.texture.handle());
+    let mut renderer = Renderer::new(factory, target_view, depth_view, block_states.texture.surface.clone());
 
     let mut chunk_manager = chunk::ChunkManager::new();
 
@@ -263,12 +263,12 @@ fn main() {
                     }
                 });
                 let end_time = time::precise_time_ns();
-                renderer.stream.flush(&mut device);
+                renderer.flush(&mut device);
                 let frame_end_time = time::precise_time_ns();
 
                 let fps = fps_counter.tick();
                 let title = format!(
-"Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
+                        "Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
                         num_sorted_chunks,
                         num_chunks,
                         num_total_chunks,
