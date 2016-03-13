@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use array::*;
-use shader::Buffer;
+use shader::Vertex;
 use gfx;
 
 #[derive(Copy, Clone)]
@@ -54,7 +54,7 @@ pub const EMPTY_CHUNK: &'static Chunk = &Chunk {
 
 pub struct ChunkColumn<R: gfx::Resources> {
     pub chunks: Vec<Chunk>,
-    pub buffers: [RefCell<Option<Buffer<R>>>; SIZE],
+    pub buffers: [RefCell<Option<gfx::handle::Buffer<R, Vertex>>>; SIZE],
     pub biomes: [[BiomeId; SIZE]; SIZE]
 }
 
@@ -75,7 +75,7 @@ impl<R: gfx::Resources> ChunkManager<R> {
 
     pub fn each_chunk_and_neighbors<'a, F>(&'a self, mut f: F)
         where F: FnMut(/*coords:*/ [i32; 3],
-                       /*buffer:*/ &'a RefCell<Option<Buffer<R>>>,
+                       /*buffer:*/ &'a RefCell<Option<gfx::handle::Buffer<R, Vertex>>>,
                        /*chunks:*/ [[[&'a Chunk; 3]; 3]; 3],
                        /*biomes:*/ [[Option<&'a [[BiomeId; SIZE]; SIZE]>; 3]; 3])
 
@@ -105,7 +105,8 @@ impl<R: gfx::Resources> ChunkManager<R> {
     }
 
     pub fn each_chunk<F>(&self, mut f: F)
-        where F: FnMut(/*x:*/ i32, /*y:*/ i32, /*z:*/ i32, /*c:*/ &Chunk, /*b:*/ &RefCell<Option<Buffer<R>>>)
+        where F: FnMut(/*x:*/ i32, /*y:*/ i32, /*z:*/ i32, /*c:*/ &Chunk, 
+            /*b:*/ &RefCell<Option<gfx::handle::Buffer<R, Vertex>>>)
     {
         for (&(x, z), c) in self.chunk_columns.iter() {
             for (y, (c, b)) in c.chunks.iter()
