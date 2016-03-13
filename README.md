@@ -4,6 +4,26 @@ A simple Minecraft written in Rust with the Piston game engine
 
 ![screenshot](./screenshot.png)
 
+## Getting Started
+
+First, you need to install SDL2:
+
+### Windows
+
+* Download SDL2 binaries from <https://www.libsdl.org/download-2.0.php>
+* Copy SDL2.dll to `C:\Rust\bin\rustlib\x86_64-pc-windows-gnu\lib`, also in Hematite's root folder.
+
+### OS X
+
+* If you have [Homebrew](http://brew.sh/) installed, you can `$ brew install sdl2`.
+
+### Linux
+
+* Ubuntu users can use `$ sudo apt-get install libsdl2-dev`.
+* Otherwise install sdl2 with your distro's package manager.
+
+Should get you going without problems, if you find any issues please file them.
+
 ## How To Open a World
 
 *This method is only for personal use. Never distribute copyrighted content from Minecraft.*
