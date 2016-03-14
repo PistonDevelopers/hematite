@@ -111,7 +111,7 @@ impl Nbt {
         match self { Nbt::List(List::Compound(c)) => Ok(c), x => Err(x) }
     }
 
-    pub fn as_bytearray<'a>(&'a self) -> Option<&'a [u8]> {
+    pub fn as_bytearray(&self) -> Option<&[u8]> {
         match *self { Nbt::ByteArray(ref b) => Some(&b[..]), _ => None }
     }
 
@@ -119,11 +119,11 @@ impl Nbt {
         match self { Nbt::ByteArray(b) => Ok(b), x => Err(x) }
     }
 
-    pub fn as_float_list<'a>(&'a self) -> Option<&'a [f32]> {
+    pub fn as_float_list(&self) -> Option<&[f32]> {
         match *self { Nbt::List(List::Float(ref f)) => Some(&f[..]), _ => None }
     }
 
-    pub fn as_double_list<'a>(&'a self) -> Option<&'a [f64]> {
+    pub fn as_double_list(&self) -> Option<&[f64]> {
         match *self { Nbt::List(List::Double(ref d)) => Some(&d[..]), _ => None }
     }
 }
@@ -226,13 +226,8 @@ impl<R: Read> NbtReader<R> {
 
     fn compound(&mut self) -> NbtReaderResult<Compound> {
         let mut map = HashMap::new();
-        loop {
-            match try!(self.tag()) {
-                Some((v, name)) => {
-                    map.insert(name, v);
-                }
-                None => break
-            }
+        while let Some((v, name)) = try!(self.tag()) {
+            map.insert(name, v);
         }
         Ok(map)
     }

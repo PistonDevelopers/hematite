@@ -44,7 +44,7 @@ impl Biomes {
 impl Index<BiomeId> for Biomes {
     type Output = Biome;
 
-    fn index<'a>(&'a self, id: BiomeId) -> &'a Biome {
+    fn index(&self, id: BiomeId) -> &Biome {
         self.biomes[id.value as usize].as_ref().unwrap()
     }
 }

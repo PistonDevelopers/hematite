@@ -34,16 +34,10 @@ impl LightLevel {
 pub const SIZE: usize = 16;
 
 /// A chunk of SIZE x SIZE x SIZE blocks, in YZX order.
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Chunk {
     pub blocks: [[[BlockState; SIZE]; SIZE]; SIZE],
     pub light_levels: [[[LightLevel; SIZE]; SIZE]; SIZE]
-}
-
-impl Clone for Chunk {
-    fn clone(&self) -> Chunk {
-        *self
-    }
 }
 
 // TODO: Change to const pointer.
