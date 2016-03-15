@@ -81,7 +81,7 @@ impl<R: gfx::Resources, F: gfx::Factory<R>> Renderer<R, F> {
         let texture_view = factory.view_texture_as_shader_resource::<gfx::format::Rgba8>(
             &tex, (0, 0), gfx::format::Swizzle::new()).unwrap();
 
-        let prog = factory.link_program(VERTEX.clone(), FRAGMENT.clone()).unwrap();
+        let prog = factory.link_program(VERTEX, FRAGMENT).unwrap();
 
         let mut rasterizer = gfx::state::Rasterizer::new_fill(gfx::state::CullFace::Back);
         rasterizer.front_face = gfx::state::FrontFace::Clockwise;

@@ -36,7 +36,7 @@ impl Region {
         Ok(Region{mmap: mmap})
     }
 
-    fn as_slice<'a>(&'a self) -> &'a [u8] {
+    fn as_slice(&self) -> &[u8] {
         unsafe {
             self.mmap.as_slice()
         }

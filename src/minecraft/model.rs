@@ -47,16 +47,12 @@ impl OrthoRotation {
     }
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 pub struct Face {
     pub vertices: [Vertex; 4],
     pub tint: bool,
     pub cull_face: Option<cube::Face>,
     pub ao_face: Option<cube::Face>
-}
-
-impl Clone for Face {
-    fn clone(&self) -> Face { *self }
 }
 
 #[derive(Clone)]
@@ -139,7 +135,7 @@ impl PartialModel {
         match obj.find("textures").and_then(|x| x.as_object()) {
             Some(textures) => for (name, tex) in textures.iter() {
                 let tex = tex.as_string().unwrap();
-                let tex = if tex.starts_with("#") {
+                let tex = if tex.starts_with('#') {
                     PartialTexture::Variable(tex[1..].to_string())
                 } else {
                     let (u, v) = atlas.load(tex);
@@ -150,7 +146,7 @@ impl PartialModel {
             None => {}
         }
 
-        match obj.find("elements").and_then(|x: &json::Json| x.as_array().map(|x| x.clone())) {
+        match obj.find("elements").and_then(|x: &json::Json| x.as_array().cloned()) {
             Some(elements) => for element in elements.iter().map(|x| x) {
                 let from = array3_num(element.find("from").unwrap(), |x| x as f32 / 16.0);
                 let to = array3_num(element.find("to").unwrap(), |x| x as f32 / 16.0);
@@ -292,7 +288,7 @@ impl Model {
         PartialModel::load(&format!("block/{}", name), assets, atlas, cache, |partial, atlas| {
             let mut faces: Vec<Face> = partial.faces.iter().map(|&(mut face, ref tex)| {
                 fn texture_coords(textures: &HashMap<String, PartialTexture>,
-                                  tex: &String) -> Option<(f32, f32)> {
+                                  tex: &str) -> Option<(f32, f32)> {
                     match textures.get(tex) {
                         Some(&PartialTexture::Variable(ref tex)) => texture_coords(textures, tex),
                         Some(&PartialTexture::Coords(u, v)) => Some((u, v)),
@@ -337,13 +333,13 @@ impl Model {
                 }
             }
 
-            if !partial.no_ambient_occlusion {
-                if faces.iter().any(|f| f.ao_face.is_none()) {
-                    println!("Warning: model {} uses AO but has faces which are unsuitable", name);
-                }
-            } else {
+            if partial.no_ambient_occlusion {
                 for face in faces.iter_mut() {
                     face.ao_face = None;
+                }
+            } else {
+                if faces.iter().any(|f| f.ao_face.is_none()) {
+                    println!("Warning: model {} uses AO but has faces which are unsuitable", name);
                 }
             }
 
