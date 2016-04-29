@@ -6,7 +6,6 @@ use std::ops::Index;
 use std::string::{ self, ToString };
 
 use byteorder::{ BigEndian, ReadBytesExt };
-use byteorder;
 use flate2::read::{ GzDecoder, ZlibDecoder };
 use rustc_serialize;
 use rustc_serialize::hex::ToHex;
@@ -157,16 +156,11 @@ pub type NbtReaderResult<T> = Result<T, NbtReaderError>;
 #[derive(Debug)]
 pub enum NbtReaderError {
     Io(io::Error),
-    Byteorder(byteorder::Error),
     Utf8(string::FromUtf8Error),
 }
 
 impl From<io::Error> for NbtReaderError {
     fn from(err: io::Error) -> NbtReaderError { NbtReaderError::Io(err) }
-}
-
-impl From<byteorder::Error> for NbtReaderError {
-    fn from(err: byteorder::Error) -> NbtReaderError { NbtReaderError::Byteorder(err) }
 }
 
 impl From<string::FromUtf8Error> for NbtReaderError {

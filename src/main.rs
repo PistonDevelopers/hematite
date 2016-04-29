@@ -63,6 +63,25 @@ struct Args {
     flag_mcversion: String,
 }
 
+fn create_main_targets(dim: gfx::tex::Dimensions) ->
+(gfx::handle::RenderTargetView<
+    gfx_device_gl::Resources, gfx::format::Srgba8>,
+ gfx::handle::DepthStencilView<
+    gfx_device_gl::Resources, gfx::format::DepthStencil>) {
+    use gfx::core::factory::Typed;
+    use gfx::format::{DepthStencil, Format, Formatted, Srgba8};
+
+    let color_format: Format = <Srgba8 as Formatted>::get_format();
+    let depth_format: Format = <DepthStencil as Formatted>::get_format();
+    let (output_color, output_stencil) =
+        gfx_device_gl::create_main_targets_raw(dim,
+                                               color_format.0,
+                                               depth_format.0);
+    let output_color = Typed::new(output_color);
+    let output_stencil = Typed::new(output_stencil);
+    (output_color, output_stencil)
+}
+
 fn main() {
     let args: Args = Docopt::new(USAGE)
                             .and_then(|dopt| dopt.decode())
@@ -124,7 +143,7 @@ fn main() {
 
     let Size { width: w, height: h } = window.size();
 
-    let (target_view, depth_view) = gfx_device_gl::create_main_targets(
+    let (target_view, depth_view) = create_main_targets(
         (w as u16, h as u16, 1, (0 as gfx::tex::NumSamples).into()));
 
     let assets = Path::new("./assets");
@@ -135,7 +154,8 @@ fn main() {
     // Load block state definitions and models.
     let block_states = BlockStates::load(&assets, &mut factory);
 
-    let mut renderer = Renderer::new(factory, target_view, depth_view, block_states.texture.surface.clone());
+	let encoder = factory.create_command_buffer().into();
+    let mut renderer = Renderer::new(factory, encoder, target_view, depth_view, block_states.texture.surface.clone());
 
     let mut chunk_manager = chunk::ChunkManager::new();
 

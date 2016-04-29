@@ -1,7 +1,7 @@
 [package]
 
 name = "hematite"
-version = "0.0.8"
+version = "0.0.9"
 license = "MIT"
 authors = ["bvssvni <bvssvni@gmail.com>"]
 keywords = ["minecraft", "piston", "client"]
@@ -19,19 +19,19 @@ name = "hematite"
 path = "src/main.rs"
 
 [dependencies]
-byteorder = "0.4.2"
-camera_controllers = "0.11.0"
+byteorder = "0.5.1"
+camera_controllers = "0.13.0"
 docopt = "0.6.78"
 flate2 = "0.2.13"
 fps_counter = "0.2.0"
-gfx = "0.9.1"
-gfx_device_gl = "0.8.2"
-image = "0.6.1"
+gfx = "0.10.1"
+gfx_device_gl = "0.9.0"
+image = "0.9.0"
 libc = "0.2.7"
 memmap = "0.2.3"
-piston = "0.18.0"
-piston3d-gfx_voxel = "0.7.0"
-pistoncore-sdl2_window = "0.25.0"
+piston = "0.20.1"
+piston3d-gfx_voxel = "0.8.0"
+pistoncore-sdl2_window = "0.29.0"
 rustc-serialize = "0.3.18"
 shader_version = "0.2.1"
 time = "0.1.34"
