@@ -42,7 +42,7 @@ gfx_pipeline!( pipe {
     transform: gfx::Global<[[f32; 4]; 4]> = "u_projection",
     view: gfx::Global<[[f32; 4]; 4]> = "u_view",
     color: gfx::TextureSampler<[f32; 4]> = "s_texture",
-    out_color: gfx::RenderTarget<gfx::format::Rgba8> = "out_color",
+    out_color: gfx::RenderTarget<gfx::format::Srgba8> = "out_color",
     out_depth: gfx::DepthTarget<gfx::format::DepthStencil> = 
         gfx::preset::depth::LESS_EQUAL_WRITE,
 });
@@ -54,22 +54,22 @@ gfx_vertex_struct!( Vertex {
 });
 
 
-pub struct Renderer<R: gfx::Resources, F: gfx::Factory<R>> {
+pub struct Renderer<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> {
     factory: F,
     pub pipe: gfx::PipelineState<R, pipe::Meta>,
     data: pipe::Data<R>,
-    encoder: gfx::Encoder<R, F::CommandBuffer>,
+    encoder: gfx::Encoder<R, C>,
     clear_color: [f32; 4],
     clear_depth: f32,
     clear_stencil: u8,
     slice: gfx::Slice<R>,
 }
 
-impl<R: gfx::Resources, F: gfx::Factory<R>> Renderer<R, F> {
+impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R, F, C> {
 
-    pub fn new(mut factory: F, target: gfx::handle::RenderTargetView<R, gfx::format::Rgba8>,
+    pub fn new(mut factory: F, encoder: gfx::Encoder<R, C>, target: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
         depth: gfx::handle::DepthStencilView<R, (gfx::format::D24_S8, gfx::format::Unorm)>, 
-        tex: gfx::handle::Texture<R, gfx::format::R8_G8_B8_A8>) -> Renderer<R, F> {
+        tex: gfx::handle::Texture<R, gfx::format::R8_G8_B8_A8>) -> Renderer<R, F, C> {
 
         let sampler = factory.create_sampler(
                 gfx::tex::SamplerInfo::new(
@@ -99,8 +99,6 @@ impl<R: gfx::Resources, F: gfx::Factory<R>> Renderer<R, F> {
             out_depth: depth,
         };
 
-        let encoder = factory.create_encoder();
-
         Renderer {
             factory: factory,
             pipe: pipe,
@@ -127,9 +125,8 @@ impl<R: gfx::Resources, F: gfx::Factory<R>> Renderer<R, F> {
         self.encoder.clear_stencil(&self.data.out_depth, self.clear_stencil);
     }
 
-    pub fn flush<D: gfx::Device<Resources=R, CommandBuffer=F::CommandBuffer> + Sized>(&mut self, device: &mut D) {
-        device.submit(self.encoder.as_buffer());
-        self.encoder.reset();
+    pub fn flush<D: gfx::Device<Resources=R, CommandBuffer=C> + Sized>(&mut self, device: &mut D) {
+        self.encoder.flush(device);
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> gfx::handle::Buffer<R, Vertex> {
