@@ -6,12 +6,10 @@ extern crate fps_counter;
 #[macro_use] extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
-extern crate piston_window;
+extern crate piston;
 extern crate glutin_window;
-//extern crate image;
 extern crate libc;
 extern crate memmap;
-extern crate piston;
 extern crate rustc_serialize;
 extern crate shader_version;
 extern crate time;
@@ -30,12 +28,14 @@ use std::path::{ Path, PathBuf };
 
 use array::*;
 use docopt::Docopt;
+use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
-use piston_window::*;
+use glutin_window::*;
 use gfx::traits::Device;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
-use glutin_window::GlutinWindow;
+use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
+    WindowSettings };
 
 pub mod minecraft;
 pub mod chunk;
@@ -133,7 +133,7 @@ fn main() {
             .exit_on_esc(true)
             .samples(0)
             .vsync(false)
-            .opengl(OpenGL::V3_1)
+            .opengl(shader_version::opengl::OpenGL::V3_1)
             .build()
             .unwrap();
 
@@ -213,9 +213,11 @@ fn main() {
     let mut staging_buffer = vec![];
     let mut events = window.events().ups(120).max_fps(10_000);
     while let Some(e) = events.next(&mut window) {
-        use piston_window::Input::{ Move, Press };
-        use piston_window::Button::Keyboard;
-        use piston_window::Motion::MouseRelative;
+        use piston::input::Button::Keyboard;
+        use piston::input::Input::{ Move, Press };
+        use piston::input::keyboard::Key;
+        use piston::input::Motion::MouseRelative;
+        use piston::input::Event;
 
         match e {
             Event::Render(_) => {
@@ -358,6 +360,6 @@ fn main() {
             _ => {}
         }
 
-        //first_person.event(&e);
+        first_person.event(&e);
     }
 }
