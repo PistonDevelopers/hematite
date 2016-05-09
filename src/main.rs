@@ -6,8 +6,9 @@ extern crate fps_counter;
 #[macro_use] extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
-extern crate sdl2_window;
-extern crate image;
+extern crate piston_window;
+extern crate glutin_window;
+//extern crate image;
 extern crate libc;
 extern crate memmap;
 extern crate piston;
@@ -29,14 +30,12 @@ use std::path::{ Path, PathBuf };
 
 use array::*;
 use docopt::Docopt;
-use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
-use sdl2_window::Sdl2Window;
+use piston_window::*;
 use gfx::traits::Device;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
-use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
-    WindowSettings };
+use glutin_window::GlutinWindow;
 
 pub mod minecraft;
 pub mod chunk;
@@ -127,13 +126,14 @@ fn main() {
             world.file_name().unwrap().to_str().unwrap()
         );
 
-    let mut window: Sdl2Window = WindowSettings::new(
+    let mut window: GlutinWindow = WindowSettings::new(
             loading_title,
             Size { width: 854, height: 480 })
             .fullscreen(false)
             .exit_on_esc(true)
             .samples(0)
             .vsync(false)
+            .opengl(OpenGL::V3_1)
             .build()
             .unwrap();
 
@@ -213,11 +213,9 @@ fn main() {
     let mut staging_buffer = vec![];
     let mut events = window.events().ups(120).max_fps(10_000);
     while let Some(e) = events.next(&mut window) {
-        use piston::input::Button::Keyboard;
-        use piston::input::Input::{ Move, Press };
-        use piston::input::keyboard::Key;
-        use piston::input::Motion::MouseRelative;
-        use piston::input::Event;
+        use piston_window::Input::{ Move, Press };
+        use piston_window::Button::Keyboard;
+        use piston_window::Motion::MouseRelative;
 
         match e {
             Event::Render(_) => {
@@ -360,6 +358,6 @@ fn main() {
             _ => {}
         }
 
-        first_person.event(&e);
+        //first_person.event(&e);
     }
 }
