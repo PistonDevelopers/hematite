@@ -20,7 +20,7 @@ path = "src/main.rs"
 
 [dependencies]
 byteorder = "0.5.1"
-camera_controllers = "0.14.0"
+camera_controllers = "0.15.0"
 docopt = "0.6.78"
 flate2 = "0.2.13"
 fps_counter = "0.2.0"

@@ -189,6 +189,8 @@ fn main() {
     renderer.set_projection(projection_mat);
 
     let mut first_person_settings = camera_controllers::FirstPersonSettings::keyboard_wasd();
+    first_person_settings.mouse_sensitivity_horizontal = 0.5;
+    first_person_settings.mouse_sensitivity_vertical = 0.5;
     first_person_settings.speed_horizontal = 8.0;
     first_person_settings.speed_vertical = 4.0;
     let mut first_person = camera_controllers::FirstPerson::new(
