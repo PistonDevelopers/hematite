@@ -6,11 +6,10 @@ extern crate fps_counter;
 #[macro_use] extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
-extern crate sdl2_window;
-extern crate image;
+extern crate piston;
+extern crate glutin_window;
 extern crate libc;
 extern crate memmap;
-extern crate piston;
 extern crate rustc_serialize;
 extern crate shader_version;
 extern crate time;
@@ -31,7 +30,7 @@ use array::*;
 use docopt::Docopt;
 use piston::event_loop::{ Events, EventLoop };
 use flate2::read::GzDecoder;
-use sdl2_window::Sdl2Window;
+use glutin_window::*;
 use gfx::traits::Device;
 use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
@@ -127,13 +126,14 @@ fn main() {
             world.file_name().unwrap().to_str().unwrap()
         );
 
-    let mut window: Sdl2Window = WindowSettings::new(
+    let mut window: GlutinWindow = WindowSettings::new(
             loading_title,
             Size { width: 854, height: 480 })
             .fullscreen(false)
             .exit_on_esc(true)
             .samples(0)
             .vsync(false)
+            .opengl(shader_version::opengl::OpenGL::V3_1)
             .build()
             .unwrap();
 
@@ -189,6 +189,8 @@ fn main() {
     renderer.set_projection(projection_mat);
 
     let mut first_person_settings = camera_controllers::FirstPersonSettings::keyboard_wasd();
+    first_person_settings.mouse_sensitivity_horizontal = 0.5;
+    first_person_settings.mouse_sensitivity_vertical = 0.5;
     first_person_settings.speed_horizontal = 8.0;
     first_person_settings.speed_vertical = 4.0;
     let mut first_person = camera_controllers::FirstPerson::new(
