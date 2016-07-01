@@ -12,7 +12,6 @@ extern crate libc;
 extern crate memmap;
 extern crate rustc_serialize;
 extern crate shader_version;
-extern crate time;
 extern crate vecmath;
 extern crate zip;
 
@@ -25,6 +24,7 @@ use std::f32::consts::PI;
 use std::f32::INFINITY;
 use std::fs::File;
 use std::path::{ Path, PathBuf };
+use std::time::Instant;
 
 use array::*;
 use docopt::Docopt;
@@ -240,7 +240,7 @@ fn main() {
                 let mut num_chunks: usize = 0;
                 let mut num_sorted_chunks: usize = 0;
                 let mut num_total_chunks: usize = 0;
-                let start_time = time::precise_time_ns();
+                let start_time = Instant::now();
                 chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
                     match buffer.borrow_mut().as_mut() {
                         Some(buffer) => {
@@ -284,9 +284,9 @@ fn main() {
                         None => {}
                     }
                 });
-                let end_time = time::precise_time_ns();
+                let end_duration = start_time.elapsed();
                 renderer.flush(&mut device);
-                let frame_end_time = time::precise_time_ns();
+                let frame_end_duration = start_time.elapsed();
 
                 let fps = fps_counter.tick();
                 let title = format!(
@@ -294,8 +294,8 @@ fn main() {
                         num_sorted_chunks,
                         num_chunks,
                         num_total_chunks,
-                        (end_time - start_time) as f64 / 1e6,
-                        (frame_end_time - end_time) as f64 / 1e6,
+                        end_duration.as_secs() as f64 + end_duration.subsec_nanos() as f64 / 1000_000_000.0,
+                        frame_end_duration.as_secs() as f64 + frame_end_duration.subsec_nanos() as f64 / 1000_000_000.0,
                         fps, world.file_name().unwrap().to_str().unwrap()
                     );
                 window.set_title(title);

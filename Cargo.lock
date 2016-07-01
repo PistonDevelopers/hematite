@@ -1,6 +1,6 @@
 [root]
 name = "hematite"
-version = "0.0.9"
+version = "0.0.10"
 dependencies = [
  "byteorder 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "camera_controllers 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -16,7 +16,6 @@ dependencies = [
  "pistoncore-glutin_window 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "vecmath 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "zip 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
