@@ -1,5 +1,4 @@
 use gfx::traits::FactoryExt;
-use gfx::pso::DataLink;
 use gfx;
 use vecmath::{self, Matrix4};
 
@@ -43,7 +42,7 @@ gfx_pipeline!( pipe {
     view: gfx::Global<[[f32; 4]; 4]> = "u_view",
     color: gfx::TextureSampler<[f32; 4]> = "s_texture",
     out_color: gfx::RenderTarget<gfx::format::Srgba8> = "out_color",
-    out_depth: gfx::DepthTarget<gfx::format::DepthStencil> = 
+    out_depth: gfx::DepthTarget<gfx::format::DepthStencil> =
         gfx::preset::depth::LESS_EQUAL_WRITE,
 });
 
@@ -68,7 +67,7 @@ pub struct Renderer<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer
 impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R, F, C> {
 
     pub fn new(mut factory: F, encoder: gfx::Encoder<R, C>, target: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
-        depth: gfx::handle::DepthStencilView<R, (gfx::format::D24_S8, gfx::format::Unorm)>, 
+        depth: gfx::handle::DepthStencilView<R, (gfx::format::D24_S8, gfx::format::Unorm)>,
         tex: gfx::handle::Texture<R, gfx::format::R8_G8_B8_A8>) -> Renderer<R, F, C> {
 
         let sampler = factory.create_sampler(
@@ -83,12 +82,13 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R
 
         let prog = factory.link_program(VERTEX, FRAGMENT).unwrap();
 
-        let mut rasterizer = gfx::state::Rasterizer::new_fill(gfx::state::CullFace::Back);
+        let mut rasterizer = gfx::state::Rasterizer::new_fill();
         rasterizer.front_face = gfx::state::FrontFace::Clockwise;
-        let pipe = factory.create_pipeline_from_program(&prog, gfx::Primitive::TriangleList, 
+        let pipe = factory.create_pipeline_from_program(&prog, gfx::Primitive::TriangleList,
             rasterizer, pipe::new()).unwrap();
 
-        let (vbuf, slice) = factory.create_vertex_buffer(&[]);
+        let vbuf = factory.create_vertex_buffer(&[]);
+        let slice = gfx::Slice::new_match_vertex_buffer(&vbuf);
 
         let data = pipe::Data {
             vbuf: vbuf,
@@ -130,8 +130,8 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R
     }
 
     pub fn create_buffer(&mut self, data: &[Vertex]) -> gfx::handle::Buffer<R, Vertex> {
-        let (vbuf, slice) = self.factory.create_vertex_buffer(data);
-        self.slice = slice;
+        let vbuf = self.factory.create_vertex_buffer(data);
+        self.slice = gfx::Slice::new_match_vertex_buffer(&vbuf);
 
         vbuf
     }

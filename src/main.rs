@@ -67,7 +67,7 @@ fn create_main_targets(dim: gfx::tex::Dimensions) ->
     gfx_device_gl::Resources, gfx::format::Srgba8>,
  gfx::handle::DepthStencilView<
     gfx_device_gl::Resources, gfx::format::DepthStencil>) {
-    use gfx::core::factory::Typed;
+    use gfx::Typed;
     use gfx::format::{DepthStencil, Format, Formatted, Srgba8};
 
     let color_format: Format = <Srgba8 as Formatted>::get_format();
@@ -133,7 +133,7 @@ fn main() {
             .exit_on_esc(true)
             .samples(0)
             .vsync(false)
-            .opengl(shader_version::opengl::OpenGL::V3_1)
+            .opengl(shader_version::opengl::OpenGL::V3_2)
             .build()
             .unwrap();
 
