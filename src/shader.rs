@@ -37,13 +37,13 @@ static FRAGMENT: &'static [u8] = b"
 ";
 
 gfx_pipeline!( pipe {
-    vbuf: gfx::VertexBuffer<Vertex> = (),
-    transform: gfx::Global<[[f32; 4]; 4]> = "u_projection",
-    view: gfx::Global<[[f32; 4]; 4]> = "u_view",
-    color: gfx::TextureSampler<[f32; 4]> = "s_texture",
-    out_color: gfx::RenderTarget<gfx::format::Srgba8> = "out_color",
-    out_depth: gfx::DepthTarget<gfx::format::DepthStencil> =
-        gfx::preset::depth::LESS_EQUAL_WRITE,
+    vbuf: ::gfx::VertexBuffer<Vertex> = (),
+    transform: ::gfx::Global<[[f32; 4]; 4]> = "u_projection",
+    view: ::gfx::Global<[[f32; 4]; 4]> = "u_view",
+    color: ::gfx::TextureSampler<[f32; 4]> = "s_texture",
+    out_color: ::gfx::RenderTarget<::gfx::format::Srgba8> = "out_color",
+    out_depth: ::gfx::DepthTarget<::gfx::format::DepthStencil> =
+        ::gfx::preset::depth::LESS_EQUAL_WRITE,
 });
 
 gfx_vertex_struct!( Vertex {
