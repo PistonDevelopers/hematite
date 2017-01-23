@@ -4,6 +4,7 @@ extern crate docopt;
 extern crate flate2;
 extern crate fps_counter;
 #[macro_use] extern crate gfx;
+extern crate gfx_core;
 extern crate gfx_device_gl;
 extern crate gfx_voxel;
 extern crate piston;
@@ -62,12 +63,12 @@ struct Args {
     flag_mcversion: String,
 }
 
-fn create_main_targets(dim: gfx::tex::Dimensions) ->
+fn create_main_targets(dim: gfx::texture::Dimensions) ->
 (gfx::handle::RenderTargetView<
     gfx_device_gl::Resources, gfx::format::Srgba8>,
  gfx::handle::DepthStencilView<
     gfx_device_gl::Resources, gfx::format::DepthStencil>) {
-    use gfx::Typed;
+    use gfx_core::memory::Typed;
     use gfx::format::{DepthStencil, Format, Formatted, Srgba8};
 
     let color_format: Format = <Srgba8 as Formatted>::get_format();
@@ -144,7 +145,7 @@ fn main() {
     let Size { width: w, height: h } = window.size();
 
     let (target_view, depth_view) = create_main_targets(
-        (w as u16, h as u16, 1, (0 as gfx::tex::NumSamples).into()));
+        (w as u16, h as u16, 1, (0 as gfx::texture::NumSamples).into()));
 
     let assets = Path::new("./assets");
 

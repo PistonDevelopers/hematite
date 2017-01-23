@@ -37,13 +37,13 @@ static FRAGMENT: &'static [u8] = b"
 ";
 
 gfx_pipeline!( pipe {
-    vbuf: ::gfx::VertexBuffer<Vertex> = (),
-    transform: ::gfx::Global<[[f32; 4]; 4]> = "u_projection",
-    view: ::gfx::Global<[[f32; 4]; 4]> = "u_view",
-    color: ::gfx::TextureSampler<[f32; 4]> = "s_texture",
-    out_color: ::gfx::RenderTarget<::gfx::format::Srgba8> = "out_color",
-    out_depth: ::gfx::DepthTarget<::gfx::format::DepthStencil> =
-        ::gfx::preset::depth::LESS_EQUAL_WRITE,
+    vbuf: gfx::VertexBuffer<Vertex> = (),
+    transform: gfx::Global<[[f32; 4]; 4]> = "u_projection",
+    view: gfx::Global<[[f32; 4]; 4]> = "u_view",
+    color: gfx::TextureSampler<[f32; 4]> = "s_texture",
+    out_color: gfx::RenderTarget<gfx::format::Srgba8> = "out_color",
+    out_depth: gfx::DepthTarget<gfx::format::DepthStencil> =
+        gfx::preset::depth::LESS_EQUAL_WRITE,
 });
 
 gfx_vertex_struct!( Vertex {
@@ -71,9 +71,9 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R
         tex: gfx::handle::Texture<R, gfx::format::R8_G8_B8_A8>) -> Renderer<R, F, C> {
 
         let sampler = factory.create_sampler(
-                gfx::tex::SamplerInfo::new(
-                    gfx::tex::FilterMethod::Scale,
-                    gfx::tex::WrapMode::Tile
+                gfx::texture::SamplerInfo::new(
+                    gfx::texture::FilterMethod::Scale,
+                    gfx::texture::WrapMode::Tile
                 )
             );
 
