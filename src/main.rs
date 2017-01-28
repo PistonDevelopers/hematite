@@ -29,7 +29,7 @@ use std::time::Instant;
 
 use array::*;
 use docopt::Docopt;
-use piston::event_loop::{ Events, EventLoop };
+use piston::event_loop::{ Events, EventLoop, EventSettings };
 use flate2::read::GzDecoder;
 use glutin_window::*;
 use gfx::traits::Device;
@@ -214,16 +214,15 @@ fn main() {
     println!("Press C to capture mouse");
 
     let mut staging_buffer = vec![];
-    let mut events = window.events().ups(120).max_fps(10_000);
+    let mut events = Events::new(EventSettings::new().ups(120).max_fps(10_000));
     while let Some(e) = events.next(&mut window) {
         use piston::input::Button::Keyboard;
-        use piston::input::Input::{ Move, Press };
+        use piston::input::Input;
         use piston::input::keyboard::Key;
         use piston::input::Motion::MouseRelative;
-        use piston::input::Event;
 
         match e {
-            Event::Render(_) => {
+            Input::Render(_) => {
                 // Apply the same y/z camera offset vanilla minecraft has.
                 let mut camera = first_person.camera(0.0);
                 camera.position[1] += 1.62;
@@ -301,10 +300,10 @@ fn main() {
                     );
                 window.set_title(title);
             }
-            Event::AfterRender(_) => {
+            Input::AfterRender(_) => {
                 device.cleanup();
             }
-            Event::Update(_) => {
+            Input::Update(_) => {
                 use std::i32;
                 // HACK(eddyb) find the closest chunk to the player.
                 // The pending vector should be sorted instead.
@@ -347,14 +346,14 @@ fn main() {
                     None => {}
                 }
             }
-            Event::Input(Press(Keyboard(Key::C))) => {
+            Input::Press(Keyboard(Key::C)) => {
                 println!("Turned cursor capture {}",
                     if capture_cursor { "off" } else { "on" });
                 capture_cursor = !capture_cursor;
 
                 window.set_capture_cursor(capture_cursor);
             }
-            Event::Input(Move(MouseRelative(_, _))) => {
+            Input::Move(MouseRelative(_, _)) => {
                 if !capture_cursor {
                     // Don't send the mouse event to the FPS controller.
                     continue;
