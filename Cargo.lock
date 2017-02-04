@@ -1,6 +1,6 @@
 [root]
 name = "hematite"
-version = "0.0.14"
+version = "0.0.15"
 dependencies = [
  "byteorder 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "camera_controllers 0.20.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -13,7 +13,7 @@ dependencies = [
  "libc 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.31.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston3d-gfx_voxel 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston3d-gfx_voxel 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-glutin_window 0.35.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -634,7 +634,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "piston-gfx_texture"
-version = "0.21.1"
+version = "0.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gfx 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -667,13 +667,13 @@ dependencies = [
 
 [[package]]
 name = "piston3d-gfx_voxel"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "array 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston-gfx_texture 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston-gfx_texture 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1128,11 +1128,11 @@ dependencies = [
 "checksum phf_shared 0.7.21 (registry+https://github.com/rust-lang/crates.io-index)" = "07e24b0ca9643bdecd0632f2b3da6b1b89bbb0030e0b992afc1113b23a7bc2f2"
 "checksum piston 0.31.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4f907ccf88ec05aca2c594a9b05217fabfc0137258e46109570eb5270a50cf73"
 "checksum piston-float 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b058c3a640efd4bcf63266512e4bb03187192c1b29edd38b16d5a014613e3199"
-"checksum piston-gfx_texture 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)" = "c245ec221879d164e6d3068a94e07776dbf1f53a777194adb0e05f7c47c48488"
+"checksum piston-gfx_texture 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)" = "63dc17ef92d6641f8fa1c7cf775754977b0c0e8ef65839383d796bca5ffd1902"
 "checksum piston-texture 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ca39d71646f3b878dd4b0f9758f38d09658b2efd08dbdd9abf9f17000f1b9832"
 "checksum piston-viewport 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9c5548a838fd9dc604c96d886c03c303f043a2d85f88719cca59dc7991d86343"
 "checksum piston3d-cam 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6153024c02c4d09e3193ce0eb63abc585fda3389de375bbd41f059b91f2c520a"
-"checksum piston3d-gfx_voxel 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ae6d25b882c1dbe72e705d4f7b61f6c72371e7cff8356b68ce6a39dd3310907d"
+"checksum piston3d-gfx_voxel 0.15.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e0628f6e0dce4b85878ee1ffd9c945ad4deaa9c73f200db7d52932688607dd12"
 "checksum pistoncore-event_loop 0.31.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9aee055fd3c72d3aa75e4e6adebb7c62a8db1a686a03ff73250f213b2d7bbac9"
 "checksum pistoncore-glutin_window 0.35.0 (registry+https://github.com/rust-lang/crates.io-index)" = "78eadd1ac8d08ba2d5813ace5e0ed80dd5c99d381d4a5d0a54701ae765fcce82"
 "checksum pistoncore-input 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6220f05c9339e6b82c7cd5d1b30f064cc06e6503933c15c3422aa8f70c693608"
