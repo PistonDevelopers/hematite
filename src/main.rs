@@ -37,6 +37,8 @@ use shader::Renderer;
 use vecmath::{ vec3_add, vec3_scale, vec3_normalized };
 use piston::window::{ Size, Window, AdvancedWindow, OpenGLWindow,
     WindowSettings };
+use piston::input::{ MouseRelativeEvent, PressEvent, UpdateEvent,
+    AfterRenderEvent, RenderEvent };
 
 pub mod minecraft;
 pub mod chunk;
@@ -217,149 +219,148 @@ fn main() {
     let mut events = Events::new(EventSettings::new().ups(120).max_fps(10_000));
     while let Some(e) = events.next(&mut window) {
         use piston::input::Button::Keyboard;
-        use piston::input::Input;
-        use piston::input::keyboard::Key;
-        use piston::input::Motion::MouseRelative;
+        use piston::input::Key;
 
-        match e {
-            Input::Render(_) => {
-                // Apply the same y/z camera offset vanilla minecraft has.
-                let mut camera = first_person.camera(0.0);
-                camera.position[1] += 1.62;
-                let mut xz_forward = camera.forward;
-                xz_forward[1] = 0.0;
-                xz_forward = vec3_normalized(xz_forward);
-                camera.position = vec3_add(
-                    camera.position,
-                    vec3_scale(xz_forward, 0.1)
-                );
+        if let Some(_) = e.render_args() {
+            // Apply the same y/z camera offset vanilla minecraft has.
+            let mut camera = first_person.camera(0.0);
+            camera.position[1] += 1.62;
+            let mut xz_forward = camera.forward;
+            xz_forward[1] = 0.0;
+            xz_forward = vec3_normalized(xz_forward);
+            camera.position = vec3_add(
+                camera.position,
+                vec3_scale(xz_forward, 0.1)
+            );
 
-                let view_mat = camera.orthogonal();
-                renderer.set_view(view_mat);
-                renderer.clear();
-                let mut num_chunks: usize = 0;
-                let mut num_sorted_chunks: usize = 0;
-                let mut num_total_chunks: usize = 0;
-                let start_time = Instant::now();
-                chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
-                    match buffer.borrow_mut().as_mut() {
-                        Some(buffer) => {
-                            num_total_chunks += 1;
+            let view_mat = camera.orthogonal();
+            renderer.set_view(view_mat);
+            renderer.clear();
+            let mut num_chunks: usize = 0;
+            let mut num_sorted_chunks: usize = 0;
+            let mut num_total_chunks: usize = 0;
+            let start_time = Instant::now();
+            chunk_manager.each_chunk(|cx, cy, cz, _, buffer| {
+                match buffer.borrow_mut().as_mut() {
+                    Some(buffer) => {
+                        num_total_chunks += 1;
 
-                            let inf = INFINITY;
-                            let mut bb_min = [inf, inf, inf];
-                            let mut bb_max = [-inf, -inf, -inf];
-                            let xyz = [cx, cy, cz].map(|x| x as f32 * 16.0);
-                            for &dx in [0.0, 16.0].iter() {
-                                for &dy in [0.0, 16.0].iter() {
-                                    for &dz in [0.0, 16.0].iter() {
-                                        use vecmath::col_mat4_transform;
+                        let inf = INFINITY;
+                        let mut bb_min = [inf, inf, inf];
+                        let mut bb_max = [-inf, -inf, -inf];
+                        let xyz = [cx, cy, cz].map(|x| x as f32 * 16.0);
+                        for &dx in [0.0, 16.0].iter() {
+                            for &dy in [0.0, 16.0].iter() {
+                                for &dz in [0.0, 16.0].iter() {
+                                    use vecmath::col_mat4_transform;
 
-                                        let v = vec3_add(xyz, [dx, dy, dz]);
-                                        let xyzw = col_mat4_transform(view_mat, [v[0], v[1], v[2], 1.0]);
-                                        let v = col_mat4_transform(projection_mat, xyzw);
-                                        let xyz = vec3_scale([v[0], v[1], v[2]], 1.0 / v[3]);
-                                        bb_min = Array::from_fn(|i| bb_min[i].min(xyz[i]));
-                                        bb_max = Array::from_fn(|i| bb_max[i].max(xyz[i]));
-                                    }
-                                }
-                            }
-
-                            let cull_bits: [bool; 3] = Array::from_fn(|i| {
-                                let (min, max) = (bb_min[i], bb_max[i]);
-                                min.signum() == max.signum()
-                                    && min.abs().min(max.abs()) >= 1.0
-                            });
-
-                            if !cull_bits.iter().any(|&cull| cull) {
-                                renderer.render(buffer);
-                                num_chunks += 1;
-
-                                if bb_min[0] < 0.0 && bb_max[0] > 0.0
-                                || bb_min[1] < 0.0 && bb_max[1] > 0.0 {
-                                    num_sorted_chunks += 1;
+                                    let v = vec3_add(xyz, [dx, dy, dz]);
+                                    let xyzw = col_mat4_transform(view_mat, [v[0], v[1], v[2], 1.0]);
+                                    let v = col_mat4_transform(projection_mat, xyzw);
+                                    let xyz = vec3_scale([v[0], v[1], v[2]], 1.0 / v[3]);
+                                    bb_min = Array::from_fn(|i| bb_min[i].min(xyz[i]));
+                                    bb_max = Array::from_fn(|i| bb_max[i].max(xyz[i]));
                                 }
                             }
                         }
-                        None => {}
-                    }
-                });
-                let end_duration = start_time.elapsed();
-                renderer.flush(&mut device);
-                let frame_end_duration = start_time.elapsed();
 
-                let fps = fps_counter.tick();
-                let title = format!(
-                        "Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
-                        num_sorted_chunks,
-                        num_chunks,
-                        num_total_chunks,
-                        end_duration.as_secs() as f64 + end_duration.subsec_nanos() as f64 / 1000_000_000.0,
-                        frame_end_duration.as_secs() as f64 + frame_end_duration.subsec_nanos() as f64 / 1000_000_000.0,
-                        fps, world.file_name().unwrap().to_str().unwrap()
-                    );
-                window.set_title(title);
-            }
-            Input::AfterRender(_) => {
-                device.cleanup();
-            }
-            Input::Update(_) => {
-                use std::i32;
-                // HACK(eddyb) find the closest chunk to the player.
-                // The pending vector should be sorted instead.
-                let pp = first_person.position.map(|x| (x / 16.0).floor() as i32);
-                let closest = pending_chunks.iter().enumerate().fold(
-                    (None, i32::max_value()),
-                    |(best_i, best_dist), (i, &(cc, _, _, _))| {
-                        let xyz = [cc[0] - pp[0], cc[1] - pp[1], cc[2] - pp[2]]
-                            .map(|x| x * x);
-                        let dist = xyz[0] + xyz[1] + xyz[2];
-                        if dist < best_dist {
-                            (Some(i), dist)
-                        } else {
-                            (best_i, best_dist)
-                        }
-                    }
-                ).0;
-                let pending = closest.and_then(|i| {
-                    // Vec swap_remove doesn't return Option anymore
-                    match pending_chunks.len() {
-                        0 => None,
-                        _ => Some(pending_chunks.swap_remove(i))
-                    }
-                });
-                match pending {
-                    Some((coords, buffer, chunks, column_biomes)) => {
-                        minecraft::block_state::fill_buffer(
-                            &block_states, &biomes, &mut staging_buffer,
-                            coords, chunks, column_biomes
-                        );
-                        *buffer.borrow_mut() = Some(
-                            renderer.create_buffer(&staging_buffer[..])
-                        );
-                        staging_buffer.clear();
+                        let cull_bits: [bool; 3] = Array::from_fn(|i| {
+                            let (min, max) = (bb_min[i], bb_max[i]);
+                            min.signum() == max.signum()
+                                && min.abs().min(max.abs()) >= 1.0
+                        });
 
-                        if pending_chunks.is_empty() {
-                            println!("Finished filling chunk vertex buffers.");
+                        if !cull_bits.iter().any(|&cull| cull) {
+                            renderer.render(buffer);
+                            num_chunks += 1;
+
+                            if bb_min[0] < 0.0 && bb_max[0] > 0.0
+                            || bb_min[1] < 0.0 && bb_max[1] > 0.0 {
+                                num_sorted_chunks += 1;
+                            }
                         }
                     }
                     None => {}
                 }
-            }
-            Input::Press(Keyboard(Key::C)) => {
-                println!("Turned cursor capture {}",
-                    if capture_cursor { "off" } else { "on" });
-                capture_cursor = !capture_cursor;
+            });
+            let end_duration = start_time.elapsed();
+            renderer.flush(&mut device);
+            let frame_end_duration = start_time.elapsed();
 
-                window.set_capture_cursor(capture_cursor);
-            }
-            Input::Move(MouseRelative(_, _)) => {
-                if !capture_cursor {
-                    // Don't send the mouse event to the FPS controller.
-                    continue;
+            let fps = fps_counter.tick();
+            let title = format!(
+                    "Hematite sort={} render={} total={} in {:.2}ms+{:.2}ms @ {}FPS - {}",
+                    num_sorted_chunks,
+                    num_chunks,
+                    num_total_chunks,
+                    end_duration.as_secs() as f64 + end_duration.subsec_nanos() as f64 / 1000_000_000.0,
+                    frame_end_duration.as_secs() as f64 + frame_end_duration.subsec_nanos() as f64 / 1000_000_000.0,
+                    fps, world.file_name().unwrap().to_str().unwrap()
+                );
+            window.set_title(title);
+        }
+
+        if let Some(_) = e.after_render_args() {
+            device.cleanup();
+        }
+
+        if let Some(_) = e.update_args() {
+            use std::i32;
+            // HACK(eddyb) find the closest chunk to the player.
+            // The pending vector should be sorted instead.
+            let pp = first_person.position.map(|x| (x / 16.0).floor() as i32);
+            let closest = pending_chunks.iter().enumerate().fold(
+                (None, i32::max_value()),
+                |(best_i, best_dist), (i, &(cc, _, _, _))| {
+                    let xyz = [cc[0] - pp[0], cc[1] - pp[1], cc[2] - pp[2]]
+                        .map(|x| x * x);
+                    let dist = xyz[0] + xyz[1] + xyz[2];
+                    if dist < best_dist {
+                        (Some(i), dist)
+                    } else {
+                        (best_i, best_dist)
+                    }
                 }
+            ).0;
+            let pending = closest.and_then(|i| {
+                // Vec swap_remove doesn't return Option anymore
+                match pending_chunks.len() {
+                    0 => None,
+                    _ => Some(pending_chunks.swap_remove(i))
+                }
+            });
+            match pending {
+                Some((coords, buffer, chunks, column_biomes)) => {
+                    minecraft::block_state::fill_buffer(
+                        &block_states, &biomes, &mut staging_buffer,
+                        coords, chunks, column_biomes
+                    );
+                    *buffer.borrow_mut() = Some(
+                        renderer.create_buffer(&staging_buffer[..])
+                    );
+                    staging_buffer.clear();
+
+                    if pending_chunks.is_empty() {
+                        println!("Finished filling chunk vertex buffers.");
+                    }
+                }
+                None => {}
             }
-            _ => {}
+        }
+
+        if let Some(Keyboard(Key::C)) = e.press_args() {
+            println!("Turned cursor capture {}",
+                if capture_cursor { "off" } else { "on" });
+            capture_cursor = !capture_cursor;
+
+            window.set_capture_cursor(capture_cursor);
+        }
+
+        if let Some(_) = e.mouse_relative_args() {
+            if !capture_cursor {
+                // Don't send the mouse event to the FPS controller.
+                continue;
+            }
         }
 
         first_person.event(&e);
