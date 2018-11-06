@@ -37,7 +37,7 @@ impl Biomes {
             });
         }
 
-        Biomes { biomes: biomes }
+        Biomes { biomes }
     }
 }
 
