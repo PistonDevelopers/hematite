@@ -173,9 +173,7 @@ pub struct NbtReader<R> {
 
 impl<R: Read> NbtReader<R> {
     pub fn new(reader: R) -> NbtReader<R> {
-        NbtReader {
-            reader: reader
-        }
+        NbtReader { reader }
     }
 
     fn i8(&mut self) -> NbtReaderResult<i8> { self.reader.read_i8().map_err(NbtReaderError::from) }
