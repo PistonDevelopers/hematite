@@ -131,7 +131,7 @@ fn main() {
 
     let mut window: GlutinWindow = WindowSettings::new(
             loading_title,
-            Size { width: 854, height: 480 })
+            [854, 480])
             .fullscreen(false)
             .exit_on_esc(true)
             .samples(0)
