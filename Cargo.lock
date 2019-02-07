@@ -431,7 +431,7 @@ dependencies = [
 
 [[package]]
 name = "hematite"
-version = "0.0.33"
+version = "0.0.34"
 dependencies = [
  "byteorder 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "camera_controllers 0.27.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -443,9 +443,9 @@ dependencies = [
  "gfx_device_gl 0.15.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "piston 0.41.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "piston 0.42.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston3d-gfx_voxel 0.27.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-glutin_window 0.53.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-glutin_window 0.54.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "vecmath 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -745,12 +745,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "piston"
-version = "0.41.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "pistoncore-event_loop 0.41.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-event_loop 0.42.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-input 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-window 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.37.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -804,22 +804,22 @@ dependencies = [
 
 [[package]]
 name = "pistoncore-event_loop"
-version = "0.41.0"
+version = "0.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "pistoncore-input 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-window 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.37.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "pistoncore-glutin_window"
-version = "0.53.0"
+version = "0.54.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gl 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glutin 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pistoncore-input 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pistoncore-window 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pistoncore-window 0.37.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "shader_version 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -836,7 +836,7 @@ dependencies = [
 
 [[package]]
 name = "pistoncore-window"
-version = "0.36.0"
+version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "pistoncore-input 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1502,17 +1502,17 @@ dependencies = [
 "checksum parking_lot 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "ab41b4aed082705d1056416ae4468b6ea99d52599ecf3169b00088d43113e337"
 "checksum parking_lot_core 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "94c8c7923936b28d546dfd14d4472eaf34c99b14e1c973a32b3e6d4eb04298c9"
 "checksum percent-encoding 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "31010dd2e1ac33d5b46a5b413495239882813e0369f8ed8a5e266f173602f831"
-"checksum piston 0.41.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a6c387bf7ef54511ce20938ddeb2b51dcd29dd481e107d6e61395d53f702a641"
+"checksum piston 0.42.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cce7b1869f6388131f793fc55ebb05b8ec4c7203faffaecf0844a25b98ee3167"
 "checksum piston-float 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b058c3a640efd4bcf63266512e4bb03187192c1b29edd38b16d5a014613e3199"
 "checksum piston-gfx_texture 0.35.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c6307afabc7fd1bdaa02c4989d0934d32187f99a0ceb28321dcb869d5c232066"
 "checksum piston-texture 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3649b5f9d1ba48d95207976118e9e2ed473c1de36f6f79cc1b7ed5b75b655b61"
 "checksum piston-viewport 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "7d96dd995f7dabe6d57cda668ec0fda39d6fe6e1e0b23f772582f383f2013611"
 "checksum piston3d-cam 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6153024c02c4d09e3193ce0eb63abc585fda3389de375bbd41f059b91f2c520a"
 "checksum piston3d-gfx_voxel 0.27.0 (registry+https://github.com/rust-lang/crates.io-index)" = "dd9a00eba4f9679bf317e102c4ecbd7712c3e21a036d7a7e57bf145754a9a615"
-"checksum pistoncore-event_loop 0.41.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8c45046b34257fa1e27400ee57adcdc65aab325e779104f4c4d987f587f0f167"
-"checksum pistoncore-glutin_window 0.53.0 (registry+https://github.com/rust-lang/crates.io-index)" = "23dd9209542ac0d7f697aca46666abbdffce2dfcdd88e3f5d62cd5114e9f3868"
+"checksum pistoncore-event_loop 0.42.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2efb4398cd25ae032e7caddfdc9a3d1ebfdc16ab668cf8d79fe8044b9ed3841a"
+"checksum pistoncore-glutin_window 0.54.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6c000159cf92287a7da23b30dab5307094ac00787f56bf0693ad46fdfd765173"
 "checksum pistoncore-input 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0c612ce242c7bac8e96426a0ca34275fd980af440f0cca7c6c0e840ef8a4052f"
-"checksum pistoncore-window 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ffa2a91c3044313f19e6ff8efdef5142e2808511b2bdd367b5e46ce5015ff001"
+"checksum pistoncore-window 0.37.0 (registry+https://github.com/rust-lang/crates.io-index)" = "863934d0663db43e6737ac8bf947e09fc2d4d06ab95b46a75b999e8bc34b1ddd"
 "checksum pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "676e8eb2b1b4c9043511a9b7bea0915320d7e502b0a079fb03f9635a5252b18c"
 "checksum png 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9adebf7fb91ccf5eac9da1a8e00e83cb8ae882c3e8d8e4ad59da73cb8c82a2c9"
 "checksum podio 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "780fb4b6698bbf9cf2444ea5d22411cef2953f0824b98f33cf454ec5615645bd"
