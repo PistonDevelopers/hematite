@@ -23,7 +23,6 @@ pub use gfx_voxel::{array, cube};
 
 use std::cmp::max;
 use std::f32::consts::PI;
-use std::f32::INFINITY;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -102,7 +101,7 @@ fn main() {
     };
 
     let file_name = world.join("level.dat");
-    let level_reader = GzDecoder::new(File::open(file_name).unwrap()).unwrap();
+    let level_reader = GzDecoder::new(File::open(file_name).unwrap());
     let level = minecraft::nbt::Nbt::from_reader(level_reader).unwrap();
     println!("{:?}", level);
     let player_pos: [f32; 3] = Array::from_iter(
@@ -236,7 +235,7 @@ fn main() {
                 if let Some(buffer) = buffer.borrow_mut().as_mut() {
                     num_total_chunks += 1;
 
-                    let inf = INFINITY;
+                    let inf = f32::INFINITY;
                     let mut bb_min = [inf, inf, inf];
                     let mut bb_max = [-inf, -inf, -inf];
                     let xyz = [cx, cy, cz].map(|x| x as f32 * 16.0);

@@ -1,7 +1,6 @@
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 use std::f32::consts::{PI, SQRT_2};
-use std::f32::INFINITY;
 use std::fs::File;
 use std::path::Path;
 use std::str::FromStr;
@@ -351,7 +350,7 @@ impl Model {
                         if full_faces[face] == Opacity::Opaque {
                             continue;
                         }
-                        let (mut min_u, mut min_v) = (INFINITY, INFINITY);
+                        let (mut min_u, mut min_v) = (f32::INFINITY, f32::INFINITY);
                         let (mut max_u, mut max_v) = (0.0, 0.0);
                         for vertex in faces[i].vertices.iter() {
                             let (u, v) = (vertex.uv[0], vertex.uv[1]);

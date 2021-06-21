@@ -89,7 +89,7 @@ impl Nbt {
     }
 
     pub fn from_gzip(data: &[u8]) -> NbtReaderResult<Nbt> {
-        let reader = GzDecoder::new(data).unwrap();
+        let reader = GzDecoder::new(data);
         Nbt::from_reader(reader)
     }
 
@@ -385,6 +385,9 @@ impl rustc_serialize::Decoder for Decoder {
         Err(ExpectedError("()".to_string(), self.pop()?.to_string()))
     }
 
+    fn read_usize(&mut self) -> DecodeResult<usize> {
+        Ok(self.read_isize()? as usize)
+    }
     fn read_u64(&mut self) -> DecodeResult<u64> {
         expect!(self, Nbt::Long).map(|x| x as u64)
     }
@@ -394,23 +397,10 @@ impl rustc_serialize::Decoder for Decoder {
     fn read_u16(&mut self) -> DecodeResult<u16> {
         expect!(self, Nbt::Short).map(|x| x as u16)
     }
+
     fn read_u8(&mut self) -> DecodeResult<u8> {
         expect!(self, Nbt::Byte).map(|x| x as u8)
     }
-
-    fn read_i64(&mut self) -> DecodeResult<i64> {
-        expect!(self, Nbt::Long)
-    }
-    fn read_i32(&mut self) -> DecodeResult<i32> {
-        expect!(self, Nbt::Int)
-    }
-    fn read_i16(&mut self) -> DecodeResult<i16> {
-        expect!(self, Nbt::Short)
-    }
-    fn read_i8(&mut self) -> DecodeResult<i8> {
-        expect!(self, Nbt::Byte)
-    }
-
     fn read_isize(&mut self) -> DecodeResult<isize> {
         match self.pop()? {
             Nbt::Byte(x) => Ok(x as isize),
@@ -420,8 +410,18 @@ impl rustc_serialize::Decoder for Decoder {
             other => Err(ExpectedError("isize".to_string(), other.to_string())),
         }
     }
-    fn read_usize(&mut self) -> DecodeResult<usize> {
-        Ok(self.read_isize()? as usize)
+    fn read_i64(&mut self) -> DecodeResult<i64> {
+        expect!(self, Nbt::Long)
+    }
+    fn read_i32(&mut self) -> DecodeResult<i32> {
+        expect!(self, Nbt::Int)
+    }
+
+    fn read_i16(&mut self) -> DecodeResult<i16> {
+        expect!(self, Nbt::Short)
+    }
+    fn read_i8(&mut self) -> DecodeResult<i8> {
+        expect!(self, Nbt::Byte)
     }
 
     fn read_bool(&mut self) -> DecodeResult<bool> {
