@@ -1,6 +1,6 @@
-pub mod data_1_8_pre2;
 pub mod biome;
 pub mod block_state;
+pub mod data_1_8_pre2;
 pub mod model;
 pub mod nbt;
 pub mod region;
@@ -15,7 +15,7 @@ use zip::ZipArchive;
 fn var(key: &str) -> String {
     match env::var(key) {
         Ok(val) => val,
-        Err(err) => panic!("couldn't find env var {}; err: {:?}", key, err)
+        Err(err) => panic!("couldn't find env var {}; err: {:?}", key, err),
     }
 }
 
