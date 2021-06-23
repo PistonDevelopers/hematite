@@ -2,8 +2,8 @@ use std::ops::Index;
 use std::path::Path;
 
 use chunk::BiomeId;
-use minecraft::data;
 use gfx_voxel::texture::ColorMap;
+use minecraft::data;
 
 #[derive(Copy, Clone)]
 pub struct Biome {
@@ -11,11 +11,11 @@ pub struct Biome {
     pub temperature: f32,
     pub humidity: f32,
     pub grass_color: [u8; 3],
-    pub foliage_color: [u8; 3]
+    pub foliage_color: [u8; 3],
 }
 
 pub struct Biomes {
-    biomes: Box<[Option<Biome>; 256]>
+    biomes: Box<[Option<Biome>; 256]>,
 }
 
 impl Biomes {
@@ -29,11 +29,11 @@ impl Biomes {
 
         for (i, &biome) in data::BIOMES.iter().enumerate() {
             biomes[i] = biome.map(|(name, t, h)| Biome {
-                name: name,
+                name,
                 temperature: t,
                 humidity: h,
                 grass_color: grass_colors.get(t, h),
-                foliage_color: foliage_colors.get(t, h)
+                foliage_color: foliage_colors.get(t, h),
             });
         }
 
