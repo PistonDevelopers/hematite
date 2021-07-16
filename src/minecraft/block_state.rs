@@ -6,17 +6,17 @@ use std::fs::File;
 use std::num::Wrapping;
 use std::path::Path;
 
-use array::*;
-use chunk::{BiomeId, BlockState, Chunk};
-use cube;
+use crate::array::*;
+use crate::chunk::{BiomeId, BlockState, Chunk};
+use crate::cube;
+use crate::minecraft::biome::Biomes;
+use crate::minecraft::data::BLOCK_STATES;
+use crate::minecraft::model::OrthoRotation::*;
+use crate::minecraft::model::{self, Model, OrthoRotation};
+use crate::shader::Vertex;
 use gfx;
 use gfx_voxel::texture::{AtlasBuilder, ImageSize, Texture};
-use minecraft::biome::Biomes;
-use minecraft::data::BLOCK_STATES;
-use minecraft::model::OrthoRotation::*;
-use minecraft::model::{self, Model, OrthoRotation};
 use rustc_serialize::json;
-use shader::Vertex;
 use vecmath::vec3_add;
 
 use self::PolymorphDecision::*;
@@ -313,11 +313,13 @@ impl<R: gfx::Resources> BlockStates<R> {
                     if variant.uvlock {
                         // Skip over faces that are constant in the ix or iy axis.
                         let xs = face.vertices.map(|v| v.xyz[ix]);
-                        if xs.map(|x| x == xs[0]) == [true, true, true, true] {
+                        if xs.map(|x| (x - xs[0]).abs() < f32::EPSILON) == [true, true, true, true]
+                        {
                             continue;
                         }
                         let ys = face.vertices.map(|v| v.xyz[iy]);
-                        if ys.map(|y| y == ys[0]) == [true, true, true, true] {
+                        if ys.map(|y| (y - ys[0]).abs() < f32::EPSILON) == [true, true, true, true]
+                        {
                             continue;
                         }
 

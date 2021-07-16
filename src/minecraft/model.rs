@@ -7,8 +7,8 @@ use std::str::FromStr;
 
 use self::OrthoRotation::*;
 
-use array::*;
-use cube;
+use crate::array::*;
+use crate::cube;
 use gfx_voxel::texture::AtlasBuilder;
 use rustc_serialize::json;
 

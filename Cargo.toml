@@ -2,6 +2,7 @@
 
 name = "hematite"
 version = "0.0.34"
+edition = "2018"
 license = "MIT"
 authors = ["bvssvni <bvssvni@gmail.com>"]
 keywords = ["minecraft", "piston", "client"]

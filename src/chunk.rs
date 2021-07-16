@@ -1,9 +1,9 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use array::*;
+use crate::array::*;
+use crate::shader::Vertex;
 use gfx;
-use shader::Vertex;
 
 #[derive(Copy, Clone)]
 pub struct BlockState {

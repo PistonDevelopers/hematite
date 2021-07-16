@@ -1,21 +1,7 @@
-extern crate byteorder;
-extern crate camera_controllers;
-extern crate docopt;
-extern crate flate2;
-extern crate fps_counter;
+#![deny(rust_2018_compatibility, rust_2018_idioms)]
+
 #[macro_use]
 extern crate gfx;
-extern crate gfx_core;
-extern crate gfx_device_gl;
-extern crate gfx_voxel;
-extern crate glutin_window;
-extern crate libc;
-extern crate memmap;
-extern crate piston;
-extern crate rustc_serialize;
-extern crate shader_version;
-extern crate vecmath;
-extern crate zip;
 
 // Reexport modules from gfx_voxel while stuff is moving
 // from Hematite to the library.
@@ -27,7 +13,8 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use array::*;
+use crate::array::*;
+use crate::shader::Renderer;
 use docopt::Docopt;
 use flate2::read::GzDecoder;
 use gfx::traits::Device;
@@ -35,15 +22,14 @@ use glutin_window::*;
 use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::{AfterRenderEvent, MouseRelativeEvent, PressEvent, RenderEvent, UpdateEvent};
 use piston::window::{AdvancedWindow, OpenGLWindow, Size, Window, WindowSettings};
-use shader::Renderer;
 use vecmath::{vec3_add, vec3_normalized, vec3_scale};
 
 pub mod chunk;
 pub mod minecraft;
 pub mod shader;
 
-use minecraft::biome::Biomes;
-use minecraft::block_state::BlockStates;
+use crate::minecraft::biome::Biomes;
+use crate::minecraft::block_state::BlockStates;
 
 static USAGE: &str = "
 hematite, Minecraft made in Rust!

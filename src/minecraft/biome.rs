@@ -1,9 +1,9 @@
 use std::ops::Index;
 use std::path::Path;
 
-use chunk::BiomeId;
+use crate::chunk::BiomeId;
+use crate::minecraft::data;
 use gfx_voxel::texture::ColorMap;
-use minecraft::data;
 
 #[derive(Copy, Clone)]
 pub struct Biome {

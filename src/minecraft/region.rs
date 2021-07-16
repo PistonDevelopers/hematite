@@ -4,9 +4,9 @@ use std::cell::RefCell;
 use std::io;
 use std::path::Path;
 
-use array::*;
-use chunk::{BiomeId, BlockState, Chunk, ChunkColumn, LightLevel, EMPTY_CHUNK, SIZE};
-use minecraft::nbt::Nbt;
+use crate::array::*;
+use crate::chunk::{BiomeId, BlockState, Chunk, ChunkColumn, LightLevel, EMPTY_CHUNK, SIZE};
+use crate::minecraft::nbt::Nbt;
 
 pub struct Region {
     mmap: Mmap,
