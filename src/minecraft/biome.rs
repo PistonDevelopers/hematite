@@ -5,7 +5,7 @@ use crate::chunk::BiomeId;
 use crate::minecraft::data;
 use gfx_voxel::texture::ColorMap;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Biome {
     pub name: &'static str,
     pub temperature: f32,
@@ -14,11 +14,13 @@ pub struct Biome {
     pub foliage_color: [u8; 3],
 }
 
+#[derive(Debug)]
 pub struct Biomes {
     biomes: Box<[Option<Biome>; 256]>,
 }
 
 impl Biomes {
+    #[must_use]
     pub fn load(assets: &Path) -> Biomes {
         let mut biomes = Box::new([None; 256]);
 

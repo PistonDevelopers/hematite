@@ -1,4 +1,24 @@
-#![deny(rust_2018_compatibility, rust_2018_idioms)]
+//! Hematite is a minecraft client written in rust
+
+#![deny(
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    unused,
+    nonstandard_style,
+    future_incompatible,
+    missing_copy_implementations,
+    missing_debug_implementations
+)]
+#![warn(clippy::all, clippy::pedantic, missing_docs)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::similar_names,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap
+)]
+#![feature(array_map)]
 
 #[macro_use]
 extern crate gfx;
@@ -13,19 +33,22 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use crate::array::*;
+use crate::array::{Array, Array3};
 use crate::shader::Renderer;
 use docopt::Docopt;
 use flate2::read::GzDecoder;
 use gfx::traits::Device;
-use glutin_window::*;
+use glutin_window::GlutinWindow;
 use piston::event_loop::{EventLoop, EventSettings, Events};
 use piston::input::{AfterRenderEvent, MouseRelativeEvent, PressEvent, RenderEvent, UpdateEvent};
 use piston::window::{AdvancedWindow, OpenGLWindow, Size, Window, WindowSettings};
 use vecmath::{vec3_add, vec3_normalized, vec3_scale};
 
+/// chunk module
 pub mod chunk;
+/// minecraft module
 pub mod minecraft;
+/// shader module
 pub mod shader;
 
 use crate::minecraft::biome::Biomes;
@@ -120,8 +143,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let (mut device, mut factory) =
-        gfx_device_gl::create(|s| window.get_proc_address(s) as *const _);
+    let (mut device, mut factory) = gfx_device_gl::create(|s| window.get_proc_address(s).cast());
 
     let Size {
         width: w,
@@ -144,7 +166,7 @@ fn main() {
         encoder,
         target_view,
         depth_view,
-        block_states.texture.surface.clone(),
+        &block_states.texture.surface,
     );
 
     let mut chunk_manager = chunk::ChunkManager::new();
@@ -154,8 +176,11 @@ fn main() {
     for cz in c_bases[1]..c_bases[1] + 16 {
         for cx in c_bases[0]..c_bases[0] + 16 {
             if let Some(column) = region.get_chunk_column(cx, cz) {
-                let (cx, cz) = (cx as i32 + regions[0] * 32, cz as i32 + regions[1] * 32);
-                chunk_manager.add_chunk_column(cx, cz, column)
+                let (cx, cz) = (
+                    i32::from(cx) + regions[0] * 32,
+                    i32::from(cz) + regions[1] * 32,
+                );
+                chunk_manager.add_chunk_column(cx, cz, column);
             }
         }
     }
@@ -225,9 +250,9 @@ fn main() {
                     let mut bb_min = [inf, inf, inf];
                     let mut bb_max = [-inf, -inf, -inf];
                     let xyz = [cx, cy, cz].map(|x| x as f32 * 16.0);
-                    for &dx in [0.0, 16.0].iter() {
-                        for &dy in [0.0, 16.0].iter() {
-                            for &dz in [0.0, 16.0].iter() {
+                    for &dx in &[0.0, 16.0] {
+                        for &dy in &[0.0, 16.0] {
+                            for &dz in &[0.0, 16.0] {
                                 use vecmath::col_mat4_transform;
 
                                 let v = vec3_add(xyz, [dx, dy, dz]);
@@ -267,9 +292,9 @@ fn main() {
                 num_chunks,
                 num_total_chunks,
                 end_duration.as_secs() as f64
-                    + end_duration.subsec_nanos() as f64 / 1_000_000_000.0,
+                    + f64::from(end_duration.subsec_nanos()) / 1_000_000_000.0,
                 frame_end_duration.as_secs() as f64
-                    + frame_end_duration.subsec_nanos() as f64 / 1_000_000_000.0,
+                    + f64::from(frame_end_duration.subsec_nanos()) / 1_000_000_000.0,
                 fps,
                 world.file_name().unwrap().to_str().unwrap()
             );

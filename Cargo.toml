@@ -9,11 +9,6 @@ keywords = ["minecraft", "piston", "client"]
 description = "A simple Minecraft client"
 repository = "https://github.com/PistonDevelopers/hematite.git"
 homepage = "http://hematite.piston.rs"
-exclude = ["home/*"]
-
-[profile.release]
-opt-level = 2
-debug = false
 
 [[bin]]
 

@@ -4,10 +4,11 @@ use std::cell::RefCell;
 use std::io;
 use std::path::Path;
 
-use crate::array::*;
+use crate::array::Array;
 use crate::chunk::{BiomeId, BlockState, Chunk, ChunkColumn, LightLevel, EMPTY_CHUNK, SIZE};
 use crate::minecraft::nbt::Nbt;
 
+#[derive(Debug)]
 pub struct Region {
     mmap: Mmap,
 }
@@ -31,6 +32,7 @@ impl Region {
         unsafe { self.mmap.as_slice() }
     }
 
+    #[must_use]
     pub fn get_chunk_column<R: gfx::Resources>(&self, x: u8, z: u8) -> Option<ChunkColumn<R>> {
         let locations = &self.as_slice()[..4096];
         let i = 4 * ((x % 32) as usize + (z % 32) as usize * 32);
@@ -60,11 +62,10 @@ impl Region {
             .unwrap()
             .into_compound_list()
             .unwrap()
-            .into_iter()
         {
             let y = chunk.get("Y").unwrap().as_byte().unwrap();
             let blocks = chunk.get("Blocks").unwrap().as_bytearray().unwrap();
-            let blocks_top = chunk.get("Add").and_then(|x| x.as_bytearray());
+            let blocks_top = chunk.get("Add").and_then(Nbt::as_bytearray);
             let blocks_data = chunk.get("Data").unwrap().as_bytearray().unwrap();
             let block_light = chunk.get("BlockLight").unwrap().as_bytearray().unwrap();
             let sky_light = chunk.get("SkyLight").unwrap().as_bytearray().unwrap();
@@ -78,7 +79,9 @@ impl Region {
                     };
                     let data = (blocks_data[i >> 1] >> ((i & 1) * 4)) & 0x0f;
                     BlockState {
-                        value: ((blocks[i] as u16) << 4) | ((top as u16) << 12) | (data as u16),
+                        value: (u16::from(blocks[i]) << 4)
+                            | (u16::from(top) << 12)
+                            | u16::from(data),
                     }
                 }),
                 light_levels: array_16x16x16(|x, y, z| {
