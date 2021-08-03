@@ -5,7 +5,7 @@ pub mod model;
 pub mod nbt;
 pub mod region;
 
-pub use minecraft::data_1_8_pre2 as data;
+pub use crate::minecraft::data_1_8_pre2 as data;
 use std::env;
 use std::fs::{self, File};
 use std::io;

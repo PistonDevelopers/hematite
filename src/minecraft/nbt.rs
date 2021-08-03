@@ -29,7 +29,7 @@ pub enum Nbt {
 }
 
 impl fmt::Debug for Nbt {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Nbt::Byte(x) => write!(f, "{}b", x),
             Nbt::Short(x) => write!(f, "{}s", x),
@@ -47,7 +47,7 @@ impl fmt::Debug for Nbt {
 }
 
 impl fmt::Display for Nbt {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             Nbt::Byte(x) => write!(f, "{}", x),
             Nbt::Short(x) => write!(f, "{}", x),
