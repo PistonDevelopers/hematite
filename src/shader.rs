@@ -52,6 +52,7 @@ gfx_vertex_struct!(Vertex {
     rgb: [f32; 3] = "at_color",
 });
 
+#[derive(Debug)]
 pub struct Renderer<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> {
     factory: F,
     pub pipe: gfx::PipelineState<R, pipe::Meta>,
@@ -69,7 +70,7 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R
         encoder: gfx::Encoder<R, C>,
         target: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
         depth: gfx::handle::DepthStencilView<R, (gfx::format::D24_S8, gfx::format::Unorm)>,
-        tex: gfx::handle::Texture<R, gfx::format::R8_G8_B8_A8>,
+        tex: &gfx::handle::Texture<R, gfx::format::R8_G8_B8_A8>,
     ) -> Renderer<R, F, C> {
         let sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
             gfx::texture::FilterMethod::Scale,
@@ -78,7 +79,7 @@ impl<R: gfx::Resources, F: gfx::Factory<R>, C: gfx::CommandBuffer<R>> Renderer<R
 
         let texture_view = factory
             .view_texture_as_shader_resource::<gfx::format::Rgba8>(
-                &tex,
+                tex,
                 (0, 0),
                 gfx::format::Swizzle::new(),
             )

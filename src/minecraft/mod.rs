@@ -27,6 +27,7 @@ pub fn vanilla_root_path() -> PathBuf {
     buf
 }
 #[cfg(target_os = "linux")]
+#[must_use]
 pub fn vanilla_root_path() -> PathBuf {
     let home = var("HOME");
     let mut buf = PathBuf::from(home);
@@ -65,7 +66,7 @@ pub fn fetch_assets(version: &str) {
 
             let mut outfile = File::create(&path).unwrap();
             io::copy(&mut file, &mut outfile).unwrap();
-            count += 1
+            count += 1;
         }
     }
 

@@ -6,12 +6,11 @@ use std::fs::File;
 use std::num::Wrapping;
 use std::path::Path;
 
-use crate::array::*;
 use crate::chunk::{BiomeId, BlockState, Chunk};
 use crate::cube;
 use crate::minecraft::biome::Biomes;
 use crate::minecraft::data::BLOCK_STATES;
-use crate::minecraft::model::OrthoRotation::*;
+use crate::minecraft::model::OrthoRotation::{Rotate0, Rotate180, Rotate270, Rotate90};
 use crate::minecraft::model::{self, Model, OrthoRotation};
 use crate::shader::Vertex;
 use gfx;
@@ -19,21 +18,22 @@ use gfx_voxel::texture::{AtlasBuilder, ImageSize, Texture};
 use rustc_serialize::json;
 use vecmath::vec3_add;
 
-use self::PolymorphDecision::*;
+use self::PolymorphDecision::{IfBlock, IfBlockOrSolid, PickBlockState};
 
+#[derive(Debug)]
 pub struct BlockStates<R: gfx::Resources> {
     pub models: Vec<ModelAndBehavior>,
     pub texture: Texture<R>,
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum RandomOffset {
     None,
     XZ,
     XYZ,
 }
 
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Dir {
     Down,
     Up,
@@ -50,6 +50,7 @@ pub enum Dir {
 }
 
 impl Dir {
+    #[must_use]
     pub fn xyz(self) -> [i32; 3] {
         match self {
             Dir::Down => [0, -1, 0],
@@ -67,7 +68,7 @@ impl Dir {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum PolymorphDecision {
     // Stop and use this block state ID for the model.
     PickBlockState(u16),
@@ -90,7 +91,7 @@ struct Description {
     polymorph_oracle: Vec<PolymorphDecision>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ModelAndBehavior {
     pub model: Model,
     pub random_offset: RandomOffset,
@@ -98,6 +99,7 @@ pub struct ModelAndBehavior {
 }
 
 impl ModelAndBehavior {
+    #[must_use]
     pub fn empty() -> ModelAndBehavior {
         ModelAndBehavior {
             model: Model::empty(),
@@ -106,6 +108,7 @@ impl ModelAndBehavior {
         }
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.model.is_empty()
     }
@@ -209,7 +212,7 @@ impl<R: gfx::Resources> BlockStates<R> {
         let mut partial_model_cache = HashMap::new();
         let mut block_state_cache: HashMap<String, HashMap<String, Variant>> = HashMap::new();
 
-        for state in states.into_iter() {
+        for state in states {
             let variants = match block_state_cache.entry(state.name.to_string()) {
                 Occupied(entry) => entry.into_mut(),
                 Vacant(entry) => entry.insert({
@@ -255,7 +258,7 @@ impl<R: gfx::Resources> BlockStates<R> {
                                         }
                                     });
                                     if let Some(r) = variant.remove("z") {
-                                        println!("ignoring z rotation {} in {}", r, name)
+                                        println!("ignoring z rotation {} in {}", r, name);
                                     }
                                     let uvlock = variant
                                         .remove("uvlock")
@@ -293,8 +296,8 @@ impl<R: gfx::Resources> BlockStates<R> {
                     rot_mat[2] as f32,
                     rot_mat[3] as f32,
                 );
-                for face in m.faces.iter_mut() {
-                    for vertex in face.vertices.iter_mut() {
+                for face in &mut m.faces {
+                    for vertex in &mut face.vertices {
                         let xyz = &mut vertex.xyz;
                         let (x, y) = (xyz[ix] - 0.5, xyz[iy] - 0.5);
                         xyz[ix] = a * x + b * y + 0.5;
@@ -328,7 +331,7 @@ impl<R: gfx::Resources> BlockStates<R> {
                             .map(|i| (uvs[0][i]).min(uvs[1][i]).min(uvs[2][i]).min(uvs[3][i]));
                         let temp = uv_min.map(|x| (x / 16.0).floor() * 16.0);
                         let (u_base, v_base) = (temp[0], temp[1]);
-                        for vertex in face.vertices.iter_mut() {
+                        for vertex in &mut face.vertices {
                             let uv = &mut vertex.uv;
                             let (u, v) = (uv[0] - u_base - 8.0, uv[1] - v_base - 8.0);
                             uv[0] = a * u - b * v + 8.0 + u_base;
@@ -367,9 +370,9 @@ impl<R: gfx::Resources> BlockStates<R> {
         let u_unit = 1.0 / (width as f32);
         let v_unit = 1.0 / (height as f32);
 
-        for model in models.iter_mut() {
-            for face in model.model.faces.iter_mut() {
-                for vertex in face.vertices.iter_mut() {
+        for model in &mut models {
+            for face in &mut model.model.faces {
+                for vertex in &mut face.vertices {
                     vertex.uv[0] *= u_unit;
                     vertex.uv[1] *= v_unit;
                 }
@@ -379,6 +382,7 @@ impl<R: gfx::Resources> BlockStates<R> {
         BlockStates { models, texture }
     }
 
+    #[must_use]
     pub fn get_model(&self, i: BlockState) -> Option<&ModelAndBehavior> {
         let i = i.value as usize;
         if i >= self.models.len() || self.models[i].is_empty() {
@@ -388,10 +392,12 @@ impl<R: gfx::Resources> BlockStates<R> {
         }
     }
 
+    #[must_use]
     pub fn texture(&self) -> &Texture<R> {
         &self.texture
     }
 
+    #[must_use]
     pub fn get_opacity(&self, i: BlockState) -> model::Opacity {
         let i = i.value as usize;
         if i >= self.models.len() {
@@ -431,17 +437,17 @@ pub fn fill_buffer<R: gfx::Resources>(
                         let mut i = 0;
                         let result;
                         loop {
-                            let (cond, idx) = match model.polymorph_oracle[i] {
+                            let (cond, idx) = match model.polymorph_oracle.get(i).unwrap() {
                                 PickBlockState(id) => {
-                                    result = &block_states.models[id as usize];
+                                    result = &block_states.models[*id as usize];
                                     break;
                                 }
                                 IfBlock(dir, offset, idx) => {
-                                    let id = this_block.value.wrapping_add(offset as u16);
+                                    let id = this_block.value.wrapping_add(*offset as u16);
                                     (at(dir.xyz()).0.value == id, idx)
                                 }
                                 IfBlockOrSolid(dir, offset, idx) => {
-                                    let id = this_block.value.wrapping_add(offset as u16);
+                                    let id = this_block.value.wrapping_add(*offset as u16);
                                     let other = at(dir.xyz()).0;
                                     (
                                         other.value == id
@@ -461,7 +467,7 @@ pub fn fill_buffer<R: gfx::Resources>(
                             if cond {
                                 i += 1;
                             } else {
-                                i = idx as usize;
+                                i = *idx as usize;
                             }
                         }
                         result
@@ -474,9 +480,10 @@ pub fn fill_buffer<R: gfx::Resources>(
                     RandomOffset::None => block_xyz,
                     random_offset => {
                         let (x, z) = (block_xyz[0], block_xyz[2]);
-                        let seed = Wrapping((Wrapping(x as i32) * Wrapping(3129871)).0 as i64)
-                            ^ (Wrapping(z as i64) * Wrapping(116129781));
-                        let value = seed * seed * Wrapping(42317861) + seed * Wrapping(11);
+                        let seed =
+                            Wrapping(i64::from((Wrapping(x as i32) * Wrapping(3_129_871)).0))
+                                ^ (Wrapping(z as i64) * Wrapping(116_129_781));
+                        let value = seed * seed * Wrapping(42_317_861) + seed * Wrapping(11);
                         let ox = (((value.0 >> 16) & 15) as f32 / 15.0 - 0.5) * 0.5;
                         let oz = (((value.0 >> 24) & 15) as f32 / 15.0 - 0.5) * 0.5;
                         let oy = if random_offset == RandomOffset::XYZ {
@@ -488,7 +495,7 @@ pub fn fill_buffer<R: gfx::Resources>(
                     }
                 };
                 let model = &model.model;
-                for face in model.faces.iter() {
+                for face in &model.faces {
                     if let Some(cull_face) = face.cull_face {
                         let (neighbor, _) = at(cull_face.direction());
                         if block_states.get_opacity(neighbor).is_opaque() {
@@ -509,18 +516,18 @@ pub fn fill_buffer<R: gfx::Resources>(
                             model::Tint::Grass | model::Tint::Foliage => ([0x00, 0x00, 0x00], 0.0),
                             model::Tint::Redstone => ([0xff, 0x00, 0x00], 1.0),
                         };
-                        let mut rgb = rgb.map(|x: u8| x as f32 / 255.0);
+                        let mut rgb = rgb.map(|x: u8| f32::from(x) / 255.0);
                         let (mut sum_light_level, mut num_light_level) = (0.0, 0.0);
 
                         let rounded_xyz = vertex.xyz.map(|x| x.round() as i32);
                         let (dx, dy, dz) = (rounded_xyz[0], rounded_xyz[1], rounded_xyz[2]);
-                        for &dx in [dx - 1, dx].iter() {
-                            for &dz in [dz - 1, dz].iter() {
-                                for &dy in [dy - 1, dy].iter() {
+                        for &dx in &[dx - 1, dx] {
+                            for &dz in &[dz - 1, dz] {
+                                for &dy in &[dy - 1, dy] {
                                     let (neighbor, light_level) = at([dx, dy, dz]);
                                     let light_level =
                                         max(light_level.block_light(), light_level.sky_light());
-                                    let mut light_level = light_level as f32;
+                                    let mut light_level = f32::from(light_level);
 
                                     let use_block = match face.ao_face {
                                         Some(ao_face) => {
@@ -574,17 +581,17 @@ pub fn fill_buffer<R: gfx::Resources>(
                                         model::Tint::Grass => biome.grass_color,
                                         model::Tint::Foliage => biome.foliage_color,
                                     }
-                                    .map(|x| x as f32 / 255.0),
+                                    .map(|x| f32::from(x) / 255.0),
                                 );
                                 num_colors += 1.0;
                             }
                         }
 
                         let light_factor = 0.2
-                            + if num_light_level != 0.0 {
-                                sum_light_level / num_light_level / 15.0 * 0.8
-                            } else {
+                            + if num_light_level == 0.0 {
                                 0.0
+                            } else {
+                                sum_light_level / num_light_level / 15.0 * 0.8
                             };
 
                         // Up, North and South, East and West, Down have different lighting.

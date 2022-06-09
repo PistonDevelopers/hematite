@@ -5,20 +5,20 @@ use std::fs::File;
 use std::path::Path;
 use std::str::FromStr;
 
-use self::OrthoRotation::*;
+use self::OrthoRotation::{Rotate0, Rotate180, Rotate270, Rotate90};
 
-use crate::array::*;
+use crate::array::Array;
 use crate::cube;
 use gfx_voxel::texture::AtlasBuilder;
 use rustc_serialize::json;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vertex {
     pub xyz: [f32; 3],
     pub uv: [f32; 2],
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Tint {
     None,
     Grass,
@@ -26,7 +26,7 @@ pub enum Tint {
     Redstone,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum OrthoRotation {
     Rotate0,
     Rotate90,
@@ -35,6 +35,7 @@ pub enum OrthoRotation {
 }
 
 impl OrthoRotation {
+    #[must_use]
     pub fn from_json(json: &json::Json) -> Option<OrthoRotation> {
         json.as_i64().and_then(|r| {
             Some(match r {
@@ -48,7 +49,7 @@ impl OrthoRotation {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Face {
     pub vertices: [Vertex; 4],
     pub tint: bool,
@@ -56,13 +57,13 @@ pub struct Face {
     pub ao_face: Option<cube::Face>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum PartialTexture {
     Variable(String),
     Coords(f32, f32),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PartialModel {
     textures: HashMap<String, PartialTexture>,
     faces: Vec<(Face, String)>,
@@ -70,7 +71,7 @@ pub struct PartialModel {
     no_ambient_occlusion: bool,
 }
 
-#[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Copy, PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub enum Opacity {
     Transparent,
     TranslucentSolid,
@@ -79,16 +80,18 @@ pub enum Opacity {
 }
 
 impl Opacity {
+    #[must_use]
     pub fn is_opaque(self) -> bool {
         self == Opacity::Opaque
     }
 
+    #[must_use]
     pub fn is_solid(self) -> bool {
         self != Opacity::Transparent
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Model {
     pub faces: Vec<Face>,
     pub opacity: Opacity,
@@ -128,7 +131,7 @@ impl PartialModel {
         let path = assets.join(Path::new(&format!("minecraft/models/{}.json", name)));
         let obj = json::Json::from_reader(&mut File::open(&path).unwrap()).unwrap();
 
-        let mut model = match obj.find("parent").and_then(|x| x.as_string()) {
+        let mut model = match obj.find("parent").and_then(json::Json::as_string) {
             // FIXME(toqueteos): Cthulu himself came here and inspired me, if we use a closure here instead of
             // "clone_parent" this would trigger an error: "reached the recursion limit during monomorphization"
             Some(parent) => PartialModel::load(parent, assets, atlas, cache, clone_parent),
@@ -140,11 +143,14 @@ impl PartialModel {
             },
         };
 
-        if let Some(ambient_occlusion) = obj.find("ambientocclusion").and_then(|x| x.as_boolean()) {
-            model.no_ambient_occlusion = !ambient_occlusion
+        if let Some(ambient_occlusion) = obj
+            .find("ambientocclusion")
+            .and_then(json::Json::as_boolean)
+        {
+            model.no_ambient_occlusion = !ambient_occlusion;
         }
 
-        if let Some(textures) = obj.find("textures").and_then(|x| x.as_object()) {
+        if let Some(textures) = obj.find("textures").and_then(json::Json::as_object) {
             for (name, tex) in textures.iter() {
                 let tex = tex.as_string().unwrap();
                 let tex = if tex.starts_with('#') {
@@ -161,7 +167,7 @@ impl PartialModel {
             .find("elements")
             .and_then(|x: &json::Json| x.as_array().cloned())
         {
-            for element in elements.iter().map(|x| x) {
+            for element in &elements {
                 let from = array3_num(element.find("from").unwrap(), |x| x as f32 / 16.0);
                 let to = array3_num(element.find("to").unwrap(), |x| x as f32 / 16.0);
                 let scale = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
@@ -269,20 +275,20 @@ impl PartialModel {
                             face.ao_face = None;
 
                             let (ox, oy) = (origin[ix], origin[iy]);
-                            for v in face.vertices.iter_mut() {
+                            for v in &mut face.vertices {
                                 let (x, y) = (v.xyz[ix] - ox, v.xyz[iy] - oy);
                                 v.xyz[ix] = x * c + y * s;
                                 v.xyz[iy] = -x * s + y * c;
                             }
 
                             if rescale {
-                                for v in face.vertices.iter_mut() {
+                                for v in &mut face.vertices {
                                     v.xyz[ix] *= SQRT_2;
                                     v.xyz[iy] *= SQRT_2;
                                 }
                             }
 
-                            for v in face.vertices.iter_mut() {
+                            for v in &mut face.vertices {
                                 v.xyz[ix] += ox;
                                 v.xyz[iy] += oy;
                             }
@@ -335,7 +341,7 @@ impl Model {
                             }
                         }
                         let (u, v) = texture_coords(&partial.textures, tex).unwrap();
-                        for vertex in face.vertices.iter_mut() {
+                        for vertex in &mut face.vertices {
                             vertex.uv[0] += u;
                             vertex.uv[1] += v;
                         }
@@ -345,14 +351,14 @@ impl Model {
 
                 let mut full_faces = [Opacity::Transparent; 6];
                 if partial.full_faces.len() >= 6 {
-                    for &i in partial.full_faces.iter() {
+                    for &i in &partial.full_faces {
                         let face = faces[i].cull_face.unwrap() as usize;
                         if full_faces[face] == Opacity::Opaque {
                             continue;
                         }
                         let (mut min_u, mut min_v) = (f32::INFINITY, f32::INFINITY);
                         let (mut max_u, mut max_v) = (0.0, 0.0);
-                        for vertex in faces[i].vertices.iter() {
+                        for vertex in &faces[i].vertices {
                             let (u, v) = (vertex.uv[0], vertex.uv[1]);
                             min_u = u.min(min_u);
                             min_v = v.min(min_v);
@@ -374,7 +380,7 @@ impl Model {
                 }
 
                 if partial.no_ambient_occlusion {
-                    for face in faces.iter_mut() {
+                    for face in &mut faces {
                         face.ao_face = None;
                     }
                 } else if faces.iter().any(|f| f.ao_face.is_none()) {
@@ -420,6 +426,7 @@ impl Model {
         )
     }
 
+    #[must_use]
     pub fn empty() -> Model {
         Model {
             faces: Vec::new(),
@@ -428,6 +435,7 @@ impl Model {
         }
     }
 
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.faces.is_empty()
     }

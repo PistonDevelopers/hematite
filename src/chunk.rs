@@ -1,31 +1,34 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-use crate::array::*;
 use crate::shader::Vertex;
 use gfx;
 
-#[derive(Copy, Clone)]
+/// `BlockState` structure
+#[derive(Copy, Clone, Debug)]
 pub struct BlockState {
     pub value: u16,
 }
 
 pub const EMPTY_BLOCK: BlockState = BlockState { value: 0 };
 
-#[derive(Copy, Clone)]
+/// `BiomeId` structure
+#[derive(Copy, Clone, Debug)]
 pub struct BiomeId {
     pub value: u8,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct LightLevel {
     pub value: u8,
 }
 
 impl LightLevel {
+    #[must_use]
     pub fn block_light(self) -> u8 {
         self.value & 0xf
     }
+    #[must_use]
     pub fn sky_light(self) -> u8 {
         self.value >> 4
     }
@@ -34,7 +37,7 @@ impl LightLevel {
 pub const SIZE: usize = 16;
 
 /// A chunk of SIZE x SIZE x SIZE blocks, in YZX order.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Chunk {
     pub blocks: [[[BlockState; SIZE]; SIZE]; SIZE],
     pub light_levels: [[[LightLevel; SIZE]; SIZE]; SIZE],
@@ -46,17 +49,20 @@ pub const EMPTY_CHUNK: &Chunk = &Chunk {
     light_levels: [[[LightLevel { value: 0xf0 }; SIZE]; SIZE]; SIZE],
 };
 
+#[derive(Debug)]
 pub struct ChunkColumn<R: gfx::Resources> {
     pub chunks: Vec<Chunk>,
     pub buffers: [RefCell<Option<gfx::handle::Buffer<R, Vertex>>>; SIZE],
     pub biomes: [[BiomeId; SIZE]; SIZE],
 }
 
+#[derive(Debug)]
 pub struct ChunkManager<R: gfx::Resources> {
     chunk_columns: HashMap<(i32, i32), ChunkColumn<R>>,
 }
 
 impl<R: gfx::Resources> ChunkManager<R> {
+    #[must_use]
     pub fn new() -> ChunkManager<R> {
         ChunkManager {
             chunk_columns: HashMap::new(),
@@ -82,7 +88,7 @@ impl<R: gfx::Resources> ChunkManager<R> {
             let central = columns[1][1].unwrap();
             for y in 0..central.chunks.len() {
                 let chunks = [-1, 0, 1].map(|dy| {
-                    let y = y as i32 + dy;
+                    let y = y as i64 + dy;
                     columns.map(|cz| {
                         cz.map(|cx| {
                             cx.and_then(|c| c.chunks[..].get(y as usize))
@@ -95,7 +101,7 @@ impl<R: gfx::Resources> ChunkManager<R> {
                     &central.buffers[y],
                     chunks,
                     columns.map(|cz| cz.map(|cx| cx.map(|c| &c.biomes))),
-                )
+                );
             }
         }
     }
@@ -110,9 +116,9 @@ impl<R: gfx::Resources> ChunkManager<R> {
             /*b:*/ &RefCell<Option<gfx::handle::Buffer<R, Vertex>>>,
         ),
     {
-        for (&(x, z), c) in self.chunk_columns.iter() {
+        for (&(x, z), c) in &self.chunk_columns {
             for (y, (c, b)) in c.chunks.iter().zip(c.buffers.iter()).enumerate() {
-                f(x, y as i32, z, c, b)
+                f(x, y as i32, z, c, b);
             }
         }
     }

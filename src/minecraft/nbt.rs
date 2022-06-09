@@ -10,7 +10,7 @@ use flate2::read::{GzDecoder, ZlibDecoder};
 use rustc_serialize;
 use rustc_serialize::hex::ToHex;
 
-use self::DecoderError::*;
+use self::DecoderError::{ApplicationError, ExpectedError, MissingFieldError, UnknownVariantError};
 
 /// Represents a NBT value
 #[derive(Clone, PartialEq)]
@@ -98,6 +98,7 @@ impl Nbt {
         Nbt::from_reader(reader)
     }
 
+    #[must_use]
     pub fn as_byte(&self) -> Option<i8> {
         match *self {
             Nbt::Byte(b) => Some(b),
@@ -119,6 +120,7 @@ impl Nbt {
         }
     }
 
+    #[must_use]
     pub fn as_bytearray(&self) -> Option<&[u8]> {
         match *self {
             Nbt::ByteArray(ref b) => Some(&b[..]),
@@ -133,6 +135,7 @@ impl Nbt {
         }
     }
 
+    #[must_use]
     pub fn as_float_list(&self) -> Option<&[f32]> {
         match *self {
             Nbt::List(List::Float(ref f)) => Some(&f[..]),
@@ -140,6 +143,7 @@ impl Nbt {
         }
     }
 
+    #[must_use]
     pub fn as_double_list(&self) -> Option<&[f64]> {
         match *self {
             Nbt::List(List::Double(ref d)) => Some(&d[..]),
@@ -192,6 +196,7 @@ impl From<string::FromUtf8Error> for NbtReaderError {
     }
 }
 
+#[derive(Debug)]
 pub struct NbtReader<R> {
     reader: R,
 }
@@ -236,7 +241,7 @@ impl<R: Read> NbtReader<R> {
         for _ in 0..len {
             let mut c = [0];
             self.reader.read_exact(&mut c)?;
-            v.push(c[0])
+            v.push(c[0]);
         }
         String::from_utf8(v).map_err(NbtReaderError::from)
     }
@@ -247,7 +252,7 @@ impl<R: Read> NbtReader<R> {
         for _ in 0..len {
             let mut c = [0];
             self.reader.read_exact(&mut c)?;
-            v.push(c[0])
+            v.push(c[0]);
         }
         Ok(v)
     }
@@ -259,7 +264,7 @@ impl<R: Read> NbtReader<R> {
         let len = self.i32()? as usize;
         let mut v = Vec::with_capacity(len);
         for _ in 0..len {
-            v.push(read(self)?)
+            v.push(read(self)?);
         }
         Ok(v)
     }
@@ -278,17 +283,17 @@ impl<R: Read> NbtReader<R> {
                 assert_eq!(self.i32()?, 0);
                 Ok(List::Compound(Vec::new()))
             }
-            TAG_BYTE => self.array(|r| r.i8()).map(List::Byte),
-            TAG_SHORT => self.array(|r| r.i16()).map(List::Short),
-            TAG_INT => self.array(|r| r.i32()).map(List::Int),
-            TAG_LONG => self.array(|r| r.i64()).map(List::Long),
-            TAG_FLOAT => self.array(|r| r.f32()).map(List::Float),
-            TAG_DOUBLE => self.array(|r| r.f64()).map(List::Double),
-            TAG_BYTE_ARRAY => self.array(|r| r.array_u8()).map(List::ByteArray),
-            TAG_INT_ARRAY => self.array(|r| r.array(|r| r.i32())).map(List::IntArray),
-            TAG_STRING => self.array(|r| r.string()).map(List::String),
-            TAG_LIST => self.array(|r| r.list()).map(List::List),
-            TAG_COMPOUND => self.array(|r| r.compound()).map(List::Compound),
+            TAG_BYTE => self.array(NbtReader::i8).map(List::Byte),
+            TAG_SHORT => self.array(NbtReader::i16).map(List::Short),
+            TAG_INT => self.array(NbtReader::i32).map(List::Int),
+            TAG_LONG => self.array(NbtReader::i64).map(List::Long),
+            TAG_FLOAT => self.array(NbtReader::f32).map(List::Float),
+            TAG_DOUBLE => self.array(NbtReader::f64).map(List::Double),
+            TAG_BYTE_ARRAY => self.array(NbtReader::array_u8).map(List::ByteArray),
+            TAG_INT_ARRAY => self.array(|r| r.array(NbtReader::i32)).map(List::IntArray),
+            TAG_STRING => self.array(NbtReader::string).map(List::String),
+            TAG_LIST => self.array(NbtReader::list).map(List::List),
+            TAG_COMPOUND => self.array(NbtReader::compound).map(List::Compound),
             tag_type => panic!("Unexpected tag type {}", tag_type),
         }
     }
@@ -307,7 +312,7 @@ impl<R: Read> NbtReader<R> {
                         TAG_FLOAT => self.f32().map(Nbt::Float),
                         TAG_DOUBLE => self.f64().map(Nbt::Double),
                         TAG_BYTE_ARRAY => self.array_u8().map(Nbt::ByteArray),
-                        TAG_INT_ARRAY => self.array(|r| r.i32()).map(Nbt::IntArray),
+                        TAG_INT_ARRAY => self.array(NbtReader::i32).map(Nbt::IntArray),
                         TAG_STRING => self.string().map(Nbt::String),
                         TAG_LIST => self.list().map(Nbt::List),
                         TAG_COMPOUND => self.compound().map(Nbt::Compound),
@@ -321,6 +326,7 @@ impl<R: Read> NbtReader<R> {
 }
 
 /// A structure to decode NBT to values in rust.
+#[derive(Debug)]
 pub struct Decoder {
     stack: Vec<DecodeResult<Nbt>>,
 }
@@ -337,6 +343,7 @@ pub type DecodeResult<T> = Result<T, DecoderError>;
 
 impl Decoder {
     /// Creates a new decoder instance for decoding the specified NBT value.
+    #[must_use]
     pub fn new(nbt: Nbt) -> Decoder {
         Decoder {
             stack: vec![Ok(nbt)],
@@ -346,7 +353,7 @@ impl Decoder {
         self.stack.pop().unwrap()
     }
     fn push(&mut self, nbt: Nbt) {
-        self.stack.push(Ok(nbt))
+        self.stack.push(Ok(nbt));
     }
     fn push_all<T, F>(&mut self, list: Vec<T>, f: F) -> usize
     where
@@ -628,7 +635,7 @@ impl rustc_serialize::Decoder for Decoder {
     {
         let obj = expect!(self, Nbt::Compound)?;
         let len = obj.len();
-        for (key, value) in obj.into_iter() {
+        for (key, value) in obj {
             self.push(value);
             self.push(Nbt::String(key));
         }
