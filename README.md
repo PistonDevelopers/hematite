@@ -19,7 +19,7 @@ A simple Minecraft written in Rust with the Piston game engine
   * **Windows:** `%appdata%\.minecraft\saves\`
   * **OSX:** `~/Library/Application Support/minecraft/saves/`
   * **Linux/Other:** `~/.minecraft/saves/`
-* Run hematite with: `cargo run --release "./<WORLD_NAME>"`
+* Run hematite with: `cargo run --release -- -p "./<WORLD_NAME>"`
 
 ## Dependencies
 

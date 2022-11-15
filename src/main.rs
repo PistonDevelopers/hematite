@@ -116,7 +116,7 @@ fn main() {
         .exit_on_esc(true)
         .samples(0)
         .vsync(false)
-        .opengl(shader_version::opengl::OpenGL::V3_2)
+        .graphics_api(shader_version::opengl::OpenGL::V3_2)
         .build()
         .unwrap();
 
