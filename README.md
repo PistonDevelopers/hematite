@@ -1,5 +1,7 @@
 # hematite [![Build Status](https://travis-ci.org/PistonDevelopers/hematite.svg?branch=master)](https://travis-ci.org/PistonDevelopers/hematite)
 
+[DEPRECATED]
+
 A simple Minecraft written in Rust with the Piston game engine
 
 ![screenshot](./screenshot.png)
